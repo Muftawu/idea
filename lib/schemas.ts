@@ -43,12 +43,21 @@ const StaffInfoSchema = z.object({
 })
 
 // SUBJECT //
-const ClassGroupSubjectSchema = z.object({
+const SubjectSchema = z.object({
     id: z.string().optional(),
-    classGroup: z.string(),
+    name: z.string(),
+})
+
+const SubjectStatsSchema = z.object({
+    subjectsCount: z.number(),
+})
+
+
+const ClassSubjectGroupSchema = z.object({
+    id: z.string().optional(),
     name: z.string(),
     scoreType: z.string(),
-    scoreOptions: z.array(z.string()).optional(),
+    subjects: z.array(SubjectSchema).optional(),
 })
 
 // CLASSROOM //
@@ -98,8 +107,10 @@ const GuardianSchema = z.object({
 export type ClassRoomSchemaT = z.infer<typeof ClassRoomSchema>
 export type UserSchemaT = z.infer<typeof UserSchema>
 export type StaffT = z.infer<typeof StaffInfoSchema>
-export type ClassGroupSubjectT = z.infer<typeof ClassGroupSubjectSchema>
+export type ClassSubjectGroupT = z.infer<typeof ClassSubjectGroupSchema>
 export type StaffStatSchemaT = z.infer<typeof StaffStatsSchema>
 export type StudentSchemaT = z.infer<typeof StudentSchema>
 export type GuardianSchemaT = z.infer<typeof GuardianSchema>
 export type StudentStatsSchemaT = z.infer<typeof StudentStatsSchema>
+export type SubjectSchemaT = z.infer<typeof SubjectSchema>
+export type SubjectStatsSchemaT = z.infer<typeof SubjectStatsSchema>

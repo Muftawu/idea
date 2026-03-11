@@ -7,7 +7,6 @@ import React, { createContext, useState, useEffect, ReactNode, useContext } from
 export interface AuthContextProps {
     userInfo: UserSchemaT;
     isAuthenticated: boolean;
-    logout: () => void
 }
 
 export const AuthContext = createContext<AuthContextProps | null>(null)
@@ -42,16 +41,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         fetchUserInfo();
     }, []);
 
-    const logout = () => {
-        console.log("logging out")
-        setIsAuthenticated(false)
-        window.location.href = "/signin?action=logout"
-    }
-
     const value: AuthContextProps = {
         userInfo: userInfo,
         isAuthenticated: isAuthenticated,
-        logout: logout
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

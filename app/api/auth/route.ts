@@ -65,3 +65,20 @@ export async function POST(request: Request) {
         { message: "Welcome back" }
     )
 }
+
+
+export async function DELETE() {
+    const tokens_cleared = await removeAuthTokens()
+    if (tokens_cleared) {
+        return NextResponse.json(
+            null,
+            { status: 200 }
+        )
+    } else {
+        return NextResponse.json(
+            null,
+            { status: 400 }
+        )
+    }
+}
+

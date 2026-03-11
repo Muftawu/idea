@@ -35,7 +35,7 @@ export default function SignInPage() {
                 success: {
                     render({ data }: { data: string }) {
                         window.location.href = "/dashboard"
-                        return `${data}`
+                        return `Login success. ${data}`
                     }
                 },
                 error: {

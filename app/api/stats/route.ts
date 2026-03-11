@@ -16,6 +16,7 @@ const getFn = async (query: string) => {
         }
     })
     const result = await response.json()
+    console.log("result", result)
     return { response, result }
 }
 

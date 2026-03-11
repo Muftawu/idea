@@ -62,4 +62,5 @@ export const removeAuthTokens = async () => {
     cookieStore.delete("user_id")
     cookieStore.delete("access_token")
     cookieStore.delete("refresh_token")
+    return true
 }

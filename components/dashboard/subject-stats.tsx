@@ -1,10 +1,12 @@
+"use client"
+import { SubjectStatsSchemaT } from "@/lib/schemas"
 import { ClassGroups } from "@/lib/utils"
 import { Boxes, List, Notebook, Sunrise } from "lucide-react"
 
 type dataProps = {
     icon: any
     title: string,
-    data: string,
+    data: string | number,
 }
 
 function SubjectStatCard({ icon: Icon, title, data }: dataProps) {
@@ -21,8 +23,8 @@ function SubjectStatCard({ icon: Icon, title, data }: dataProps) {
     )
 }
 
-export function SubjecStatistics() {
-    const data: dataProps[] = [
+export function SubjecStatistics({ data }: { data: SubjectStatsSchemaT }) {
+    const subjectStats: dataProps[] = [
         {
             title: "Class Groups",
             data: ClassGroups.length.toString(),
@@ -35,7 +37,7 @@ export function SubjecStatistics() {
         },
         {
             title: "Subjects",
-            data: "30",
+            data: Number(data.subjectsCount).toFixed(0),
             icon: Notebook
         },
         {
@@ -46,7 +48,7 @@ export function SubjecStatistics() {
     ]
     return (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {data.map((item, index) => (
+            {subjectStats.map((item, index) => (
                 <SubjectStatCard key={index} icon={item.icon} title={item.title} data={item.data} />
             ))}
         </div>

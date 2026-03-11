@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ColorThemePicker } from "@/components/color-theme"
 import { AuthContext, useAuthContext } from "@/context/authContext"
 import { Spinner } from "@heroui/react"
+import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils"
+import { toast } from "react-toastify"
 
 interface TopbarProps {
     onMenuClick?: () => void
@@ -29,6 +31,32 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             <Spinner color="warning" size="sm" />
         </div>
     )
+
+    const handleLogout = async () => {
+        const fn = async () => {
+            try {
+                const response = await fetch("/api/auth/", {
+                    method: "DELETE",
+                    headers: { ...BaseRequestHeaders }
+                })
+                if (!response.ok) {
+                    return Promise.reject(response.status)
+                } else {
+                    return Promise.reject(response.status)
+                }
+            } catch (err: any) {
+            }
+        }
+        await toast.promise(
+            fn,
+            {
+                pending: "Logging out...",
+                success: "Successfully logout out",
+                error: BaseErrMsg
+            }
+        )
+        window.location.reload()
+    }
 
     return (
         <header className="lg:-mx-7 sticky top-0 z-30 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border mb-6 rounded-xl lg:rounded-none">
@@ -102,7 +130,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                                 <a href="/devices">My devices</a>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={authInfo.logout} className="text-destructive cursor-pointer">Sign out</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleLogout()} className="text-destructive cursor-pointer">Sign out</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

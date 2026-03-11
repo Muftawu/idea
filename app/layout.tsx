@@ -1,3 +1,4 @@
+"use client"
 import type React from "react"
 import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
@@ -9,11 +10,6 @@ import { Suspense } from "react"
 import { ToastContainer } from 'react-toastify';
 import { HeroUIProvider } from "@heroui/react";
 import { AuthProvider } from "@/context/authContext"
-
-export const metadata: Metadata = {
-    title: "Idea International",
-    description: "school management system",
-}
 
 export default function RootLayout({
     children,
