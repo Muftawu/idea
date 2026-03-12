@@ -2,7 +2,7 @@
 import type React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import {
     Home,
     UserRound,
@@ -16,6 +16,8 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import ideaLogo from "../public/images/idea.jpg"
+import { AuthContext } from "@/context/authContext"
+import { Spinner } from "@heroui/react"
 
 type Item = {
     href: string
@@ -33,17 +35,32 @@ const items: Item[] = [
     { href: "/profile", label: "Profile", icon: UserRound },
 ]
 
+const staffItems: Item[] = [
+    { href: "/", label: "Home", icon: Home },
+    { href: "/assigned-classes", label: "My Classes", icon: Theater },
+    { href: "/profile", label: "Profile", icon: UserRound },
+]
+
 export function Sidebar() {
+
     const pathname = usePathname()
     const [open, setOpen] = useState(true)
+
+    const userData = useContext(AuthContext)
+    const [menuType, setMenuType] = useState<Item[]>([])
+    const itemsType = userData?.userInfo.userType === "admin" ? items : staffItems
+
 
     useEffect(() => {
         const saved = localStorage.getItem("sidebar-open")
         if (saved) setOpen(saved === "1")
     }, [])
+
     useEffect(() => {
         localStorage.setItem("sidebar-open", open ? "1" : "0")
     }, [open])
+
+    if (!userData?.userInfo || !userData?.userInfo.userType) return <Spinner size="sm" />
 
     return (
         <aside
@@ -76,7 +93,7 @@ export function Sidebar() {
 
             <nav className="mt-0 flex-1">
                 <ul className="flex flex-col gap-1 px-3">
-                    {items.map(({ href, label, icon: Icon }) => {
+                    {itemsType.map(({ href, label, icon: Icon }) => {
                         const active = pathname === href || (href !== "/" && pathname?.startsWith(href))
                         return (
                             <li key={href}>

@@ -1,5 +1,5 @@
 "use client"
-import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit } from "lucide-react"
+import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, UsersRound} from "lucide-react"
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { useState, useEffect, useRef } from "react"
 import { ClassRoomSchemaT } from "@/lib/schemas"
@@ -13,7 +13,7 @@ import {
     ModalFooter,
     useDisclosure,
 } from "@heroui/react";
-import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils"
+import { BaseErrMsg, BaseRequestHeaders, capitalize, ClassGroups } from "@/lib/utils"
 import { toast } from "react-toastify"
 import { Spinner } from "@heroui/react"
 import { StaffT } from "@/lib/schemas"
@@ -41,7 +41,7 @@ export default function Classrooms() {
     useEffect(() => {
         const fetchAllClassrooms = async () => {
             try {
-                const response = await fetch(`/api/classroom?query=all`, {
+                const response = await fetch(`/api/classes?query=all`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
@@ -110,11 +110,12 @@ export default function Classrooms() {
 
     async function handleCreateNewStaff() {
         onClose()
+        if (!classRoomInfo.classGroup) return toast.info("No class group selected. Please select a class group.")
         const classExists = allClassrooms.find(obj => obj.name === classRoomInfo.name && obj.subclassLabel === classRoomInfo.subclassLabel)
         if (classExists) return toast.info("Class already exists")
         const fn = async () => {
             try {
-                const response = await fetch("/api/classroom", {
+                const response = await fetch("/api/classes", {
                     method: "POST",
                     headers: { ...BaseRequestHeaders },
                     body: JSON.stringify(classRoomInfo)
@@ -147,7 +148,7 @@ export default function Classrooms() {
         onClose()
         const fn = async () => {
             try {
-                const response = await fetch(`/api/classroom?query=${classRoomInfo.id}`, {
+                const response = await fetch(`/api/classes?query=${classRoomInfo.id}`, {
                     method: "DELETE",
                     headers: { ...BaseRequestHeaders },
                 })
@@ -166,7 +167,7 @@ export default function Classrooms() {
         await toast.promise(
             fn,
             {
-                pending: "Deleting staff...",
+                pending: "Deleting class...",
                 success: "Staff successfully deleted",
                 error: BaseErrMsg
             }
@@ -189,7 +190,7 @@ export default function Classrooms() {
 
         const fn = async () => {
             try {
-                const response = await fetch("/api/classroom", {
+                const response = await fetch("/api/classes", {
                     method: "PATCH",
                     headers: { ...BaseRequestHeaders },
                     body: JSON.stringify(jsonData)
@@ -220,10 +221,10 @@ export default function Classrooms() {
 
     return (
         <>
-            <div className="h-dvh mb-8">
+            <div className="lg:h-dvh h-auto mb-4">
                 <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border">
                     <div className="flex flex-row justify-between items-center">
-                        <h1 className="text-balance text-2xl font-semibold text-foreground">Classrooms ({allClassrooms.length})</h1>
+                        <h1 className="text-balance text-2xl font-semibold text-foreground">Classes ({allClassrooms.length})</h1>
                         <Button className="bg-brand cursor-pointer text-white" onClick={() => handleOpenModal("add")}>
                             <PlusCircle />
                             Create Class
@@ -274,13 +275,13 @@ export default function Classrooms() {
                                             <p className="truncate text-sm text-muted-foreground">ClassTeacher: {item.classTeacherName}</p>
                                         </div>
                                         <div className="flex flex-row justify-center items-center">
-                                            <Button size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("update", item)}>
+                                            <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("update", item)}>
                                                 <Edit />
                                             </Button>
-                                            <Button size="sm" className="color-brand-100 mx-2" color="primary" onPress={() => handleOpenModal("delete", item)}>
+                                            <Button isIconOnly={true} size="sm" className="color-brand-100 mx-2" color="primary" onPress={() => handleOpenModal("delete", item)}>
                                                 <TrashIcon />
                                             </Button>
-                                            <Button size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("view", item)}>
+                                            <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("view", item)}>
                                                 <EyeIcon />
                                             </Button>
 
@@ -291,13 +292,13 @@ export default function Classrooms() {
                 </section>
             </div>
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader className="flex flex-col">
+                            <ModalHeader className="flex flex-col bg-primary text-white mb-4">
                                 {modalAction === "add" ?
-                                    "Create New Class" : modalAction === "view" ? "Class Info" : null}
+                                    "Create New Class" : modalAction === "view" ? "Class Info" : "Delete Class"}
                             </ModalHeader>
 
                             <ModalBody>
@@ -318,10 +319,10 @@ export default function Classrooms() {
                                             />
                                             <Select
                                                 name="subclassLabel"
-                                                isRequired
-                                                label="Subclass Label"
+                                                label="Subclass Label (optional)"
                                                 labelPlacement="outside"
                                                 placeholder="Select sub class label"
+                                                selectedKeys={new Set([classRoomInfo.subclassLabel ?? ""])}
                                                 value={classRoomInfo.subclassLabel}
                                                 onChange={handleClassroomValueChange}
                                                 className=""
@@ -333,17 +334,17 @@ export default function Classrooms() {
                                             </Select>
 
                                             <Select
-                                                isRequired
                                                 label="Class Teacher"
                                                 labelPlacement="outside"
                                                 name="classTeacher"
                                                 placeholder="Select class teacher"
+                                                selectedKeys={new Set([classRoomInfo.classTeacher ?? ""])}
                                                 value={classRoomInfo.classTeacher}
                                                 onChange={handleClassroomValueChange}
                                                 className=""
                                             >
                                                 {availableStaff.map((item) => (
-                                                    <SelectItem key={item.id}>{item.personalInfo.first_name} {item.personalInfo.last_name}</SelectItem>
+                                                    <SelectItem key={item.id} textValue={`${item.personalInfo.first_name} ${item.personalInfo.last_name}`}>{item.personalInfo.first_name} {item.personalInfo.last_name}</SelectItem>
                                                 ))}
                                             </Select>
                                             <Select
@@ -352,18 +353,14 @@ export default function Classrooms() {
                                                 labelPlacement="outside"
                                                 name="classGroup"
                                                 placeholder="Select class group"
+                                                selectedKeys={new Set([classRoomInfo.classGroup ?? ""])}
                                                 value={classRoomInfo.classGroup}
                                                 onChange={handleClassroomValueChange}
                                                 className=""
                                             >
-                                                <SelectItem key="creche">Creche</SelectItem>
-                                                <SelectItem key="nursery1">Nursery 1</SelectItem>
-                                                <SelectItem key="nursery2">Nursery 2</SelectItem>
-                                                <SelectItem key="kg1">KG 1</SelectItem>
-                                                <SelectItem key="kg2">KG 2</SelectItem>
-                                                <SelectItem key="lower_primary">Lower Primary</SelectItem>
-                                                <SelectItem key="upper_primary">Upper Primary</SelectItem>
-                                                <SelectItem key="jhs">JHS</SelectItem>
+                                                {ClassGroups.map((item) => (
+                                                    <SelectItem key={item.key} textValue={`${capitalize(item.key.replace("_", " "))}`}>{capitalize(item.value).replace("_", " ")} Group</SelectItem>
+                                                ))}
                                             </Select>
                                         </div>
                                     </>
@@ -371,7 +368,7 @@ export default function Classrooms() {
                                     modalAction === "view" ?
                                         <Card className="w-full">
                                             <CardHeader className="flex gap-3">
-                                                <UserRound className="border border rounded-lg" size={40} />
+                                                <UsersRound className="border border rounded-lg" size={40} />
                                                 <div className="flex flex-col">
                                                     <p className="text-md">{classRoomInfo.name}{classRoomInfo.subclassLabel}</p>
                                                     <p className="text-small text-default-500">{classRoomInfo.classGroup}</p>

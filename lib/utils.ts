@@ -34,6 +34,7 @@ export const EducationalBackgrounds: string[] = ["WASSCE", "Diploma", "Bachelor"
 export const DefaultSubjectScoreOptions: string[] = ["Yes", "Always", "Sometimes", "No"]
 
 export const capitalize = (text: string) => {
+    if (!text) return ""
     return text[0].toUpperCase() + text.substring(1)
 }
 

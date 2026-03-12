@@ -312,7 +312,7 @@ export default function Students() {
             guardianFieldUpdates = { ...guardianFieldUpdates, [v.field]: v.value }
         }
 
-        studentFieldUpdates = {...studentFieldUpdates, dateOfBirth: studentInfo.dateOfBirth.toISOString().split('T')[0]}
+        studentFieldUpdates = { ...studentFieldUpdates, dateOfBirth: studentInfo.dateOfBirth.toISOString().split('T')[0] }
 
         onClose()
         const fn = async () => {
@@ -346,7 +346,7 @@ export default function Students() {
     }
 
     return (
-        <div className="h-dvh overflow-auto">
+        <div className="lg:h-dvh h-auto overflow-auto mb-4">
             <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border">
                 <div className="flex flex-row justify-between items-center mb-4">
                     <h1 className="text-balance text-2xl font-semibold text-foreground">Students ({allStudents.length})</h1>
@@ -381,13 +381,13 @@ export default function Students() {
                                         <p className="truncate text-sm text-muted-foreground">Class: {item.currentClass?.name} | Age: {item.age}yrs</p>
                                     </div>
                                     <div className="flex flex-row justify-center items-center">
-                                        <Button size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("update", item)}>
+                                        <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("update", item)}>
                                             <Edit />
                                         </Button>
-                                        <Button size="sm" className="color-brand-100 mx-2" color="primary" onPress={() => handleOpenModal("delete", item)}>
+                                        <Button isIconOnly={true} size="sm" className="color-brand-100 mx-2" color="primary" onPress={() => handleOpenModal("delete", item)}>
                                             <TrashIcon />
                                         </Button>
-                                        <Button size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("view", item)}>
+                                        <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("view", item)}>
                                             <EyeIcon />
                                         </Button>
 
@@ -397,11 +397,11 @@ export default function Students() {
                 </ul>
             </section>
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto ${modalAction === "delete" ? "h-[20rem]" : modalAction === "view" ? "h-[37rem]" : "h-[40rem]"}`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader className="flex flex-col">
+                            <ModalHeader className="flex flex-col bg-primary text-white mb-4">
                                 {modalAction === "add" ?
                                     "Add New Student" : modalAction === "view" ? "Student Info" : null}
                             </ModalHeader>
@@ -424,7 +424,7 @@ export default function Students() {
                                             <Input
                                                 isRequired
                                                 name="otherNames"
-                                                label="Othernames"
+                                                label="Other names"
                                                 labelPlacement="outside"
                                                 placeholder="Doe"
                                                 className="w-full"
@@ -432,7 +432,6 @@ export default function Students() {
                                                 onChange={handleStudentInfoChange}
                                             />
                                             <Input
-                                                isRequired
                                                 name="placeOfBirth"
                                                 label="Place of Birth"
                                                 labelPlacement="outside"
@@ -445,7 +444,6 @@ export default function Students() {
                                                 name="dateOfBirth"
                                                 label="Date of Birth"
                                                 labelPlacement="outside"
-                                                isRequired
                                                 showMonthAndYearPickers
                                                 className=""
                                                 value={
@@ -469,6 +467,7 @@ export default function Students() {
                                                 label="Nationality"
                                                 labelPlacement="outside"
                                                 placeholder="Select nationality"
+                                                selectedKeys={new Set(["Ghanaian"])}
                                                 value={studentInfo.nationality}
                                                 defaultSelectedKeys={[studentInfo.nationality]}
                                                 onChange={handleStudentInfoChange}

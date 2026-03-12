@@ -25,8 +25,9 @@ export default function SignInPage() {
             const result = await response.json()
             if (!response.ok) {
                 return Promise.reject(result.message)
+            } else {
+                return Promise.resolve(result.message)
             }
-            return Promise.resolve(result.message)
         }
         await toast.promise(
             fn,
@@ -38,11 +39,7 @@ export default function SignInPage() {
                         return `Login success. ${data}`
                     }
                 },
-                error: {
-                    render({ data }: { data: string }) {
-                        return `${data}`
-                    }
-                }
+                error: "Invalid email "
             }
         )
     }

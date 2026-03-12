@@ -99,32 +99,32 @@ export default function StaffStatistics({ className, data }: { className?: strin
             </div>
 
 
-            <div className="flex flex-col">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Last days</h3>
-                <div className="h-40">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={bars} barCategoryGap={18}>
-                            <XAxis
-                                dataKey="d"
-                                tickLine={false}
-                                axisLine={false}
-                                tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
-                            />
-                            <YAxis hide />
-                            <Bar dataKey="v" radius={[6, 6, 6, 6]}>
-                                {bars.map((entry, i) => (
-                                    <Cell key={i} fill={entry.fill as string} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-                <div className="mt-4 grid grid-cols-3 gap-3">
-                    <button className="rounded-xl bg-muted py-2 text-sm">Devices</button>
-                    <button className="rounded-xl bg-muted py-2 text-sm">Schedule</button>
-                    <button className="rounded-xl bg-[var(--brand)] text-background py-2 text-sm">Boost</button>
-                </div>
-            </div>
+            {/* <div className="flex flex-col"> */}
+            {/*     <h3 className="text-sm font-semibold text-muted-foreground mb-2">Last days</h3> */}
+            {/*     <div className="h-40"> */}
+            {/*         <ResponsiveContainer width="100%" height="100%"> */}
+            {/*             <BarChart data={bars} barCategoryGap={18}> */}
+            {/*                 <XAxis */}
+            {/*                     dataKey="d" */}
+            {/*                     tickLine={false} */}
+            {/*                     axisLine={false} */}
+            {/*                     tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} */}
+            {/*                 /> */}
+            {/*                 <YAxis hide /> */}
+            {/*                 <Bar dataKey="v" radius={[6, 6, 6, 6]}> */}
+            {/*                     {bars.map((entry, i) => ( */}
+            {/*                         <Cell key={i} fill={entry.fill as string} /> */}
+            {/*                     ))} */}
+            {/*                 </Bar> */}
+            {/*             </BarChart> */}
+            {/*         </ResponsiveContainer> */}
+            {/*     </div> */}
+            {/*     <div className="mt-4 grid grid-cols-3 gap-3"> */}
+            {/*         <button className="rounded-xl bg-muted py-2 text-sm">Devices</button> */}
+            {/*         <button className="rounded-xl bg-muted py-2 text-sm">Schedule</button> */}
+            {/*         <button className="rounded-xl bg-[var(--brand)] text-background py-2 text-sm">Boost</button> */}
+            {/*     </div> */}
+            {/* </div> */}
 
         </section>
     )

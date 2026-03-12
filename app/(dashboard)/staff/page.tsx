@@ -1,4 +1,6 @@
 "use client"
+import { DateValue } from "@heroui/react";
+import { getLocalTimeZone, CalendarDate } from "@internationalized/date"
 import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit } from "lucide-react"
 import React from "react"
 import { useState, useEffect, useRef } from "react"
@@ -38,7 +40,9 @@ export default function Staff() {
         personalInfo: {
             first_name: "",
             last_name: "",
+            userType: "",
             email: "",
+            dateOfBirth: new Date(),
             phone: "",
             gender: "f"
         },
@@ -167,6 +171,8 @@ export default function Staff() {
                 first_name: "",
                 last_name: "",
                 email: "",
+                dateOfBirth: new Date(),
+                userType: "",
                 phone: "",
                 gender: "f"
             },
@@ -259,8 +265,8 @@ export default function Staff() {
     }
 
     return (
-        <div className="h-dvh">
-            <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border">
+        <div className="lg:h-dvh h-auto">
+            <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border mb-4">
                 <div className="flex flex-row justify-between items-center mb-4">
                     <h1 className="text-balance text-2xl font-semibold text-foreground">Academic Staff</h1>
                     <Button className="bg-brand cursor-pointer text-white" onPress={() => handleOpenModal("add")}>
@@ -296,13 +302,13 @@ export default function Staff() {
                                         <p className="truncate text-sm text-muted-foreground">Phone: {item.personalInfo?.phone}</p>
                                     </div>
                                     <div className="flex flex-row justify-center items-center">
-                                        <Button size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("update", item)}>
+                                        <Button size="sm" isIconOnly={true} className="color-brand-100 max-w-sm" color="primary" onPress={() => handleOpenModal("update", item)}>
                                             <Edit />
                                         </Button>
-                                        <Button size="sm" className="color-brand-100 mx-2" color="primary" onPress={() => handleOpenModal("delete", item)}>
+                                        <Button isIconOnly={true} size="sm" className="color-brand-100 mx-2" color="primary" onPress={() => handleOpenModal("delete", item)}>
                                             <TrashIcon />
                                         </Button>
-                                        <Button size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("view", item)}>
+                                        <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("view", item)}>
                                             <EyeIcon />
                                         </Button>
 
@@ -312,11 +318,11 @@ export default function Staff() {
                 </ul>
             </section>
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto ${modalAction === "delete" ? "h-[20rem]" : modalAction === "view" ? "h-[37rem]" : "h-[40rem]"}`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader className="flex flex-col">
+                            <ModalHeader className="flex flex-col bg-primary text-white">
                                 {modalAction === "add" ?
                                     "Add New Staff" : modalAction === "view" ? "Staff Info" : null}
                             </ModalHeader>
@@ -371,7 +377,20 @@ export default function Staff() {
                                                 label="Date of Birth"
                                                 labelPlacement="outside"
                                                 isRequired
-                                                onChange={(value) => setStaffInfo({ ...staffInfo, personalInfo: { ...staffInfo.personalInfo, dateOfBirth: value?.toString() } })}
+                                                value={
+                                                    staffInfo.personalInfo.dateOfBirth
+                                                        ? new CalendarDate(
+                                                            new Date(staffInfo.personalInfo.dateOfBirth).getFullYear(),
+                                                            new Date(staffInfo.personalInfo.dateOfBirth).getMonth() + 1,
+                                                            new Date(staffInfo.personalInfo.dateOfBirth).getDate()
+                                                        ) as unknown as DateValue
+                                                        : new CalendarDate(1996, 5, 15) as unknown as DateValue
+                                                }
+                                                placeholderValue={new CalendarDate(1996, 5, 15) as unknown as DateValue}
+                                                onChange={(value) => setStaffInfo({
+                                                    ...staffInfo,
+                                                    personalInfo: {...staffInfo.personalInfo, dateOfBirth: value ? value.toDate(getLocalTimeZone()) : new Date()}
+                                                })}
                                             />
                                             <Select
                                                 name="nationality"
@@ -379,6 +398,7 @@ export default function Staff() {
                                                 label="Nationality"
                                                 labelPlacement="outside"
                                                 placeholder="Select nationality"
+                                                selectedKeys={new Set(["gh"])}
                                                 value={staffInfo.personalInfo.nationality}
                                                 onChange={handlePersonalInfoChange}
                                             >
@@ -405,7 +425,6 @@ export default function Staff() {
                                         <div className="mx-4 gap-8 space-y-12">
                                             <Input
                                                 name="placeOfBirth"
-                                                isRequired
                                                 label="Place of Birth"
                                                 labelPlacement="outside"
                                                 placeholder="Accra"
@@ -419,6 +438,7 @@ export default function Staff() {
                                                 label="Academic Qualification"
                                                 labelPlacement="outside"
                                                 placeholder="Select qualification"
+                                                selectedKeys={new Set(["wassce"])}
                                                 value={staffInfo.academicQualification}
                                                 onChange={handleStaffInfoChange}
                                             >
@@ -428,7 +448,6 @@ export default function Staff() {
                                             </Select>
                                             <Input
                                                 name="professionalQualification"
-                                                isRequired
                                                 label="Professional Qualification"
                                                 labelPlacement="outside"
                                                 placeholder="Teacher"
@@ -438,7 +457,6 @@ export default function Staff() {
                                             />
                                             <Input
                                                 name="placeOfResidence"
-                                                isRequired
                                                 label="Residence"
                                                 labelPlacement="outside"
                                                 placeholder="Kasoa"
@@ -448,7 +466,6 @@ export default function Staff() {
                                             />
                                             <Input
                                                 name="hometown"
-                                                isRequired
                                                 label="Hometown"
                                                 labelPlacement="outside"
                                                 placeholder="Ho"
@@ -493,21 +510,21 @@ export default function Staff() {
                                                 <h1 className="font-bold">Personal</h1>
                                                 <div className="mx-4">
                                                     <p>Gender: {staffInfo.personalInfo.gender === "m" ? "Male" : "Female"}</p>
-                                                    <p>Birth Place: {staffInfo.placeOfBirth}</p>
-                                                    <p>Residence: {staffInfo.placeOfResidence}</p>
-                                                    <p>Hometown: {staffInfo.hometown}</p>
+                                                    <p>Birth Place: {staffInfo.placeOfBirth || "N/A"}</p>
+                                                    <p>Residence: {staffInfo.placeOfResidence || "N/A"}</p>
+                                                    <p>Hometown: {staffInfo.hometown || "N/A"}</p>
                                                 </div>
 
                                                 <h1 className="font-bold">Qualification</h1>
                                                 <div className="mx-4">
-                                                    <p>Academic: {staffInfo.academicQualification}</p>
-                                                    <p>Professional: {staffInfo.professionalQualification}</p>
+                                                    <p>Academic: {staffInfo.academicQualification || "N/A"}</p>
+                                                    <p>Professional: {staffInfo.professionalQualification || "N/A"}</p>
                                                 </div>
 
                                                 <h1 className="font-bold">Accounts</h1>
                                                 <div className="mx-4">
-                                                    <p>Bank Acc No: {staffInfo.bankAccNo}</p>
-                                                    <p>Social Sec No: {staffInfo.socialSecNo}</p>
+                                                    <p>Bank Acc No: {staffInfo.bankAccNo || "N/A"}</p>
+                                                    <p>Social Sec No: {staffInfo.socialSecNo || "N/A"}</p>
                                                 </div>
                                             </CardBody>
                                             <Divider />
@@ -528,9 +545,7 @@ export default function Staff() {
                                                 </CardHeader>
                                                 <Divider />
                                                 <CardBody className="gap-4">
-                                                    <p >Staff Id: {staffInfo.staffId}</p>
-
-                                                    <h1 className="">Are you sure you want to delete this staff</h1>
+                                                    <h1 className="">Are you sure you want to delete this staff ?</h1>
 
                                                     <Button className="color-brand-100" color="primary" onPress={() => handleDeleteStaff()}>
                                                         Confirm Delete

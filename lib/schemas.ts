@@ -6,9 +6,10 @@ const UserSchema = z.object({
     first_name: z.string(),
     last_name: z.string(),
     email: z.string(),
+    userType: z.string(),
     phone: z.string(),
     gender: z.string(),
-    dateOfBirth: z.string().optional(),
+    dateOfBirth: z.date(),
     nationality: z.string().optional()
 })
 
