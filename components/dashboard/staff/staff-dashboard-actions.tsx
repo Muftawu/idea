@@ -1,12 +1,11 @@
 "use client"
 
-import { useContext, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { ToggleSwitch } from "@/components/ui/toggle-switch"
 import { BaseRequestHeaders } from "@/lib/utils"
-import { AuthContext } from "@/context/authContext"
 import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
 import { PlusCircle, EyeIcon, Edit, TrashIcon, UserRound } from "lucide-react"
-import { ClassRoomSchemaT, GuardianSchemaT, StudentSchemaT, StudentStatsSchemaT } from "@/lib/schemas"
+import { ClassRoomSchemaT, GuardianSchemaT, StaffT, StudentSchemaT, StudentStatsSchemaT, UserSchemaT } from "@/lib/schemas"
 import { Input, Select, SelectItem, Button, DatePicker, Alert, Spinner } from "@heroui/react";
 import {
     Modal,
@@ -17,27 +16,63 @@ import {
     useDisclosure,
 } from "@heroui/react";
 import { Separator } from "@/components/ui/separator"
+import { useRouter } from "next/navigation"
 
-export const StaffDashboardActions = () => {
+export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) => {
 
-    const userData = useContext(AuthContext)
-    if (!userData) return (
-        <div className="flex flex-row">
-            <Spinner label="Loading info. Please wait..." />
-            <p>Loading info. Please wait...</p>
-        </div>
-    )
+    if (!userInfo || !userInfo.userTypeId) return
+    //     (
+    //     <div className="flex flex-row">
+    //         <Spinner label="Loading info. Please wait..." />
+    //         <p>Loading info. Please wait...</p>
+    //     </div>
+    // )
 
+    const router = useRouter()
+    const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
+    const [modalAction, setModalAction] = useState<"view" | "add" | "delete" | "update">("view")
+
+    // collection
     const [handledClassesFetched, setHandldClassesFetched] = useState<boolean>(false)
     const [handledClasses, setHandledClasses] = useState<ClassRoomSchemaT[]>([])
+    const [staffInfo, setStaffInfo] = useState<StaffT>({
+        staffId: "",
+        personalInfo: {
+            first_name: "",
+            last_name: "",
+            userType: "",
+            email: "",
+            dateOfBirth: new Date(),
+            phone: "",
+            gender: "f"
+        },
+        staffCredentials: {
+            username: "",
+            password: ""
+        },
+        placeOfBirth: "",
+        academicQualification: "",
+        professionalQualification: "",
+        placeOfResidence: "",
+        hometown: "",
+        bankAccNo: "",
+        socialSecNo: "",
+    })
+
+    // single
+    // const [classInfo, setClassInfo] = useState<ClassRoomSchemaT[]>([])
+    // const [studentInfo, setStudentInfo] = useState<StudentSchemaT[]>([])
+    // const [academicRecordInfo, setAcademicRecordInfo] = useState([])
 
     useEffect(() => {
-        const fetchHandledClasses = async () => {
+        if (!userInfo.userTypeId || userInfo.userTypeId.trim().length < 1) return
+        const fetchStaffInfo = async () => {
             try {
-                const response = await fetch(`/api/staff?query=${userData.userInfo.id}`, {
+                const response = await fetch(`/api/staff?query=${userInfo.userTypeId}`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
+                console.log("result", result.data)
                 if (!response.ok) {
                     setHandldClassesFetched(false)
                     return Promise.reject(response.status)
@@ -48,13 +83,28 @@ export const StaffDashboardActions = () => {
                 setHandldClassesFetched(false)
             }
         }
-        fetchHandledClasses()
+        fetchStaffInfo()
     }, [])
 
 
     const handleOnOpenModal = (action: string) => {
         if (!action) return
-        open
+        onOpen()
+    }
+
+    const handleOnCloseModal = () => {
+        onClose()
+    }
+
+    const handleOnAcademicRecordFieldChanges = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    }
+
+    const handleCreateAcademicRecord = async () => {
+
+    }
+
+    const handleUpdateAcademicRecord = async () => {
+
     }
 
     return (
@@ -107,237 +157,56 @@ export const StaffDashboardActions = () => {
                                 {modalAction === "add" || modalAction === "update" ?
                                     <>
                                         <p className="font-semibold">Personal Info</p>
-                                        <div className="mx-4 gap-8 space-y-12 mb-4">
-                                            <Input
-                                                isRequired
-                                                name="surname"
-                                                label="Surname"
-                                                labelPlacement="outside"
-                                                placeholder="John"
-                                                className="w-full"
-                                                value={studentInfo.surname}
-                                                onChange={handleStudentInfoChange}
-                                            />
-                                            <Input
-                                                isRequired
-                                                name="otherNames"
-                                                label="Other names"
-                                                labelPlacement="outside"
-                                                placeholder="Doe"
-                                                className="w-full"
-                                                value={studentInfo.otherNames}
-                                                onChange={handleStudentInfoChange}
-                                            />
-                                            <Input
-                                                name="placeOfBirth"
-                                                label="Place of Birth"
-                                                labelPlacement="outside"
-                                                placeholder="Kumasi"
-                                                className="w-full"
-                                                value={studentInfo.placeOfBirth}
-                                                onChange={handleStudentInfoChange}
-                                            />
-                                            <DatePicker
-                                                name="dateOfBirth"
-                                                label="Date of Birth"
-                                                labelPlacement="outside"
-                                                showMonthAndYearPickers
-                                                className=""
-                                                value={
-                                                    studentInfo.dateOfBirth
-                                                        ? new CalendarDate(
-                                                            new Date(studentInfo.dateOfBirth).getFullYear(),
-                                                            new Date(studentInfo.dateOfBirth).getMonth() + 1,
-                                                            new Date(studentInfo.dateOfBirth).getDate()
-                                                        ) as unknown as DateValue
-                                                        : new CalendarDate(2005, 5, 15) as unknown as DateValue
-                                                }
-                                                placeholderValue={new CalendarDate(2005, 5, 15) as unknown as DateValue}
-                                                onChange={(value) => setStudentInfo({
-                                                    ...studentInfo,
-                                                    dateOfBirth: value ? value.toDate(getLocalTimeZone()) : new Date()
-                                                })}
-                                            />
-                                            <Select
-                                                name="nationality"
-                                                isRequired
-                                                label="Nationality"
-                                                labelPlacement="outside"
-                                                placeholder="Select nationality"
-                                                selectedKeys={new Set(["Ghanaian"])}
-                                                value={studentInfo.nationality}
-                                                defaultSelectedKeys={[studentInfo.nationality]}
-                                                onChange={handleStudentInfoChange}
-                                            >
-                                                {Nationalities.map((item) => (
-                                                    <SelectItem key={item}>{item}</SelectItem>
-                                                ))}
-                                            </Select>
-                                            <Select
-                                                name="gender"
-                                                isRequired
-                                                label="Gender"
-                                                labelPlacement="outside"
-                                                placeholder="Select gender"
-                                                value={studentInfo.gender}
-                                                onChange={handleStudentInfoChange}
-                                            >
-                                                <SelectItem key="Male">Male</SelectItem>
-                                                <SelectItem key="Female">Female</SelectItem>
-                                            </Select>
-                                            <Select
-                                                name="religion"
-                                                label="Religion"
-                                                labelPlacement="outside"
-                                                placeholder="Select religion"
-                                                defaultSelectedKeys={[studentInfo.religion]}
-                                                value={studentInfo.religion}
-                                                onChange={handleStudentInfoChange}
-                                            >
-                                                <SelectItem key="Christian">Christian</SelectItem>
-                                                <SelectItem key="Muslim">Muslim</SelectItem>
-                                                <SelectItem key="Other">Other</SelectItem>
-                                            </Select>
-                                            <Input
-                                                name="schoolsAttended"
-                                                label="Previous School"
-                                                labelPlacement="outside"
-                                                placeholder="Name of previous school if applicable"
-                                                className="w-full"
-                                                value={studentInfo.schoolsAttended ?? ""}
-                                                onChange={handleStudentInfoChange}
-                                            />
-                                            <Input
-                                                name="healthProblems"
-                                                label="Health Issues"
-                                                labelPlacement="outside"
-                                                placeholder="Concerning health related issues"
-                                                className="w-full"
-                                                value={studentInfo.healthProblems ?? ""}
-                                                onChange={handleStudentInfoChange}
-                                            />
-                                        </div>
-                                        <Separator />
-                                        <p className="font-semibold">Student Assigned Class</p>
-                                        <div className="mx-4 gap-8 space-y-12">
-                                            <Select
-                                                name="currentClass"
-                                                isRequired
-                                                label="Student Class"
-                                                labelPlacement="outside"
-                                                placeholder="Select student class"
-                                                selectedKeys={[studentInfo.currentClass?.id ?? ""]}
-                                                value={studentInfo.currentClass.id}
-                                                onChange={handleStudentInfoChange}
-                                            >
-                                                {availabelClasses.map((item) => (
-                                                    <SelectItem key={item.id} textValue={`${item.name} ${item.subclassLabel ?? ""}`}>{item.name} {item.subclassLabel ?? ""}</SelectItem>
-                                                ))}
-                                            </Select>
-                                        </div>
-                                        <Separator />
-                                        <p className="font-semibold">Guardian Info</p>
-                                        <div className="mx-4 gap-8 space-y-12">
-                                            <Input
-                                                name="fullname"
-                                                isRequired={true}
-                                                label="Guardian Name"
-                                                labelPlacement="outside"
-                                                placeholder=""
-                                                className="w-full"
-                                                value={guardianInfo.fullname}
-                                                onChange={handleGuardianInfoChange}
-                                            />
-                                            <Input
-                                                name="occupation"
-                                                label="Occupation"
-                                                labelPlacement="outside"
-                                                placeholder="Trader"
-                                                className="w-full"
-                                                value={guardianInfo.occupation}
-                                                onChange={handleGuardianInfoChange}
-                                            />
-                                            <Select
-                                                name="educationalBackground"
-                                                label="Educational Background"
-                                                labelPlacement="outside"
-                                                placeholder={modalAction === "update" ? guardianInfo.educationalBackground : "Select edu. background"}
-                                                value={guardianInfo.educationalBackground}
-                                                onChange={handleGuardianInfoChange}
-                                            >
-                                                {EducationalBackgrounds.map((item) => (
-                                                    <SelectItem key={item} textValue={`${item}`}>{item}</SelectItem>
-                                                ))}
-                                            </Select>
-                                            <Input
-                                                name="phone"
-                                                label="Phone"
-                                                labelPlacement="outside"
-                                                placeholder="050XXXXXXX"
-                                                className="w-full"
-                                                value={guardianInfo.phone ?? ""}
-                                                onChange={handleGuardianInfoChange}
-                                            />
-                                            <Input
-                                                name="postalAddress"
-                                                label="Postal Address"
-                                                labelPlacement="outside"
-                                                placeholder="PO Box XXXX"
-                                                className="w-full"
-                                                value={guardianInfo.postalAddress ?? ""}
-                                                onChange={handleGuardianInfoChange}
-                                            />
-                                            <Input
-                                                name="houseNumber"
-                                                label="House Number"
-                                                labelPlacement="outside"
-                                                placeholder="26"
-                                                className="w-full"
-                                                value={guardianInfo.houseNumber ?? ""}
-                                                onChange={handleGuardianInfoChange}
-                                            />
-                                        </div>
+                                        {/* <div className="mx-4 gap-8 space-y-12 mb-4"> */}
+                                        {/*     <Input */}
+                                        {/*         isRequired */}
+                                        {/*         name="surname" */}
+                                        {/*         label="Surname" */}
+                                        {/*         labelPlacement="outside" */}
+                                        {/*         placeholder="John" */}
+                                        {/*         className="w-full" */}
+                                        {/*         value={studentInfo.surname} */}
+                                        {/*         onChange={handleStudentInfoChange} */}
+                                        {/*     /> */}
+                                        {/*     <Select */}
+                                        {/*         name="nationality" */}
+                                        {/*         isRequired */}
+                                        {/*         label="Nationality" */}
+                                        {/*         labelPlacement="outside" */}
+                                        {/*         placeholder="Select nationality" */}
+                                        {/*         selectedKeys={new Set(["Ghanaian"])} */}
+                                        {/*         value={studentInfo.nationality} */}
+                                        {/*         defaultSelectedKeys={[studentInfo.nationality]} */}
+                                        {/*         onChange={handleStudentInfoChange} */}
+                                        {/*     > */}
+                                        {/*         {Nationalities.map((item) => ( */}
+                                        {/*             <SelectItem key={item}>{item}</SelectItem> */}
+                                        {/*         ))} */}
+                                        {/* </div> */}
                                     </>
                                     :
                                     modalAction === "view" ?
                                         <Card className="w-full">
                                             <CardHeader className="flex gap-3">
                                                 <UserRound className="border border rounded-lg" size={40} />
-                                                <div className="flex flex-col">
-                                                    <p className="text-md">{capitalize(studentInfo.surname)} {capitalize(studentInfo.otherNames)}</p>
-                                                    <p className="text-small text-default-500">{studentInfo.gender} | {studentInfo.currentClass.name}</p>
-                                                </div>
+                                                {/* <div className="flex flex-col"> */}
+                                                {/*     <p className="text-md">{capitalize(studentInfo.surname)} {capitalize(studentInfo.otherNames)}</p> */}
+                                                {/*     <p className="text-small text-default-500">{studentInfo.gender} | {studentInfo.currentClass.name}</p> */}
+                                                {/* </div> */}
                                             </CardHeader>
                                             <Divider />
                                             <CardBody className="gap-4">
                                                 <h1 className="font-bold">Personal</h1>
-                                                <div className="mx-4">
-                                                    <p><b>Surname</b>: {studentInfo.surname}</p>
-                                                    <p><b>OtherNames</b>: {studentInfo.otherNames}</p>
-                                                    <p><b>Gender</b>: {studentInfo.gender === "m" ? "Male" : "Female"}</p>
-                                                    <p><b>Age</b>: {studentInfo.age}</p>
-                                                    <p><b>Current Class</b>: {studentInfo.currentClass?.name}</p>
-                                                    <p><b>Religion</b>: {studentInfo.religion}</p>
-                                                    <p><b>DateOfBirth</b>: {new Date(studentInfo.dateOfBirth).toLocaleDateString()}</p>
-                                                    <p><b>Place Of Birth</b>: {studentInfo.placeOfBirth}</p>
-                                                </div>
-
-                                                <h1 className="font-bold">Guardian Info</h1>
-                                                <div className="mx-4">
-                                                    {!guardianInfo.id ?
-                                                        <div className="flex flex-row ju">
-                                                            <p className="mx-4">Guardian info not found</p>
-                                                        </div> :
-                                                        <>
-                                                            <p>Guardian Name: {guardianInfo.fullname || "N/A"}</p>
-                                                            <p>Occupation: {guardianInfo.occupation || "N/A"}</p>
-                                                            <p>Edu. Backgroub: {guardianInfo.educationalBackground || "N/A"}</p>
-                                                            <p>Phone: {guardianInfo.phone || "N/A"}</p>
-                                                            <p>Postal Add: {guardianInfo.postalAddress || "N/A"}</p>
-                                                            <p>House No: {guardianInfo.houseNumber || "N/A"}</p>
-                                                        </>
-                                                    }
-                                                </div>
+                                                {/* <div className="mx-4"> */}
+                                                {/*     <p><b>Surname</b>: {studentInfo.surname}</p> */}
+                                                {/*     <p><b>OtherNames</b>: {studentInfo.otherNames}</p> */}
+                                                {/*     <p><b>Gender</b>: {studentInfo.gender === "m" ? "Male" : "Female"}</p> */}
+                                                {/*     <p><b>Age</b>: {studentInfo.age}</p> */}
+                                                {/*     <p><b>Current Class</b>: {studentInfo.currentClass?.name}</p> */}
+                                                {/*     <p><b>Religion</b>: {studentInfo.religion}</p> */}
+                                                {/*     <p><b>DateOfBirth</b>: {new Date(studentInfo.dateOfBirth).toLocaleDateString()}</p> */}
+                                                {/*     <p><b>Place Of Birth</b>: {studentInfo.placeOfBirth}</p> */}
+                                                {/* </div> */}
                                             </CardBody>
                                             <Divider />
                                         </Card>
@@ -345,15 +214,15 @@ export const StaffDashboardActions = () => {
                                             <Card className="w-full">
                                                 <CardHeader className="flex gap-3">
                                                     <UserRound className="border border rounded-lg" size={40} />
-                                                    <div className="flex flex-col">
-                                                        <p className="text-md">{studentInfo.surname} {studentInfo.otherNames}</p>
-                                                        <p className="text-small text-default-500">{studentInfo.gender} | {studentInfo.currentClass?.name}</p>
-                                                    </div>
+                                                    {/* <div className="flex flex-col"> */}
+                                                    {/*     <p className="text-md">{studentInfo.surname} {studentInfo.otherNames}</p> */}
+                                                    {/*     <p className="text-small text-default-500">{studentInfo.gender} | {studentInfo.currentClass?.name}</p> */}
+                                                    {/* </div> */}
                                                 </CardHeader>
                                                 <Divider />
                                                 <CardBody className="gap-4">
                                                     <h1 className="">Are you sure you want to delete this student?</h1>
-                                                    <Button className="color-brand-100" color="primary" onPress={() => handleDeleteStudent()}>
+                                                    <Button className="color-brand-100" color="primary" onPress={() => { }}>
                                                         Confirm Delete
                                                     </Button>
 
@@ -364,16 +233,17 @@ export const StaffDashboardActions = () => {
                                             null
                                 }
                             </ModalBody>
+
                             <ModalFooter>
                                 <Button color="default" variant="flat" onPress={() => handleOnCloseModal()}>
                                     Close
                                 </Button>
                                 {modalAction === "add" ?
-                                    <Button type="submit" color="primary" onPress={handleCreateNewStudent}>
+                                    <Button type="submit" color="primary" onPress={handleCreateAcademicRecord}>
                                         Submit
                                     </Button>
                                     : modalAction === "update" ?
-                                        <Button onPress={handleUpdateStudentInfo} type="submit" color="primary">
+                                        <Button onPress={handleUpdateAcademicRecord} type="submit" color="primary">
                                             Save Changes
                                         </Button>
                                         : null

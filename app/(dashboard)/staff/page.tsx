@@ -4,8 +4,8 @@ import { getLocalTimeZone, CalendarDate } from "@internationalized/date"
 import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, Copy } from "lucide-react"
 import React from "react"
 import { useState, useEffect, useRef } from "react"
-import { StaffT, StaffStatSchemaT } from "@/lib/schemas"
-import { Input, Select, SelectItem, Button, DatePicker, Spinner } from "@heroui/react";
+import { StaffT, StaffStatSchemaT, ClassRoomSchemaT } from "@/lib/schemas"
+import { Alert, Input, Select, SelectItem, Button, DatePicker, Spinner, Snippet } from "@heroui/react";
 import {
     Modal,
     ModalContent,
@@ -17,7 +17,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import StaffStatistics from "@/components/dashboard/staff/staff-stats"
 import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils";
-import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
+import { Card, CardHeader, CardBody, Divider } from "@heroui/react";
 import { toast } from "react-toastify";
 import { dynamicFormUpdates } from "@/lib/utils";
 
@@ -58,7 +58,36 @@ export default function Staff() {
         bankAccNo: "",
         socialSecNo: "",
     })
+
+    type multiSelectFormFieldProp = {
+        key?: string,
+        label?: string
+    }
+
     const staffUpdates = useRef<dynamicFormUpdates[]>([])
+    const [availableClasses, setAvailableClasses] = useState<ClassRoomSchemaT[]>([])
+    const [availableClassItems, setAvailableClassItems] = useState<multiSelectFormFieldProp[]>([])
+    const [staffAssignedClasses, setStaffAssignedClasses] = useState<string>("")
+
+    useEffect(() => {
+        const fetchAvailableClasses = async () => {
+            try {
+                const response = await fetch(`/api/classes?query=all`, {
+                    headers: { ...BaseRequestHeaders },
+                })
+                const result = await response.json()
+                if (!response.ok) {
+                    return Promise.reject(response.status)
+                } else {
+                    setAvailableClasses(result.data)
+                    const items = result.data.map(({ id, name, subclassLabel }: { id: string, name: string, subclassLabel?: string }) => ({ key: id, label: `${name}${subclassLabel}` }))
+                    setAvailableClassItems(items)
+                }
+            } catch (err: any) {
+            }
+        }
+        fetchAvailableClasses()
+    }, [])
 
     useEffect(() => {
         const fetchStaffStats = async () => {
@@ -98,78 +127,29 @@ export default function Staff() {
         fetchAllStaff()
     }, [loading])
 
-    async function handleCreateNewStaff() {
-        onClose()
-        const fn = async () => {
-            try {
-                const response = await fetch("/api/staff", {
-                    method: "POST",
-                    headers: { ...BaseRequestHeaders },
-                    body: JSON.stringify(staffInfo)
-                })
-                if (!response.ok) {
-                    return Promise.reject(response.status)
-                } else {
-                    return Promise.resolve(response.status)
-                }
-
-            } catch (err: any) {
-                throw Error(err)
-            }
-        }
-
-        setLoading(true)
-        await toast.promise(
-            fn,
-            {
-                pending: "Creating staff...",
-                success: "Staff successfully created",
-                error: BaseErrMsg
-            }
-        )
-        handleOnCloseModal()
-        setLoading(false)
-    }
-
-    async function handleDeleteStaff() {
-        onClose()
-        const fn = async () => {
-            try {
-                const response = await fetch(`/api/staff?query=${staffInfo.id}`, {
-                    method: "DELETE",
-                    headers: { ...BaseRequestHeaders },
-                })
-                if (!response.ok) {
-                    return Promise.reject(response.status)
-                } else {
-                    return Promise.resolve(response.status)
-                }
-
-            } catch (err: any) {
-                throw Error(err)
-            }
-        }
-
-        setLoading(true)
-        await toast.promise(
-            fn,
-            {
-                pending: "Deleting staff...",
-                success: "Staff successfully deleted",
-                error: BaseErrMsg
-            }
-        )
-        setLoading(false)
-    }
-
     function handleOpenModal(action: typeof modalAction, item?: StaffT) {
         if (!action) return
+
+        const filteredItems: multiSelectFormFieldProp[] = []
+        // const currentHandledClassIds = staffInfo.assignedClasses?.map(({id, name, subclassLabel}: {id?: string, name: string, subclassLabel?: string}) => ({key: id, label: `${name}${subclassLabel}`}))
+        const currentHandledClassIds = staffInfo.assignedClasses?.map(({ id }: { id?: string }) => (id))
+        console.log("currnet handeled class ids", currentHandledClassIds)
+
+        availableClassItems.reduce((_, val: multiSelectFormFieldProp) => {
+            if (!currentHandledClassIds?.includes(val.key)) {
+                filteredItems.push(val)
+            }
+            return filteredItems
+        }, filteredItems)
+        setAvailableClassItems(filteredItems)
+
         setModalAction(action)
         { item ? setStaffInfo(item) : null }
         onOpen()
     }
 
     function handleOnCloseModal() {
+        setStaffAssignedClasses("")
         setStaffInfo({
             personalInfo: {
                 first_name: "",
@@ -222,9 +202,75 @@ export default function Staff() {
         setStaffInfo({ ...staffInfo, [e.target.name]: e.target.value })
     }
 
+    const handleStaffAssignedClassesChanged = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setStaffAssignedClasses(e.target.value)
+    }
+
+    const handleCreateNewStaff = async () => {
+        const fn = async () => {
+            try {
+                const response = await fetch("/api/staff", {
+                    method: "POST",
+                    headers: { ...BaseRequestHeaders },
+                    body: JSON.stringify({ staffInfo, staffAssignedClasses })
+                })
+                if (!response.ok) {
+                    return Promise.reject(response.status)
+                } else {
+                    return Promise.resolve(response.status)
+                }
+
+            } catch (err: any) {
+                throw Error(err)
+            }
+        }
+
+        setLoading(true)
+        await toast.promise(
+            fn,
+            {
+                pending: "Creating staff...",
+                success: "Staff successfully created",
+                error: BaseErrMsg
+            }
+        )
+        handleOnCloseModal()
+        setLoading(false)
+    }
+
+    const handleDeleteStaff = async () => {
+        onClose()
+        const fn = async () => {
+            try {
+                const response = await fetch(`/api/staff?query=${staffInfo.id}`, {
+                    method: "DELETE",
+                    headers: { ...BaseRequestHeaders },
+                })
+                if (!response.ok) {
+                    return Promise.reject(response.status)
+                } else {
+                    return Promise.resolve(response.status)
+                }
+
+            } catch (err: any) {
+                throw Error(err)
+            }
+        }
+
+        setLoading(true)
+        await toast.promise(
+            fn,
+            {
+                pending: "Deleting staff...",
+                success: "Staff successfully deleted",
+                error: BaseErrMsg
+            }
+        )
+        setLoading(false)
+    }
     const handleUpdateStaffInfo = async () => {
         onClose()
-        if (staffUpdates.current.length < 1) return toast.info("No changes made")
+        if (staffUpdates.current.length < 1 && staffAssignedClasses.trim().length < 1) return toast.info("No changes made")
 
         let personalInfoFieldUpdates = {}
         let staffInfoFieldUpdates = {}
@@ -239,7 +285,7 @@ export default function Staff() {
                 staffInfoFieldUpdates = { ...staffInfoFieldUpdates, [k]: v }
             }
         }
-        const jsonData = { id: staffInfo.id, personalInfo: personalInfoFieldUpdates, staffInfo: staffInfoFieldUpdates }
+        const jsonData = { id: staffInfo.id, personalInfo: personalInfoFieldUpdates, staffInfo: staffInfoFieldUpdates, staffAssignedClasses: staffAssignedClasses }
 
         const fn = async () => {
             try {
@@ -436,6 +482,31 @@ export default function Staff() {
                                                 <SelectItem key="f">Female</SelectItem>
                                             </Select>
                                         </div>
+
+                                        <Separator />
+                                        <p className="font-semibold">Assigned Classes</p>
+                                        <div className="mx-4">
+                                            <Alert color="primary" hideIcon>
+                                                {staffInfo.assignedClasses?.map((item) => `${item.name}${item.subclassLabel}, `)}
+                                            </Alert>
+                                        </div>
+                                        {availableClassItems.length < 1 ? <p className="text-sm mx-4">Loading classes. Please wait...</p> :
+                                            <div className="mx-4 gap-8 space-y-12">
+                                                <Select
+                                                    name="assignedClasses"
+                                                    label="Edit assignment below"
+                                                    labelPlacement="outside"
+                                                    selectionMode="multiple"
+                                                    items={availableClassItems}
+                                                    placeholder="Select classes"
+                                                    onChange={handleStaffAssignedClassesChanged}
+                                                >
+                                                    {availableClassItems.map((item) => (
+                                                        <SelectItem key={item.key}>{item.label}</SelectItem>
+                                                    ))}
+                                                </Select>
+                                            </div>
+                                        }
 
                                         <Separator />
                                         <p className="font-semibold">Academic Info</p>

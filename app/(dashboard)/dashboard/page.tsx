@@ -8,7 +8,9 @@ import { useContext } from "react"
 export default function Page() {
 
     const userData = useContext(AuthContext)
-    if (!userData) return <Spinner />
+
+    if (!userData || !userData.userInfo) return
+
     const userType = userData.userInfo.userType
 
     return userType === "admin" ? <AdminDashboard /> : <StaffDashboard />

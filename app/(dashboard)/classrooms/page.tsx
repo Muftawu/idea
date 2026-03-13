@@ -1,5 +1,5 @@
 "use client"
-import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, UsersRound} from "lucide-react"
+import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, UsersRound } from "lucide-react"
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { useState, useEffect, useRef } from "react"
 import { ClassRoomSchemaT } from "@/lib/schemas"
@@ -318,6 +318,21 @@ export default function Classrooms() {
                                                 onChange={handleClassroomValueChange}
                                             />
                                             <Select
+                                                isRequired
+                                                label="Group (This field is required)"
+                                                labelPlacement="outside"
+                                                name="classGroup"
+                                                placeholder="Select class group"
+                                                selectedKeys={new Set([classRoomInfo.classGroup ?? ""])}
+                                                value={classRoomInfo.classGroup}
+                                                onChange={handleClassroomValueChange}
+                                                className=""
+                                            >
+                                                {ClassGroups.map((item) => (
+                                                    <SelectItem key={item.key} textValue={`${capitalize(item.key.replace("_", " "))}`}>{capitalize(item.value).replace("_", " ")} Group</SelectItem>
+                                                ))}
+                                            </Select>
+                                            <Select
                                                 name="subclassLabel"
                                                 label="Subclass Label (optional)"
                                                 labelPlacement="outside"
@@ -332,7 +347,6 @@ export default function Classrooms() {
                                                 <SelectItem key="C">C</SelectItem>
                                                 <SelectItem key="D">D</SelectItem>
                                             </Select>
-
                                             <Select
                                                 label="Class Teacher"
                                                 labelPlacement="outside"
@@ -345,21 +359,6 @@ export default function Classrooms() {
                                             >
                                                 {availableStaff.map((item) => (
                                                     <SelectItem key={item.id} textValue={`${item.personalInfo.first_name} ${item.personalInfo.last_name}`}>{item.personalInfo.first_name} {item.personalInfo.last_name}</SelectItem>
-                                                ))}
-                                            </Select>
-                                            <Select
-                                                isRequired
-                                                label="Group"
-                                                labelPlacement="outside"
-                                                name="classGroup"
-                                                placeholder="Select class group"
-                                                selectedKeys={new Set([classRoomInfo.classGroup ?? ""])}
-                                                value={classRoomInfo.classGroup}
-                                                onChange={handleClassroomValueChange}
-                                                className=""
-                                            >
-                                                {ClassGroups.map((item) => (
-                                                    <SelectItem key={item.key} textValue={`${capitalize(item.key.replace("_", " "))}`}>{capitalize(item.value).replace("_", " ")} Group</SelectItem>
                                                 ))}
                                             </Select>
                                         </div>

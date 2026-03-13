@@ -29,7 +29,7 @@ type Item = {
 const items: Item[] = [
     { href: "/", label: "Home", icon: Home },
     { href: "/staff", label: "Staff", icon: Users },
-    { href: "/classrooms", label: "Classrooms", icon: Theater },
+    { href: "/classrooms", label: "Classes", icon: Theater },
     { href: "/students", label: "Students", icon: UserRoundPlusIcon },
     { href: "/subjects", label: "Subjects", icon: BookOpen },
     { href: "/settings", label: "Settings", icon: SettingsIcon },

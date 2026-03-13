@@ -1,19 +1,20 @@
 import * as z from "zod";
 
-// USER //
+// USER
 const UserSchema = z.object({
     id: z.string().optional(),
     first_name: z.string(),
     last_name: z.string(),
     email: z.string(),
     userType: z.string(),
+    userTypeId: z.string().optional(),
     phone: z.string(),
     gender: z.string(),
     dateOfBirth: z.date(),
     nationality: z.string().optional()
 })
 
-// STAFF STATS //
+// STAT
 const StaffStatsSchema = z.object({
     maleCount: z.number(),
     femaleCount: z.number(),
@@ -21,7 +22,6 @@ const StaffStatsSchema = z.object({
     femalePercentage: z.number()
 })
 
-// STUDENT STATS //
 const StudentStatsSchema = z.object({
     maleCount: z.number(),
     femaleCount: z.number(),
@@ -29,14 +29,13 @@ const StudentStatsSchema = z.object({
     femalePercentage: z.number()
 })
 
-// ADMIN STATS
 const AdminStatsSchema = z.object({
     totalStudents: z.number(),
     totalStaff: z.number(),
     totalClasses: z.number(),
 })
 
-// SCHOOL SETTINGS
+// SCHOOL
 const SchoolSettingsSchema = z.object({
     currentTerm: z.string(),
     termDuration: z.string(),
@@ -49,6 +48,15 @@ const StaffCredentialSchema = z.object({
     password: z.string(),
 })
 
+const ClassRoomSchema = z.object({
+    id: z.string().optional(),
+    name: z.string(),
+    classTeacher: z.string().optional(),
+    classGroup: z.string().optional(),
+    subclassLabel: z.string().optional(),
+    classTeacherName: z.string().optional(),
+    studentCount: z.number().optional(),
+})
 
 const StaffInfoSchema = z.object({
     id: z.string().optional(),
@@ -62,6 +70,7 @@ const StaffInfoSchema = z.object({
     hometown: z.string().optional(),
     bankAccNo: z.string().optional(),
     socialSecNo: z.string().optional(),
+    assignedClasses: z.array(ClassRoomSchema).optional()
 })
 
 // SUBJECT //
@@ -74,23 +83,11 @@ const SubjectStatsSchema = z.object({
     subjectsCount: z.number(),
 })
 
-
 const ClassSubjectGroupSchema = z.object({
     id: z.string().optional(),
     name: z.string(),
     scoreType: z.string(),
     subjects: z.array(SubjectSchema).optional(),
-})
-
-// CLASSROOM //
-const ClassRoomSchema = z.object({
-    id: z.string().optional(),
-    name: z.string(),
-    classTeacher: z.string().optional(),
-    classGroup: z.string().optional(),
-    subclassLabel: z.string().optional(),
-    classTeacherName: z.string().optional(),
-    studentCount: z.number().optional(),
 })
 
 const CurrentClassDetailSchema = z.object({

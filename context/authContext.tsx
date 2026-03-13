@@ -1,5 +1,4 @@
 'use client'
-import { removeAuthTokens } from '@/lib/actions';
 import { UserSchemaT } from '@/lib/schemas';
 import { BaseRequestHeaders } from '@/lib/utils';
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
@@ -19,8 +18,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         email: "",
         dateOfBirth: new Date(),
         userType: "",
+        userTypeId: "",
         phone: "",
-        gender: "f"
+        gender: "Male"
     })
 
     useEffect(() => {
