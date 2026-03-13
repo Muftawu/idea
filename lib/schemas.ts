@@ -29,11 +29,32 @@ const StudentStatsSchema = z.object({
     femalePercentage: z.number()
 })
 
+// ADMIN STATS
+const AdminStatsSchema = z.object({
+    totalStudents: z.number(),
+    totalStaff: z.number(),
+    totalClasses: z.number(),
+})
+
+// SCHOOL SETTINGS
+const SchoolSettingsSchema = z.object({
+    currentTerm: z.string(),
+    termDuration: z.string(),
+    termStart: z.date(),
+    termEnd: z.date(),
+})
+
+const StaffCredentialSchema = z.object({
+    username: z.string(),
+    password: z.string(),
+})
+
 
 const StaffInfoSchema = z.object({
     id: z.string().optional(),
     staffId: z.string(),
     personalInfo: UserSchema,
+    staffCredentials: StaffCredentialSchema,
     placeOfBirth: z.string().optional(),
     academicQualification: z.string().optional(),
     professionalQualification: z.string().optional(),
@@ -115,3 +136,5 @@ export type GuardianSchemaT = z.infer<typeof GuardianSchema>
 export type StudentStatsSchemaT = z.infer<typeof StudentStatsSchema>
 export type SubjectSchemaT = z.infer<typeof SubjectSchema>
 export type SubjectStatsSchemaT = z.infer<typeof SubjectStatsSchema>
+export type AdminStatsSchemaT = z.infer<typeof AdminStatsSchema>  
+export type SchoolSettingsSchemaT = z.infer<typeof SchoolSettingsSchema>  

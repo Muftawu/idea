@@ -7,7 +7,7 @@ import { ConsumptionChart } from "@/components/dashboard/consumption-chart"
 import { Shortcuts } from "@/components/dashboard/shortcuts"
 import { LightPanels } from "@/components/dashboard/light-panels"
 import EnergyWidget from "@/components/dashboard/energy-widget"
-import { StaffHomeStatistics } from "@/components/dashboard/staff/staff-home-stats"
+import { StaffHomeStatistics } from "@/components/dashboard/staff-home-stats"
 
 export const StaffDashboard = () => {
     return (
@@ -21,7 +21,7 @@ export const StaffDashboard = () => {
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-semibold text-foreground">Statistics</h2>
                             </div>
-                            <StaffHomeStatistics />
+                            <StaffHomeStatistics  />
                         </div>
                     </section>
                 </div>

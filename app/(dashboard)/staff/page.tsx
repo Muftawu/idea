@@ -1,7 +1,7 @@
 "use client"
 import { DateValue } from "@heroui/react";
 import { getLocalTimeZone, CalendarDate } from "@internationalized/date"
-import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit } from "lucide-react"
+import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, Copy } from "lucide-react"
 import React from "react"
 import { useState, useEffect, useRef } from "react"
 import { StaffT, StaffStatSchemaT } from "@/lib/schemas"
@@ -15,7 +15,7 @@ import {
     useDisclosure,
 } from "@heroui/react";
 import { Separator } from "@/components/ui/separator"
-import StaffStatistics from "@/components/dashboard/staff-stats"
+import StaffStatistics from "@/components/dashboard/staff/staff-stats"
 import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils";
 import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
 import { toast } from "react-toastify";
@@ -45,6 +45,10 @@ export default function Staff() {
             dateOfBirth: new Date(),
             phone: "",
             gender: "f"
+        },
+        staffCredentials: {
+            username: "",
+            password: ""
         },
         placeOfBirth: "",
         academicQualification: "",
@@ -177,6 +181,10 @@ export default function Staff() {
                 gender: "f"
             },
             staffId: "",
+            staffCredentials: {
+                username: "",
+                password: ""
+            },
             placeOfBirth: "",
             academicQualification: "",
             professionalQualification: "",
@@ -264,6 +272,15 @@ export default function Staff() {
         staffUpdates.current = []
     }
 
+    const handleOnCopyStaffCredential = async (info: string, text: string) => {
+        if (!info || !text) return
+        try {
+            await navigator.clipboard.writeText(text)
+            toast.info(`${info} copied`)
+        } catch (err: any) {
+        }
+    }
+
     return (
         <div className="lg:h-dvh h-auto">
             <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border mb-4">
@@ -324,7 +341,7 @@ export default function Staff() {
                         <>
                             <ModalHeader className="flex flex-col bg-primary text-white">
                                 {modalAction === "add" ?
-                                    "Add New Staff" : modalAction === "view" ? "Staff Info" : null}
+                                    "Add New Staff" : modalAction === "view" || modalAction === "update" ? "Staff Info" : "Delete Staff"}
                             </ModalHeader>
 
                             <ModalBody className="">
@@ -389,7 +406,7 @@ export default function Staff() {
                                                 placeholderValue={new CalendarDate(1996, 5, 15) as unknown as DateValue}
                                                 onChange={(value) => setStaffInfo({
                                                     ...staffInfo,
-                                                    personalInfo: {...staffInfo.personalInfo, dateOfBirth: value ? value.toDate(getLocalTimeZone()) : new Date()}
+                                                    personalInfo: { ...staffInfo.personalInfo, dateOfBirth: value ? value.toDate(getLocalTimeZone()) : new Date() }
                                                 })}
                                             />
                                             <Select
@@ -506,6 +523,19 @@ export default function Staff() {
                                             <Divider />
                                             <CardBody className="gap-4">
                                                 {/* <p >Staff Id: {staffInfo.staffId}</p> */}
+
+                                                <h1 className="font-bold">Login Credentials</h1>
+                                                <div className="mx-4">
+                                                    <div className="flex flex-row justify-between">
+                                                        <p className="text-small text-default-500">Username: <b>{staffInfo.staffCredentials.username}</b> </p>
+                                                        <Copy onClick={() => handleOnCopyStaffCredential("Username", staffInfo.staffCredentials.username)} className="w-5 mx-4 cursor-pointer hover:color-primary" size="sm" />
+                                                    </div>
+                                                    <div className="flex flex-row justify-between">
+                                                        <p className="text-small text-default-500">Password: <b>{staffInfo.staffCredentials.password}</b> </p>
+                                                        <Copy onClick={() => handleOnCopyStaffCredential("Password", staffInfo.staffCredentials.password)} className="w-5 mx-4 cursor-pointer hover:color-primary" size="sm" />
+                                                    </div>
+                                                </div>
+
 
                                                 <h1 className="font-bold">Personal</h1>
                                                 <div className="mx-4">

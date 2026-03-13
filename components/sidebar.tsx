@@ -17,7 +17,8 @@ import {
 import Image from "next/image"
 import ideaLogo from "../public/images/idea.jpg"
 import { AuthContext } from "@/context/authContext"
-import { Spinner } from "@heroui/react"
+import { Divider, Spinner } from "@heroui/react"
+import { Separator } from "@radix-ui/react-select"
 
 type Item = {
     href: string
@@ -90,6 +91,7 @@ export function Sidebar() {
                     {open ? <ChevronFirst className="size-5" /> : <ChevronLast className="size-5" />}
                 </button>
             </div>
+            <Divider />
 
             <nav className="mt-0 flex-1">
                 <ul className="flex flex-col gap-1 px-3">

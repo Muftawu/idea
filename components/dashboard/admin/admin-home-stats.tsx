@@ -1,9 +1,10 @@
+import { AdminStatsSchemaT } from "@/lib/schemas"
 import { Sunrise, Moon, Database } from "lucide-react"
 
 type dataProps = {
     icon: any
     title: string,
-    data: string,
+    data: string | number,
 }
 
 function HomeStatCard({ icon: Icon, title, data }: dataProps) {
@@ -20,20 +21,20 @@ function HomeStatCard({ icon: Icon, title, data }: dataProps) {
     )
 }
 
-export function HomeStatistics() {
+export function AdminHomeStatistics({ adminData }: { adminData: AdminStatsSchemaT }) {
     const data: dataProps[] = [
         {
             title: "Students",
-            data: "30",
+            data: adminData.totalStudents.toString() ?? 0,
             icon: Sunrise
         },
         {
             title: "Staff",
-            data: "30",
+            data: adminData.totalStaff.toString() ?? 0,
             icon: Sunrise
         }, {
             title: "Classes",
-            data: "30",
+            data: adminData.totalClasses.toString() ?? 0,
             icon: Sunrise
         },
     ]

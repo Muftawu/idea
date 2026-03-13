@@ -5,7 +5,7 @@ import { ToggleSwitch } from "@/components/ui/toggle-switch"
 import { Alert, Button } from "@heroui/react"
 import { Sunrise, DownloadIcon } from "lucide-react"
 
-export function StaffDashboardActions() {
+export function AdminDashboardActions() {
 
     const quickActions = [
         {
