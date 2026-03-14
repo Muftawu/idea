@@ -68,6 +68,7 @@ export default function Staff() {
     const [availableClasses, setAvailableClasses] = useState<ClassRoomSchemaT[]>([])
     const [availableClassItems, setAvailableClassItems] = useState<multiSelectFormFieldProp[]>([])
     const [staffAssignedClasses, setStaffAssignedClasses] = useState<string>("")
+    const [defaultSelectedAssignedClasses, setDefaultSelectedAssignedClasses] = useState<string[]>([])
 
     useEffect(() => {
         const fetchAvailableClasses = async () => {
@@ -130,26 +131,19 @@ export default function Staff() {
     function handleOpenModal(action: typeof modalAction, item?: StaffT) {
         if (!action) return
 
-        const filteredItems: multiSelectFormFieldProp[] = []
-        // const currentHandledClassIds = staffInfo.assignedClasses?.map(({id, name, subclassLabel}: {id?: string, name: string, subclassLabel?: string}) => ({key: id, label: `${name}${subclassLabel}`}))
-        const currentHandledClassIds = staffInfo.assignedClasses?.map(({ id }: { id?: string }) => (id))
-        console.log("currnet handeled class ids", currentHandledClassIds)
-
-        availableClassItems.reduce((_, val: multiSelectFormFieldProp) => {
-            if (!currentHandledClassIds?.includes(val.key)) {
-                filteredItems.push(val)
-            }
-            return filteredItems
-        }, filteredItems)
-        setAvailableClassItems(filteredItems)
-
         setModalAction(action)
-        { item ? setStaffInfo(item) : null }
+        if (action !== "add" && item) {
+            const assignedClasses: string[] = item.assignedClasses?.map(({ id }) => `${id}`) ?? []
+            setDefaultSelectedAssignedClasses(assignedClasses)
+            setStaffAssignedClasses(assignedClasses?.join())
+            setStaffInfo(item)
+        }
         onOpen()
     }
 
     function handleOnCloseModal() {
         setStaffAssignedClasses("")
+        setDefaultSelectedAssignedClasses([])
         setStaffInfo({
             personalInfo: {
                 first_name: "",
@@ -165,6 +159,7 @@ export default function Staff() {
                 username: "",
                 password: ""
             },
+            assignedClasses: [],
             placeOfBirth: "",
             academicQualification: "",
             professionalQualification: "",
@@ -203,6 +198,7 @@ export default function Staff() {
     }
 
     const handleStaffAssignedClassesChanged = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setDefaultSelectedAssignedClasses(e.target.value.split(","))
         setStaffAssignedClasses(e.target.value)
     }
 
@@ -475,6 +471,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 name="gender"
                                                 placeholder="Select gender"
+                                                selectedKeys={new Set([staffInfo.personalInfo.gender])}
                                                 value={staffInfo.personalInfo.gender}
                                                 onChange={handlePersonalInfoChange}
                                             >
@@ -485,11 +482,11 @@ export default function Staff() {
 
                                         <Separator />
                                         <p className="font-semibold">Assigned Classes</p>
-                                        <div className="mx-4">
-                                            <Alert color="primary" hideIcon>
-                                                {staffInfo.assignedClasses?.map((item) => `${item.name}${item.subclassLabel}, `)}
-                                            </Alert>
-                                        </div>
+                                        {/* <div className="mx-4"> */}
+                                        {/*     <Alert color="primary" > */}
+                                        {/*         {staffInfo.assignedClasses?.map((item) => `${item.name}${item.subclassLabel}, `)} */}
+                                        {/*     </Alert> */}
+                                        {/* </div> */}
                                         {availableClassItems.length < 1 ? <p className="text-sm mx-4">Loading classes. Please wait...</p> :
                                             <div className="mx-4 gap-8 space-y-12">
                                                 <Select
@@ -498,6 +495,7 @@ export default function Staff() {
                                                     labelPlacement="outside"
                                                     selectionMode="multiple"
                                                     items={availableClassItems}
+                                                    selectedKeys={new Set(defaultSelectedAssignedClasses)}
                                                     placeholder="Select classes"
                                                     onChange={handleStaffAssignedClassesChanged}
                                                 >
@@ -607,6 +605,7 @@ export default function Staff() {
                                                     </div>
                                                 </div>
 
+                                                <Divider />
 
                                                 <h1 className="font-bold">Personal</h1>
                                                 <div className="mx-4">
@@ -616,11 +615,23 @@ export default function Staff() {
                                                     <p>Hometown: {staffInfo.hometown || "N/A"}</p>
                                                 </div>
 
+                                                <Divider />
+
+                                                <h1 className="font-bold">Assigned Classes</h1>
+                                                <div className="mx-4">
+                                                    {staffInfo.assignedClasses?.map((item) => (
+                                                        <p>Name: {item.name}{item.subclassLabel}</p>
+                                                    ))}
+                                                </div>
+
+                                                <Divider />
                                                 <h1 className="font-bold">Qualification</h1>
                                                 <div className="mx-4">
                                                     <p>Academic: {staffInfo.academicQualification || "N/A"}</p>
                                                     <p>Professional: {staffInfo.professionalQualification || "N/A"}</p>
                                                 </div>
+
+                                                <Divider />
 
                                                 <h1 className="font-bold">Accounts</h1>
                                                 <div className="mx-4">
