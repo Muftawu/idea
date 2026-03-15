@@ -13,7 +13,7 @@ import {
 } from "@heroui/react";
 import { Separator } from "@/components/ui/separator"
 import { SubjecStatistics } from "@/components/dashboard/subject-stats"
-import { BaseErrMsg, BaseRequestHeaders, capitalize, ClassGroups, DefaultSubjectScoreOptions, dynamicFormUpdates } from "@/lib/utils"
+import { BaseErrMsg, BaseRequestHeaders, capitalize, ClassGroups, DefaultSubjectScoreOptions, dynamicFormUpdates, getSubjectGroupScoreOptions } from "@/lib/utils"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
 import { Spinner } from "@heroui/react"
@@ -21,7 +21,6 @@ import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
 
 export default function Subjects() {
 
-    const router = useRouter()
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
     const [loading, setLoading] = useState<boolean>(false)
     const [modalAction, setModalAction] = useState<"view" | "add" | "delete" | "update">("view")
@@ -40,7 +39,7 @@ export default function Subjects() {
     const [addToExistingSubjects, setAddToExistingSubjects] = useState<boolean>(false)
 
     const [subjectsToRemove, setSubjectsToRemove] = useState<string[]>([])
-    const [subjectStats, setSubjectStats] = useState<SubjectStatsSchemaT>({subjectsCount: 0})
+    const [subjectStats, setSubjectStats] = useState<SubjectStatsSchemaT>({ subjectsCount: 0 })
 
     useEffect(() => {
         const fetchAllClassGroupSubjects = async () => {
@@ -147,7 +146,7 @@ export default function Subjects() {
                     currentClassGroupFields.push({ field: e.target.name, value: e.target.value })
                 }
             } else {
-                setClassSubjectGroupInfo({ ...classSubjectGroupInfo, subjects: classSubjectGroupInfo.subjects?.map((item) => item.id === e.target.name ? { ...item, name: e.target.value } : item) })
+                setClassSubjectGroupInfo({ ...classSubjectGroupInfo, subjects: classSubjectGroupInfo.subjects?.map((item) => item.id === e.target.name ? { ...item, [e.target.name]: e.target.value } : item) })
             }
         }
     }
@@ -404,7 +403,10 @@ export default function Subjects() {
                                                                 modalAction === "update" ?
                                                                     <p>Add new subjects below</p> : <p>None</p>
                                                                 :
-                                                                <p>Available subjects ({classSubjectGroupInfo.subjects?.length})</p>
+                                                                <>
+                                                                    <p>Available subjects ({classSubjectGroupInfo.subjects?.length})</p>
+                                                                    <p>To rename an exising class, please use the delete to remove it and re-add it</p>
+                                                                </>
                                                         }
                                                     </div>
                                                 }
@@ -455,7 +457,8 @@ export default function Subjects() {
                                                                 <Input
                                                                     name={item.id}
                                                                     key={index}
-                                                                    label="Edit subject name"
+                                                                    disabled={true}
+                                                                    label={`Subject ${index + 1}`}
                                                                     labelPlacement="outside-top"
                                                                     placeholder="Enter Subject name"
                                                                     className="w-full"
@@ -486,10 +489,13 @@ export default function Subjects() {
                                                     <h1 className="">Total: ({classSubjectGroupInfo.subjects?.length})</h1>
                                                     <h1 className="">Scoring Type: {classSubjectGroupInfo.scoreType}</h1>
                                                 </div>
-                                                <p><b>Score options</b>: {classSubjectGroupInfo.scoreType === "options" ? DefaultSubjectScoreOptions.map((item) => `${item} | `) : "Numeric value(%)"}</p>
+                                                {!classSubjectGroupInfo ? null :
+                                                    <p><b>Score Type</b>: {classSubjectGroupInfo.scoreType === "options" ? getSubjectGroupScoreOptions(classSubjectGroupInfo.name).map((item) => `${item},`) : "Number (%)"}</p>
+                                                }
                                             </div>
+                                            <Divider />
 
-                                            <p className="mb-4">Subjects List</p>
+                                            <p className="mb-4 mt-4">Subjects List ({classSubjectGroupInfo.subjects?.length})</p>
                                             {classSubjectGroupInfo.subjects?.map((item, index) => (
                                                 <Card key={item.id} className="w-full mb-4">
                                                     <CardHeader className="flex gap-3">
@@ -538,12 +544,10 @@ export default function Subjects() {
                                                     <Button className="color-brand-100" color="primary" onPress={() => handleDeleteClassSubjectGroup("selected")}>
                                                         Delete Selected ({subjectsToRemove.length})
                                                     </Button>
-
-                                                    <Button className="color-brand-100" color="primary" onPress={() => handleDeleteClassSubjectGroup("all")}>
-                                                        <Trash />
-                                                        Delete All
-                                                    </Button>
-
+                                                    {/* <Button className="color-brand-100" color="primary" onPress={() => handleDeleteClassSubjectGroup("all")}> */}
+                                                    {/*     <Trash /> */}
+                                                    {/*     Delete All */}
+                                                    {/* </Button> */}
                                                 </CardBody>
                                                 <Divider />
                                             </Card>

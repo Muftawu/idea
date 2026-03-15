@@ -1,8 +1,7 @@
 "use client"
 import { AdminDashboard } from "@/components/dashboard/admin/admin-dashboard"
-import { StaffDashboard } from "@/components/dashboard/staff-dashboard"
+import { StaffDashboard } from "@/components/dashboard/staff/staff-dashboard"
 import { AuthContext } from "@/context/authContext"
-import { Spinner } from "@heroui/react"
 import { useContext } from "react"
 
 export default function Page() {

@@ -39,7 +39,7 @@ export default function SignInPage() {
                         return `Login success. ${data}`
                     }
                 },
-                error: "Invalid email "
+                error: "Invalid username or password"
             }
         )
     }

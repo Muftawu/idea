@@ -31,19 +31,9 @@ export function SubjecStatistics({ data }: { data: SubjectStatsSchemaT }) {
             icon: Boxes
         },
         {
-            title: "Sub-Classes",
-            data: "30",
-            icon: List
-        },
-        {
             title: "Subjects",
             data: Number(data.subjectsCount).toFixed(0),
             icon: Notebook
-        },
-        {
-            title: "Classes",
-            data: "30",
-            icon: Sunrise
         },
     ]
     return (

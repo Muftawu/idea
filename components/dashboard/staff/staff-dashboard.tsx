@@ -1,17 +1,20 @@
+"use client"
+
 import { WelcomeCard } from "@/components/dashboard/welcome-card"
-import { RoomCard } from "@/components/dashboard/room-card"
-import { DeviceCard } from "@/components/dashboard/device-card"
-import { StaffDashboardActions } from "@/components/dashboard/air-conditioning"
-import { UsersWidget } from "@/components/dashboard/users"
-import { ConsumptionChart } from "@/components/dashboard/consumption-chart"
-import { Shortcuts } from "@/components/dashboard/shortcuts"
-import { LightPanels } from "@/components/dashboard/light-panels"
-import EnergyWidget from "@/components/dashboard/energy-widget"
-import { StaffHomeStatistics } from "@/components/dashboard/staff-home-stats"
+import { StaffDashboardActions } from "@/components/dashboard/staff/staff-dashboard-actions"
+import { StaffHomeStatistics } from "@/components/dashboard/staff/staff-home-stats"
+import { useContext, useState } from "react"
+import { AuthContext } from "@/context/authContext"
+import { Spinner } from "@heroui/react"
 
 export const StaffDashboard = () => {
+
+    const userData = useContext(AuthContext)
+
+    if (!userData || !userData.userInfo) return 
+
     return (
-        <div className="lg:h-dvh h-auto space-y-5">
+        <div className="lg:h-dvh h-auto overflow-auto scrollbar-hide space-y-5">
             <WelcomeCard />
 
             <div className="grid gap-5 lg:grid-cols-3">
@@ -21,13 +24,13 @@ export const StaffDashboard = () => {
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-semibold text-foreground">Statistics</h2>
                             </div>
-                            <StaffHomeStatistics  />
+                            <StaffHomeStatistics />
                         </div>
                     </section>
                 </div>
 
                 <div className="space-y-5">
-                    <StaffDashboardActions />
+                    <StaffDashboardActions userInfo={userData.userInfo} />
                 </div>
             </div>
 

@@ -541,7 +541,7 @@ export default function Students() {
                                                 onChange={handleStudentInfoChange}
                                             >
                                                 {availabelClasses.map((item) => (
-                                                    <SelectItem key={item.id} textValue={`${item.name} ${item.subclassLabel ?? ""}`}>{item.name} {item.subclassLabel ?? ""}</SelectItem>
+                                                    <SelectItem key={item.id} textValue={`${item.name}`}>{item.name}</SelectItem>
                                                 ))}
                                             </Select>
                                         </div>

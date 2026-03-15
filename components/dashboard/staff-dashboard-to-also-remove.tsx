@@ -12,14 +12,9 @@ export const StaffDashboard = () => {
     const userData = useContext(AuthContext)
 
     if (!userData || !userData.userInfo) return 
-    {/*     <div className="flex flex-row"> */}
-    {/*         <Spinner label="Loading info. Please wait..." /> */}
-    {/*         <p>Loading info. Please wait...</p> */}
-    {/*     </div> */}
-    {/* ) */}
 
     return (
-        <div className="lg:h-dvh h-auto space-y-5">
+        <div className="lg:h-dvh h-auto overflow-auto scrollbar-hide space-y-5">
             <WelcomeCard />
 
             <div className="grid gap-5 lg:grid-cols-3">

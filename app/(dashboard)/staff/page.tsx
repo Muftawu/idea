@@ -16,7 +16,7 @@ import {
 } from "@heroui/react";
 import { Separator } from "@/components/ui/separator"
 import StaffStatistics from "@/components/dashboard/staff/staff-stats"
-import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils";
+import { BaseErrMsg, BaseRequestHeaders, capitalize } from "@/lib/utils";
 import { Card, CardHeader, CardBody, Divider } from "@heroui/react";
 import { toast } from "react-toastify";
 import { dynamicFormUpdates } from "@/lib/utils";
@@ -81,7 +81,7 @@ export default function Staff() {
                     return Promise.reject(response.status)
                 } else {
                     setAvailableClasses(result.data)
-                    const items = result.data.map(({ id, name}: { id: string, name: string}) => ({ key: id, label: `${name}` }))
+                    const items = result.data.map(({ id, name }: { id: string, name: string }) => ({ key: id, label: `${name}` }))
                     setAvailableClassItems(items)
                 }
             } catch (err: any) {
@@ -602,6 +602,7 @@ export default function Staff() {
 
                                                 <h1 className="font-bold">Personal</h1>
                                                 <div className="mx-4">
+                                                    <p className="text-default-500">UserType: <b>{capitalize(staffInfo.personalInfo.userType) || "N/A"}</b></p>
                                                     <p className="text-default-500">Gender: <b>{staffInfo.personalInfo.gender === "m" ? "Male" : "Female"}</b></p>
                                                     <p className="text-default-500">Birth Place: <b>{staffInfo.placeOfBirth || "N/A"}</b></p>
                                                     <p className="text-default-500">Residence: <b>{staffInfo.placeOfResidence || "N/A"}</b></p>

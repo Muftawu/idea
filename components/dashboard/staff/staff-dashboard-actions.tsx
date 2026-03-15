@@ -21,21 +21,17 @@ import { useRouter } from "next/navigation"
 export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) => {
 
     if (!userInfo || !userInfo.userTypeId) return
-    //     (
-    //     <div className="flex flex-row">
-    //         <Spinner label="Loading info. Please wait..." />
-    //         <p>Loading info. Please wait...</p>
-    //     </div>
-    // )
 
     const router = useRouter()
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
     const [modalAction, setModalAction] = useState<"view" | "add" | "delete" | "update">("view")
 
     // collection
-    const [handledClassesFetched, setHandldClassesFetched] = useState<boolean>(false)
-    const [handledClasses, setHandledClasses] = useState<ClassRoomSchemaT[]>([])
-    const [staffInfo, setStaffInfo] = useState<StaffT>({
+    const [staffDetailsFetched, setStaffDetailsFetched] = useState<boolean>(false)
+
+    // const [handledClasses, setHandledClasses] = useState<ClassRoomSchemaT[]>([])
+
+    const [staffDetail, setStaffDetail] = useState<StaffT>({
         staffId: "",
         personalInfo: {
             first_name: "",
@@ -66,24 +62,23 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
 
     useEffect(() => {
         if (!userInfo.userTypeId || userInfo.userTypeId.trim().length < 1) return
-        const fetchStaffInfo = async () => {
+        const fetchStaffDetails = async () => {
             try {
                 const response = await fetch(`/api/staff?query=${userInfo.userTypeId}`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
-                console.log("result", result.data)
                 if (!response.ok) {
-                    setHandldClassesFetched(false)
-                    return Promise.reject(response.status)
+                    setStaffDetailsFetched(false)
                 } else {
-                    setHandledClasses(result.data)
+                    setStaffDetail(result.data)
+                    setStaffDetailsFetched(true)
                 }
             } catch (err: any) {
-                setHandldClassesFetched(false)
+                setStaffDetailsFetched(false)
             }
         }
-        fetchStaffInfo()
+        fetchStaffDetails()
     }, [])
 
 
@@ -111,16 +106,16 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
         <>
             <section className="rounded-2xl bg-card p-5 shadow-sm ring-1 ring-border">
 
-                <h1 className="mb-4">Handled Classes ({handledClasses.length})</h1>
+                <h1 className="mb-4">Your Handled Classes ({staffDetail.assignedClasses?.length ?? 0})</h1>
                 <ul className="mt-6 divide-y divide-border">
-                    {!handledClassesFetched ?
+                    {!staffDetailsFetched ?
                         <div className="flex flex-row ">
                             <Spinner size="sm" className="text-center" />
-                            <p className="mx-4">Fetching staff data...</p>
+                            <p className="mx-4">Fetching classes...</p>
                         </div>
                         :
-                        handledClasses.length < 1 ? <p className="mx-4">No assigned class</p> :
-                            handledClasses.map((item, index) => (
+                        staffDetail.assignedClasses?.length ?? 0 < 1 ? <div className="mx-4"><Alert color="primary" title="No assigned class. Please contact your school head" /> </div> :
+                            staffDetail.assignedClasses?.map((item, index) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">
                                         {item.name[0]}
