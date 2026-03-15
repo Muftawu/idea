@@ -274,7 +274,7 @@ export default function Subjects() {
     }
 
     return (
-        <div className="h-dvh overflow-auto">
+        <div className="lg:h-dvh h-auto overflow-auto scrollbar-hide">
             <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border">
                 <div className="flex flex-row justify-between items-center mb-4">
                     <h1 className="text-balance text-2xl font-semibold text-foreground">Taught Subjects</h1>
@@ -338,12 +338,11 @@ export default function Subjects() {
                 </ul>
             </section>
 
-            {/* <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto ${modalAction === "delete" ? "h-[20rem]" : modalAction === "view" ? "h-[37rem]" : "h-[40rem]"}`}> */}
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4 scrollbar-hide`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
-                            <ModalHeader className="flex flex-col m-2">
+                            <ModalHeader className="flex flex-col bg-primary text-white">
                                 {modalAction === "add" ? "Add New Subject" : modalAction === "update" || modalAction === "view" ? `Class Group Info - ${classSubjectGroupInfo.name.toUpperCase()}` : `Delete Class Group Info - ${classSubjectGroupInfo.name.toUpperCase()}`}
                             </ModalHeader>
                             <Divider className="mb-2" />
@@ -460,7 +459,7 @@ export default function Subjects() {
                                                                     labelPlacement="outside-top"
                                                                     placeholder="Enter Subject name"
                                                                     className="w-full"
-                                                                    value={item.name}
+                                                                    value={item.subjectName}
                                                                     onChange={onChangeDynamicClassSubjectFormFieldChange}
                                                                 />
                                                                 {/* <Button color="danger" className="cursor-pointer mx-2 mt-8" onPress={() => { removedSubjectsRef.current.push(item.id ?? "") }}>Delete</Button> */}
@@ -496,7 +495,7 @@ export default function Subjects() {
                                                     <CardHeader className="flex gap-3">
                                                         <BookText className="rounded-lg" color="gray" size={40} />
                                                         <div className="flex flex-col">
-                                                            <p className="text-md">{index + 1}. {capitalize(item.name)}</p>
+                                                            <p className="text-md">{index + 1}. {capitalize(item.subjectName)}</p>
                                                         </div>
                                                     </CardHeader>
                                                 </Card>
@@ -523,7 +522,7 @@ export default function Subjects() {
                                                             <CardHeader className="flex gap-3">
                                                                 <BookText className="rounded-lg" color="gray" size={40} />
                                                                 <div className="flex flex-row justify-between items-center">
-                                                                    <p className="text-sm">{index + 1}. {capitalize(item.name)}</p>
+                                                                    <p className="text-sm">{index + 1}. {capitalize(item.subjectName)}</p>
                                                                 </div>
 
                                                                 <Button variant="solid" color={subjectsToRemove.includes(item.id ?? "") ? "primary" : "default"}

@@ -53,7 +53,6 @@ const ClassRoomSchema = z.object({
     name: z.string(),
     classTeacher: z.string().optional(),
     classGroup: z.string().optional(),
-    subclassLabel: z.string().optional(),
     classTeacherName: z.string().optional(),
     studentCount: z.number().optional(),
 })
@@ -76,7 +75,7 @@ const StaffInfoSchema = z.object({
 // SUBJECT //
 const SubjectSchema = z.object({
     id: z.string().optional(),
-    name: z.string(),
+    subjectName: z.string(),
 })
 
 const SubjectStatsSchema = z.object({

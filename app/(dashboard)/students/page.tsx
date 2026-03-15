@@ -6,7 +6,7 @@ import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
 import { PlusCircle, EyeIcon, Edit, TrashIcon, UserRound } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { ClassRoomSchemaT, GuardianSchemaT, StudentSchemaT, StudentStatsSchemaT } from "@/lib/schemas"
-import { Input, Select, SelectItem, Button, DatePicker } from "@heroui/react";
+import { Input, Select, SelectItem, Button, DatePicker, Pagination } from "@heroui/react";
 import {
     Modal,
     ModalContent,
@@ -66,6 +66,9 @@ export default function Students() {
     const studentUpdates = useRef<dynamicFormUpdates[]>([])
     const guardianUpdates = useRef<dynamicFormUpdates[]>([])
 
+    const maxDisplay = 10
+    const [currentPage, setCurrentPage] = useState<number>(1)
+
     useEffect(() => {
         const fetchStudentStats = async () => {
             try {
@@ -103,7 +106,7 @@ export default function Students() {
             }
         }
         fetchAllStudents()
-    }, [loading])
+    }, [loading, currentPage])
 
     useEffect(() => {
         const fetchAvailableClasses = async () => {
@@ -347,7 +350,7 @@ export default function Students() {
     }
 
     return (
-        <div className="lg:h-dvh h-auto overflow-auto mb-4">
+        <div className="lg:h-dvh h-auto overflow-auto mb-4 scrollbar-hide">
             <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border">
                 <div className="flex flex-row justify-between items-center mb-4">
                     <h1 className="text-balance text-2xl font-semibold text-foreground">Students ({allStudents.length})</h1>
@@ -370,7 +373,7 @@ export default function Students() {
                             <p className="mx-4">Fetching students data...</p>
                         </div>
                         : allStudents.length < 1 ? <p className="mx-4">No students available</p> :
-                            allStudents.map((item, index) => (
+                            allStudents.slice(currentPage, currentPage + maxDisplay).map((item, index) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">
                                         {item.surname[0]}{item.otherNames[0]}
@@ -379,7 +382,7 @@ export default function Students() {
                                         <div className="flex items-center justify-between">
                                             <p className="truncate font-medium text-foreground">{item.surname} {item.otherNames}</p>
                                         </div>
-                                        <p className="truncate text-sm text-muted-foreground">Class: {item.currentClass?.name} | Age: {item.age}yrs</p>
+                                        <p className="truncate text-sm text-muted-foreground">Class: {item.currentClass?.name}</p>
                                     </div>
                                     <div className="flex flex-row justify-center items-center">
                                         <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("update", item)}>
@@ -395,6 +398,9 @@ export default function Students() {
                                     </div>
                                 </li>
                             ))}
+                    <div className="mt-4">
+                        <Pagination color="primary" page={currentPage} total={Math.ceil(allStudents.length/maxDisplay)} onChange={(e) => setCurrentPage(prev => prev < e ? prev + maxDisplay : prev - maxDisplay)} />
+                    </div>
                 </ul>
             </section>
 
@@ -609,7 +615,7 @@ export default function Students() {
                                                 <UserRound className="border border rounded-lg" size={40} />
                                                 <div className="flex flex-col">
                                                     <p className="text-md">{capitalize(studentInfo.surname)} {capitalize(studentInfo.otherNames)}</p>
-                                                    <p className="text-small text-default-500">{studentInfo.gender} | {studentInfo.currentClass.name}</p>
+                                                    <p className="text-small text-default-500">{studentInfo.gender === "m" ? "Male" : "Female"} | {studentInfo.currentClass.name}</p>
                                                 </div>
                                             </CardHeader>
                                             <Divider />
@@ -619,11 +625,11 @@ export default function Students() {
                                                     <p><b>Surname</b>: {studentInfo.surname}</p>
                                                     <p><b>OtherNames</b>: {studentInfo.otherNames}</p>
                                                     <p><b>Gender</b>: {studentInfo.gender === "m" ? "Male" : "Female"}</p>
-                                                    <p><b>Age</b>: {studentInfo.age}</p>
+                                                    <p><b>Age</b>: {studentInfo.age ?? "N/A"}</p>
                                                     <p><b>Current Class</b>: {studentInfo.currentClass?.name}</p>
                                                     <p><b>Religion</b>: {studentInfo.religion}</p>
                                                     <p><b>DateOfBirth</b>: {new Date(studentInfo.dateOfBirth).toLocaleDateString()}</p>
-                                                    <p><b>Place Of Birth</b>: {studentInfo.placeOfBirth}</p>
+                                                    <p><b>Place Of Birth</b>: {studentInfo.placeOfBirth ?? "N/A"}</p>
                                                 </div>
 
                                                 <h1 className="font-bold">Guardian Info</h1>

@@ -81,7 +81,7 @@ export default function Staff() {
                     return Promise.reject(response.status)
                 } else {
                     setAvailableClasses(result.data)
-                    const items = result.data.map(({ id, name, subclassLabel }: { id: string, name: string, subclassLabel?: string }) => ({ key: id, label: `${name}${subclassLabel}` }))
+                    const items = result.data.map(({ id, name}: { id: string, name: string}) => ({ key: id, label: `${name}` }))
                     setAvailableClassItems(items)
                 }
             } catch (err: any) {
@@ -117,7 +117,6 @@ export default function Staff() {
                 const result = await response.json()
                 if (!response.ok) {
                     setStaffFetched(false)
-                    return Promise.reject(response.status)
                 } else {
                     setAllStaff(result.data)
                     setStaffFetched(true)
@@ -130,7 +129,6 @@ export default function Staff() {
 
     function handleOpenModal(action: typeof modalAction, item?: StaffT) {
         if (!action) return
-
         setModalAction(action)
         if (action !== "add" && item) {
             const assignedClasses: string[] = item.assignedClasses?.map(({ id }) => `${id}`) ?? []
@@ -324,10 +322,10 @@ export default function Staff() {
     }
 
     return (
-        <div className="lg:h-dvh h-auto">
+        <div className="min-h-dvh h-auto overflow-auto">
             <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border mb-4">
                 <div className="flex flex-row justify-between items-center mb-4">
-                    <h1 className="text-balance text-2xl font-semibold text-foreground">Academic Staff</h1>
+                    <h1 className="text-balance text-2xl font-semibold text-foreground">Staff ({allStaff.length})</h1>
                     <Button className="bg-brand cursor-pointer text-white" onPress={() => handleOpenModal("add")}>
                         <PlusCircle />
                         Add Staff
@@ -377,7 +375,7 @@ export default function Staff() {
                 </ul>
             </section>
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4 scrollbar-hide`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
@@ -398,7 +396,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 placeholder="John"
                                                 className="w-full"
-                                                value={staffInfo.personalInfo.first_name}
+                                                value={staffInfo.personalInfo.first_name ?? ""}
                                                 onChange={handlePersonalInfoChange}
                                             />
                                             <Input
@@ -408,7 +406,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 placeholder="Doe"
                                                 className="w-full"
-                                                value={staffInfo.personalInfo.last_name}
+                                                value={staffInfo.personalInfo.last_name ?? ""}
                                                 onChange={handlePersonalInfoChange}
                                             />
                                             <Input
@@ -419,7 +417,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 placeholder="user@gmail.com"
                                                 className="w-full"
-                                                value={staffInfo.personalInfo.email}
+                                                value={staffInfo.personalInfo.email ?? ""}
                                                 onChange={handlePersonalInfoChange}
                                             />
                                             <Input
@@ -429,7 +427,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 placeholder="024XXXXXXXX"
                                                 className="w-full"
-                                                value={staffInfo.personalInfo.phone}
+                                                value={staffInfo.personalInfo.phone ?? ""}
                                                 onChange={handlePersonalInfoChange}
                                             />
                                             <DatePicker
@@ -458,7 +456,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 placeholder="Select nationality"
                                                 selectedKeys={new Set(["gh"])}
-                                                value={staffInfo.personalInfo.nationality}
+                                                value={staffInfo.personalInfo.nationality ?? ""}
                                                 onChange={handlePersonalInfoChange}
                                             >
                                                 <SelectItem key="gh">Ghanaian</SelectItem>
@@ -472,7 +470,7 @@ export default function Staff() {
                                                 name="gender"
                                                 placeholder="Select gender"
                                                 selectedKeys={new Set([staffInfo.personalInfo.gender])}
-                                                value={staffInfo.personalInfo.gender}
+                                                value={staffInfo.personalInfo.gender ?? ""}
                                                 onChange={handlePersonalInfoChange}
                                             >
                                                 <SelectItem key="m">Male</SelectItem>
@@ -482,11 +480,6 @@ export default function Staff() {
 
                                         <Separator />
                                         <p className="font-semibold">Assigned Classes</p>
-                                        {/* <div className="mx-4"> */}
-                                        {/*     <Alert color="primary" > */}
-                                        {/*         {staffInfo.assignedClasses?.map((item) => `${item.name}${item.subclassLabel}, `)} */}
-                                        {/*     </Alert> */}
-                                        {/* </div> */}
                                         {availableClassItems.length < 1 ? <p className="text-sm mx-4">Loading classes. Please wait...</p> :
                                             <div className="mx-4 gap-8 space-y-12">
                                                 <Select
@@ -515,7 +508,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 placeholder="Accra"
                                                 className="w-full"
-                                                value={staffInfo.placeOfBirth}
+                                                value={staffInfo.placeOfBirth ?? ""}
                                                 onChange={handleStaffInfoChange}
                                             />
                                             <Select
@@ -525,7 +518,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 placeholder="Select qualification"
                                                 selectedKeys={new Set(["wassce"])}
-                                                value={staffInfo.academicQualification}
+                                                value={staffInfo.academicQualification ?? ""}
                                                 onChange={handleStaffInfoChange}
                                             >
                                                 <SelectItem key="bachelor">Bachelor</SelectItem>
@@ -538,7 +531,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 placeholder="Teacher"
                                                 className="w-full"
-                                                value={staffInfo.professionalQualification}
+                                                value={staffInfo.professionalQualification ?? ""}
                                                 onChange={handleStaffInfoChange}
                                             />
                                             <Input
@@ -547,7 +540,7 @@ export default function Staff() {
                                                 labelPlacement="outside"
                                                 placeholder="Kasoa"
                                                 className="w-full"
-                                                value={staffInfo.placeOfResidence}
+                                                value={staffInfo.placeOfResidence ?? ""}
                                                 onChange={handleStaffInfoChange}
                                             />
                                             <Input
@@ -609,34 +602,35 @@ export default function Staff() {
 
                                                 <h1 className="font-bold">Personal</h1>
                                                 <div className="mx-4">
-                                                    <p>Gender: {staffInfo.personalInfo.gender === "m" ? "Male" : "Female"}</p>
-                                                    <p>Birth Place: {staffInfo.placeOfBirth || "N/A"}</p>
-                                                    <p>Residence: {staffInfo.placeOfResidence || "N/A"}</p>
-                                                    <p>Hometown: {staffInfo.hometown || "N/A"}</p>
+                                                    <p className="text-default-500">Gender: <b>{staffInfo.personalInfo.gender === "m" ? "Male" : "Female"}</b></p>
+                                                    <p className="text-default-500">Birth Place: <b>{staffInfo.placeOfBirth || "N/A"}</b></p>
+                                                    <p className="text-default-500">Residence: <b>{staffInfo.placeOfResidence || "N/A"}</b></p>
+                                                    <p className="text-default-500">Hometown: <b>{staffInfo.hometown || "N/A"}</b></p>
                                                 </div>
 
                                                 <Divider />
 
-                                                <h1 className="font-bold">Assigned Classes</h1>
+                                                <h1 className="font-bold">Assigned Classes ({staffInfo.assignedClasses?.length})</h1>
                                                 <div className="mx-4">
-                                                    {staffInfo.assignedClasses?.map((item) => (
-                                                        <p>Name: {item.name}{item.subclassLabel}</p>
+                                                    {staffInfo.assignedClasses?.map((item, index) => (
+                                                        <p className="text-default-500" key={index}>Name: <b>{item.name ?? "N/A"}</b></p>
                                                     ))}
                                                 </div>
 
                                                 <Divider />
                                                 <h1 className="font-bold">Qualification</h1>
                                                 <div className="mx-4">
-                                                    <p>Academic: {staffInfo.academicQualification || "N/A"}</p>
-                                                    <p>Professional: {staffInfo.professionalQualification || "N/A"}</p>
+                                                    <p className="text-default-500">Academic: <b>{staffInfo.academicQualification || "N/A"}</b></p>
+                                                    <p className="text-default-500">Professional: <b>{staffInfo.professionalQualification || "N/A"}</b></p>
                                                 </div>
 
                                                 <Divider />
 
                                                 <h1 className="font-bold">Accounts</h1>
                                                 <div className="mx-4">
-                                                    <p>Bank Acc No: {staffInfo.bankAccNo || "N/A"}</p>
-                                                    <p>Social Sec No: {staffInfo.socialSecNo || "N/A"}</p>
+                                                    <p className="text-default-500">Bank Acc No: <b>{staffInfo.bankAccNo || "N/A"}</b></p>
+                                                    <p className="text-default-500">Social Sec No: <b>{staffInfo.socialSecNo || "N/A"}</b></p>
+
                                                 </div>
                                             </CardBody>
                                             <Divider />

@@ -34,7 +34,6 @@ export default function Classrooms() {
         name: "",
         classTeacher: "",
         classGroup: "",
-        subclassLabel: "",
         studentCount: 0
     })
 
@@ -90,28 +89,28 @@ export default function Classrooms() {
             name: "",
             classTeacher: "",
             classGroup: "",
-            subclassLabel: ""
         })
         onClose()
     }
 
     const handleClassroomValueChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const val = e.target.value
         if (modalAction === "update") {
             const updates = classroomInfoUpdates.current
             const fieldExists = updates.find(obj => obj.field === e.target.name)
             if (fieldExists) {
-                fieldExists.value = e.target.value
+                fieldExists.value = val
             } else {
-                classroomInfoUpdates.current.push({ field: e.target.name, value: e.target.value })
+                classroomInfoUpdates.current.push({ field: e.target.name, value: val })
             }
         }
-        setClassRoomInfo({ ...classRoomInfo, [e.target.name]: e.target.value })
+        setClassRoomInfo({ ...classRoomInfo, [e.target.name]: val })
     }
 
     async function handleCreateNewStaff() {
         onClose()
         if (!classRoomInfo.classGroup) return toast.info("No class group selected. Please select a class group.")
-        const classExists = allClassrooms.find(obj => obj.name === classRoomInfo.name && obj.subclassLabel === classRoomInfo.subclassLabel)
+        const classExists = allClassrooms.find(obj => obj.name === classRoomInfo.name)
         if (classExists) return toast.info("Class already exists")
         const fn = async () => {
             try {
@@ -221,7 +220,7 @@ export default function Classrooms() {
 
     return (
         <>
-            <div className="lg:h-dvh h-auto mb-4">
+            <div className="lg:h-dvh h-auto overflow-auto mb-4 scrollbar-hide">
                 <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border">
                     <div className="flex flex-row justify-between items-center">
                         <h1 className="text-balance text-2xl font-semibold text-foreground">Classes ({allClassrooms.length})</h1>
@@ -268,11 +267,11 @@ export default function Classrooms() {
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between">
-                                                <p className="truncate font-medium text-foreground">{item.name}{item.subclassLabel}</p>
+                                                <p className="truncate font-medium text-foreground">{item.name}</p>
                                                 {/* <span className="text-xs text-muted-foreground">{t.studentCount}</span> */}
                                             </div>
                                             <p className="truncate text-sm text-muted-foreground">Group: {item.classGroup?.toUpperCase()}</p>
-                                            <p className="truncate text-sm text-muted-foreground">ClassTeacher: {item.classTeacherName}</p>
+                                            {/* <p className="truncate text-sm text-muted-foreground">ClassTeacher: {item.classTeacherName}</p> */}
                                         </div>
                                         <div className="flex flex-row justify-center items-center">
                                             <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("update", item)}>
@@ -301,119 +300,101 @@ export default function Classrooms() {
                                     "Create New Class" : modalAction === "view" ? "Class Info" : "Delete Class"}
                             </ModalHeader>
 
-                            <ModalBody>
-
-                                {modalAction === "add" || modalAction === "update" ?
-                                    <>
-                                        <p className="font-semibold">Class Info</p>
-                                        <div className="mx-4 gap-8 space-y-12 mb-4">
-                                            <Input
-                                                isRequired
-                                                label="Name"
-                                                name="name"
-                                                labelPlacement="outside"
-                                                placeholder="Class name"
-                                                className="w-full"
-                                                value={classRoomInfo.name}
-                                                onChange={handleClassroomValueChange}
-                                            />
-                                            <Select
-                                                isRequired
-                                                label="Group (This field is required)"
-                                                labelPlacement="outside"
-                                                name="classGroup"
-                                                placeholder="Select class group"
-                                                selectedKeys={new Set([classRoomInfo.classGroup ?? ""])}
-                                                value={classRoomInfo.classGroup}
-                                                onChange={handleClassroomValueChange}
-                                                className=""
-                                            >
-                                                {ClassGroups.map((item) => (
-                                                    <SelectItem key={item.key} textValue={`${capitalize(item.key.replace("_", " "))}`}>{capitalize(item.value).replace("_", " ")} Group</SelectItem>
-                                                ))}
-                                            </Select>
-                                            <Select
-                                                name="subclassLabel"
-                                                label="Subclass Label (optional)"
-                                                labelPlacement="outside"
-                                                placeholder="Select sub class label"
-                                                selectedKeys={new Set([classRoomInfo.subclassLabel ?? ""])}
-                                                value={classRoomInfo.subclassLabel}
-                                                onChange={handleClassroomValueChange}
-                                                className=""
-                                            >
-                                                <SelectItem key="A">A</SelectItem>
-                                                <SelectItem key="B">B</SelectItem>
-                                                <SelectItem key="C">C</SelectItem>
-                                                <SelectItem key="D">D</SelectItem>
-                                            </Select>
-                                            <Select
-                                                label="Class Teacher"
-                                                labelPlacement="outside"
-                                                name="classTeacher"
-                                                placeholder="Select class teacher"
-                                                selectedKeys={new Set([classRoomInfo.classTeacher ?? ""])}
-                                                value={classRoomInfo.classTeacher}
-                                                onChange={handleClassroomValueChange}
-                                                className=""
-                                            >
-                                                {availableStaff.map((item) => (
-                                                    <SelectItem key={item.id} textValue={`${item.personalInfo.first_name} ${item.personalInfo.last_name}`}>{item.personalInfo.first_name} {item.personalInfo.last_name}</SelectItem>
-                                                ))}
-                                            </Select>
-                                        </div>
-                                    </>
-                                    :
-                                    modalAction === "view" ?
+                            <ModalBody> {modalAction === "add" || modalAction === "update" ?
+                                <>
+                                    <p className="font-semibold">Class Info</p>
+                                    <div className="mx-4 gap-8 space-y-12 mb-4">
+                                        <Input
+                                            isRequired={true}
+                                            label="Name"
+                                            name="name"
+                                            labelPlacement="outside"
+                                            placeholder="Class name"
+                                            className="w-full"
+                                            value={classRoomInfo.name}
+                                            onChange={handleClassroomValueChange}
+                                        />
+                                        <Select
+                                            isRequired={true}
+                                            label="Group (This field is required)"
+                                            labelPlacement="outside"
+                                            name="classGroup"
+                                            placeholder="Select class group"
+                                            selectedKeys={new Set([classRoomInfo.classGroup ?? ""])}
+                                            value={classRoomInfo.classGroup}
+                                            onChange={handleClassroomValueChange}
+                                            className=""
+                                        >
+                                            {ClassGroups.map((item) => (
+                                                <SelectItem key={item.key} textValue={`${capitalize(item.key.replace("_", " "))}`}>{capitalize(item.value).replace("_", " ")} Group</SelectItem>
+                                            ))}
+                                        </Select>
+                                        <Select
+                                            label="Class Teacher (optional)"
+                                            labelPlacement="outside"
+                                            name="classTeacher"
+                                            placeholder="Select class teacher"
+                                            selectedKeys={new Set([classRoomInfo.classTeacher ?? ""])}
+                                            value={classRoomInfo.classTeacher}
+                                            onChange={handleClassroomValueChange}
+                                            className=""
+                                        >
+                                            {availableStaff.map((item) => (
+                                                <SelectItem key={item.id} textValue={`${item.personalInfo.first_name} ${item.personalInfo.last_name}`}>{item.personalInfo.first_name} {item.personalInfo.last_name}</SelectItem>
+                                            ))}
+                                        </Select>
+                                    </div>
+                                </>
+                                :
+                                modalAction === "view" ?
+                                    <Card className="w-full">
+                                        <CardHeader className="flex gap-3">
+                                            <UsersRound className="border border rounded-lg" size={40} />
+                                            <div className="flex flex-col">
+                                                <p className="text-md">{classRoomInfo.name}</p>
+                                                <p className="text-small text-default-500">{classRoomInfo.classGroup}</p>
+                                            </div>
+                                        </CardHeader>
+                                        <Divider />
+                                        <CardBody className="gap-4">
+                                            <div className="mx-4">
+                                                <p>Name: {classRoomInfo.name}</p>
+                                                <p>Class Group: {classRoomInfo.classGroup?.toUpperCase()} Group</p>
+                                                <p>ClassTeacher: {classRoomInfo.classTeacherName}</p>
+                                                <p>StudentCount: {classRoomInfo.studentCount}</p>
+                                            </div>
+                                        </CardBody>
+                                        <Divider />
+                                        <CardFooter>
+                                            <Button className="w-full">
+                                                View Students
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
+                                    : modalAction === "delete" ?
                                         <Card className="w-full">
                                             <CardHeader className="flex gap-3">
-                                                <UsersRound className="border border rounded-lg" size={40} />
+                                                <UserRound className="border border rounded-lg" size={40} />
                                                 <div className="flex flex-col">
-                                                    <p className="text-md">{classRoomInfo.name}{classRoomInfo.subclassLabel}</p>
-                                                    <p className="text-small text-default-500">{classRoomInfo.classGroup}</p>
+                                                    <p className="text-md">Class: {classRoomInfo.name}</p>
+                                                    <p className="text-small text-default-500">Group: {classRoomInfo.classGroup?.toUpperCase()} GROUP</p>
                                                 </div>
                                             </CardHeader>
                                             <Divider />
                                             <CardBody className="gap-4">
-                                                <div className="mx-4">
-                                                    <p>Name: {classRoomInfo.name}</p>
-                                                    <p>Class Group: {classRoomInfo.classGroup?.toUpperCase()} Group</p>
-                                                    <p>Subclass Label: {classRoomInfo.subclassLabel}</p>
-                                                    <p>ClassTeacher: {classRoomInfo.classTeacherName}</p>
-                                                    <p>StudentCount: {classRoomInfo.studentCount}</p>
-                                                </div>
+
+                                                <h1 className="">Are you sure you want to delete this class?</h1>
+
+                                                <Button className="color-brand-100" color="primary" onPress={() => handleDelete()}>
+                                                    Confirm Delete
+                                                </Button>
+
                                             </CardBody>
                                             <Divider />
-                                            <CardFooter>
-                                                <Button className="w-full">
-                                                    View Students
-                                                </Button>
-                                            </CardFooter>
                                         </Card>
-                                        : modalAction === "delete" ?
-                                            <Card className="w-full">
-                                                <CardHeader className="flex gap-3">
-                                                    <UserRound className="border border rounded-lg" size={40} />
-                                                    <div className="flex flex-col">
-                                                        <p className="text-md">Class: {classRoomInfo.name}</p>
-                                                        <p className="text-small text-default-500">Group: {classRoomInfo.classGroup?.toUpperCase()} GROUP</p>
-                                                    </div>
-                                                </CardHeader>
-                                                <Divider />
-                                                <CardBody className="gap-4">
-
-                                                    <h1 className="">Are you sure you want to delete this class?</h1>
-
-                                                    <Button className="color-brand-100" color="primary" onPress={() => handleDelete()}>
-                                                        Confirm Delete
-                                                    </Button>
-
-                                                </CardBody>
-                                                <Divider />
-                                            </Card>
-                                            :
-                                            null
-                                }
+                                        :
+                                        null
+                            }
                             </ModalBody>
                             <ModalFooter>
                                 <Button color="default" variant="flat" onPress={() => handleOnCloseModal()}>
