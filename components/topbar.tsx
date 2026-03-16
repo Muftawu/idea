@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ColorThemePicker } from "@/components/color-theme"
-import { AuthContext, useAuthContext } from "@/context/authContext"
+import { useAuthContext } from "@/context/authContext"
 import { Spinner } from "@heroui/react"
 import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils"
 import { toast } from "react-toastify"
@@ -42,16 +41,17 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                 if (!response.ok) {
                     return Promise.reject(response.status)
                 } else {
-                    return Promise.reject(response.status)
+                    return Promise.resolve(response.status)
                 }
             } catch (err: any) {
             }
         }
+
         await toast.promise(
             fn,
             {
                 pending: "Logging out...",
-                success: "Successfully logout out",
+                success: "Logout success.",
                 error: BaseErrMsg
             }
         )

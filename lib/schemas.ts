@@ -57,6 +57,12 @@ const ClassRoomSchema = z.object({
     studentCount: z.number().optional(),
 })
 
+const MinimalStudentInfoSchema = z.object({
+    student_id: z.string(),
+    student__surname: z.string(),
+    student__otherNames: z.string(),
+})
+
 const StaffInfoSchema = z.object({
     id: z.string().optional(),
     staffId: z.string(),
@@ -69,7 +75,8 @@ const StaffInfoSchema = z.object({
     hometown: z.string().optional(),
     bankAccNo: z.string().optional(),
     socialSecNo: z.string().optional(),
-    assignedClasses: z.array(ClassRoomSchema).optional()
+    assignedClasses: z.array(ClassRoomSchema).optional(),
+    assignedClassStudentsList: z.array(MinimalStudentInfoSchema).optional()
 })
 
 // SUBJECT //
@@ -91,7 +98,8 @@ const ClassSubjectGroupSchema = z.object({
 
 const CurrentClassDetailSchema = z.object({
     id: z.string().optional(),
-    name: z.string().optional()
+    name: z.string().optional(),
+    classGroup: z.string().optional()
 })
 
 // STUDENT //
@@ -132,5 +140,6 @@ export type GuardianSchemaT = z.infer<typeof GuardianSchema>
 export type StudentStatsSchemaT = z.infer<typeof StudentStatsSchema>
 export type SubjectSchemaT = z.infer<typeof SubjectSchema>
 export type SubjectStatsSchemaT = z.infer<typeof SubjectStatsSchema>
-export type AdminStatsSchemaT = z.infer<typeof AdminStatsSchema>  
-export type SchoolSettingsSchemaT = z.infer<typeof SchoolSettingsSchema>  
+export type AdminStatsSchemaT = z.infer<typeof AdminStatsSchema>
+export type SchoolSettingsSchemaT = z.infer<typeof SchoolSettingsSchema>
+export type MinimalStudentInfoSchemaT = z.infer<typeof MinimalStudentInfoSchema> 

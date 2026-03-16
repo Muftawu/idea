@@ -66,7 +66,7 @@ export default function Students() {
     const studentUpdates = useRef<dynamicFormUpdates[]>([])
     const guardianUpdates = useRef<dynamicFormUpdates[]>([])
 
-    const maxDisplay = 10
+    const maxDisplay = 7
     const [currentPage, setCurrentPage] = useState<number>(1)
 
     useEffect(() => {
@@ -398,8 +398,8 @@ export default function Students() {
                                     </div>
                                 </li>
                             ))}
-                    <div className="mt-4">
-                        <Pagination color="primary" page={currentPage} total={Math.ceil(allStudents.length/maxDisplay)} onChange={(e) => setCurrentPage(prev => prev < e ? prev + maxDisplay : prev - maxDisplay)} />
+                    <div className="mt-4 flex flex-row justify-end">
+                        <Pagination color="primary" page={currentPage} total={Math.ceil(allStudents.length/maxDisplay)} onChange={setCurrentPage} />
                     </div>
                 </ul>
             </section>

@@ -72,7 +72,7 @@ export async function DELETE() {
     if (tokens_cleared) {
         return NextResponse.json(
             null,
-            { status: 200 }
+            { status: 200 , statusText: "ok"}
         )
     } else {
         return NextResponse.json(

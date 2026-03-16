@@ -38,7 +38,6 @@ const items: Item[] = [
 
 const staffItems: Item[] = [
     { href: "/", label: "Home", icon: Home },
-    { href: "/assigned-classes", label: "My Classes", icon: Theater },
     { href: "/profile", label: "Profile", icon: UserRound },
 ]
 

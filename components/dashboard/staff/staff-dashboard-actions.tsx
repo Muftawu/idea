@@ -5,7 +5,7 @@ import { ToggleSwitch } from "@/components/ui/toggle-switch"
 import { BaseRequestHeaders } from "@/lib/utils"
 import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
 import { PlusCircle, EyeIcon, Edit, TrashIcon, UserRound } from "lucide-react"
-import { ClassRoomSchemaT, GuardianSchemaT, StaffT, StudentSchemaT, StudentStatsSchemaT, UserSchemaT } from "@/lib/schemas"
+import { ClassRoomSchemaT, GuardianSchemaT, MinimalStudentInfoSchemaT, StaffT, StudentSchemaT, StudentStatsSchemaT, UserSchemaT } from "@/lib/schemas"
 import { Input, Select, SelectItem, Button, DatePicker, Alert, Spinner } from "@heroui/react";
 import {
     Modal,
@@ -25,11 +25,6 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
     const router = useRouter()
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
     const [modalAction, setModalAction] = useState<"view" | "add" | "delete" | "update">("view")
-
-    // collection
-    const [staffDetailsFetched, setStaffDetailsFetched] = useState<boolean>(false)
-
-    // const [handledClasses, setHandledClasses] = useState<ClassRoomSchemaT[]>([])
 
     const [staffDetail, setStaffDetail] = useState<StaffT>({
         staffId: "",
@@ -55,10 +50,16 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
         socialSecNo: "",
     })
 
+    // collection
+    const [staffDetailsFetched, setStaffDetailsFetched] = useState<boolean>(false)
+    const [retrievedAssignedClasses, setRetrievedAssignedClasses] = useState<ClassRoomSchemaT[]>([])
+    const [allHandledStudentsClassList, setAllHandledStudentsClassList] = useState<Record<string, MinimalStudentInfoSchemaT[]>>({})
+    const [currentClassList, setCurrentClassList] = useState<MinimalStudentInfoSchemaT[]>([])
+
     // single
-    // const [classInfo, setClassInfo] = useState<ClassRoomSchemaT[]>([])
-    // const [studentInfo, setStudentInfo] = useState<StudentSchemaT[]>([])
-    // const [academicRecordInfo, setAcademicRecordInfo] = useState([])
+    const [classInfo, setClassInfo] = useState<ClassRoomSchemaT>()
+    const [studentInfo, setStudentInfo] = useState<StudentSchemaT[]>([])
+    const [academicRecordInfo, setAcademicRecordInfo] = useState([])
 
     useEffect(() => {
         if (!userInfo.userTypeId || userInfo.userTypeId.trim().length < 1) return
@@ -71,7 +72,8 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                 if (!response.ok) {
                     setStaffDetailsFetched(false)
                 } else {
-                    setStaffDetail(result.data)
+                    setRetrievedAssignedClasses(result.data.assignedClasses)
+                    setAllHandledStudentsClassList(result.data.assignedClassStudentsList)
                     setStaffDetailsFetched(true)
                 }
             } catch (err: any) {
@@ -81,6 +83,14 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
         fetchStaffDetails()
     }, [])
 
+
+    const handleViewClassList = (item: ClassRoomSchemaT) => {
+        if (!item) return
+        setClassInfo(item)
+        const entries = Object.entries(allHandledStudentsClassList)
+        entries.filter((ent) => ent[0] === item.id ? setCurrentClassList(ent[1]) : null)
+        onOpen()
+    }
 
     const handleOnOpenModal = (action: string) => {
         if (!action) return
@@ -106,7 +116,7 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
         <>
             <section className="rounded-2xl bg-card p-5 shadow-sm ring-1 ring-border">
 
-                <h1 className="mb-4">Your Handled Classes ({staffDetail.assignedClasses?.length ?? 0})</h1>
+                <h1 className="text-lg mb-4">Your Handled Classes ({retrievedAssignedClasses?.length ?? 0})</h1>
                 <ul className="mt-6 divide-y divide-border">
                     {!staffDetailsFetched ?
                         <div className="flex flex-row ">
@@ -114,8 +124,8 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                             <p className="mx-4">Fetching classes...</p>
                         </div>
                         :
-                        staffDetail.assignedClasses?.length ?? 0 < 1 ? <div className="mx-4"><Alert color="primary" title="No assigned class. Please contact your school head" /> </div> :
-                            staffDetail.assignedClasses?.map((item, index) => (
+                        retrievedAssignedClasses?.length < 1 ? <div className="mx-4"><Alert color="primary" title="No assigned class. Please contact your school head" /> </div> :
+                            retrievedAssignedClasses?.map((item, index) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">
                                         {item.name[0]}
@@ -125,10 +135,10 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                                             <p className="truncate font-medium text-foreground">{item.name}</p>
                                             {/* <span className="text-xs text-muted-foreground">{t.studentCount}</span> */}
                                         </div>
-                                        <p className="truncate text-sm text-muted-foreground">Phone: {item.studentCount}</p>
+                                        <p className="truncate text-sm text-muted-foreground">Class size: {item.studentCount}</p>
                                     </div>
                                     <div className="flex flex-row justify-center items-center">
-                                        <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOnOpenModal("classList")}>
+                                        <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleViewClassList(item)}>
                                             <EyeIcon />
                                         </Button>
 
@@ -144,8 +154,7 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                     {(onClose) => (
                         <>
                             <ModalHeader className="flex flex-col bg-primary text-white mb-4">
-                                {modalAction === "add" ?
-                                    "Add New Student" : modalAction === "view" ? "Student Info" : "Edit Student Info"}
+                                {classInfo?.name} class list ({currentClassList.length})
                             </ModalHeader>
 
                             <ModalBody className="">
@@ -181,30 +190,21 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                                     </>
                                     :
                                     modalAction === "view" ?
-                                        <Card className="w-full">
-                                            <CardHeader className="flex gap-3">
-                                                <UserRound className="border border rounded-lg" size={40} />
-                                                {/* <div className="flex flex-col"> */}
-                                                {/*     <p className="text-md">{capitalize(studentInfo.surname)} {capitalize(studentInfo.otherNames)}</p> */}
-                                                {/*     <p className="text-small text-default-500">{studentInfo.gender} | {studentInfo.currentClass.name}</p> */}
-                                                {/* </div> */}
-                                            </CardHeader>
-                                            <Divider />
-                                            <CardBody className="gap-4">
-                                                <h1 className="font-bold">Personal</h1>
-                                                {/* <div className="mx-4"> */}
-                                                {/*     <p><b>Surname</b>: {studentInfo.surname}</p> */}
-                                                {/*     <p><b>OtherNames</b>: {studentInfo.otherNames}</p> */}
-                                                {/*     <p><b>Gender</b>: {studentInfo.gender === "m" ? "Male" : "Female"}</p> */}
-                                                {/*     <p><b>Age</b>: {studentInfo.age}</p> */}
-                                                {/*     <p><b>Current Class</b>: {studentInfo.currentClass?.name}</p> */}
-                                                {/*     <p><b>Religion</b>: {studentInfo.religion}</p> */}
-                                                {/*     <p><b>DateOfBirth</b>: {new Date(studentInfo.dateOfBirth).toLocaleDateString()}</p> */}
-                                                {/*     <p><b>Place Of Birth</b>: {studentInfo.placeOfBirth}</p> */}
-                                                {/* </div> */}
-                                            </CardBody>
-                                            <Divider />
-                                        </Card>
+                                        currentClassList.map((item: MinimalStudentInfoSchemaT, index: number) => (
+                                            <Card key={index} className="w-full">
+                                                <CardHeader className="flex flex-row justify-between items-center gap-3">
+                                                    <div className="flex flex-row">
+                                                        <UserRound className="border border rounded-lg" size={40} />
+                                                        <h1 className="font-bold m-2 mx-4">{index + 1}. {item.student__surname} {item.student__otherNames}</h1>
+                                                    </div>
+                                                    <Button onPress={() => router.push(`/academic-reports/${item.student_id}`)} isIconOnly={true} className="color-brand-100" color="primary">
+                                                        <EyeIcon />
+                                                    </Button>
+                                                </CardHeader>
+                                                <Divider />
+                                                <Divider />
+                                            </Card>
+                                        ))
                                         : modalAction === "delete" ?
                                             <Card className="w-full">
                                                 <CardHeader className="flex gap-3">
