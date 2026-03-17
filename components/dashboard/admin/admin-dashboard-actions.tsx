@@ -1,21 +1,26 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ToggleSwitch } from "@/components/ui/toggle-switch"
-import { Alert, Button } from "@heroui/react"
+import { Alert, Button, Spinner } from "@heroui/react"
 import { Sunrise, DownloadIcon } from "lucide-react"
+import { PDFDownloadLink } from "@react-pdf/renderer"
+import { StudentSchemaT } from "@/lib/schemas"
+import { StudentPDFList } from "../reports/student_pdf_list"
+import { ReportCard, sampleReportData } from "../reports/IdeaSchoolReport"
 
-export function AdminDashboardActions() {
+export function AdminDashboardActions({ data }: { data: StudentSchemaT[] }) {
 
     const quickActions = [
         {
             "title": "Students list download",
-            "description": "Download PDF list of all students"
-
+            "description": "Download PDF list of all students",
+            "component": ReportCard,
         },
         {
             "title": "Staff list download",
-            "description": "Download PDF list of all staff"
+            "description": "Download PDF list of all staff",
+            "component": StudentPDFList,
         }
     ]
 
@@ -31,9 +36,21 @@ export function AdminDashboardActions() {
                             color="default"
                             description="Download PDF list of all Students"
                             endContent={
-                                <Button isIconOnly={false} color="warning" size="sm" variant="flat">
-                                    <DownloadIcon />
-                                </Button>
+                                <PDFDownloadLink
+                                    document={<item.component data={sampleReportData} />}
+                                    fileName={`Student List_${new Date().toDateString()}`}>
+                                    {({ blob, url, loading, error }) =>
+                                        loading ? <Spinner size="sm" /> :
+                                            <div className="flex flex-row justify-center items-center">
+                                                <Button color="primary" isIconOnly={true}>
+                                                    <DownloadIcon />
+                                                </Button>
+                                            </div>
+                                    }
+                                </PDFDownloadLink>
+                                // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
+                                //     <DownloadIcon />
+                                // </Button>
                             }
                             title="PDF Student List"
                             variant="faded"

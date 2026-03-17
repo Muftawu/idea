@@ -6,11 +6,12 @@ import { ConsumptionChart } from "@/components/dashboard/consumption-chart"
 import EnergyWidget from "@/components/dashboard/energy-widget"
 import { AdminHomeStatistics } from "@/components/dashboard/admin/admin-home-stats"
 import { useEffect, useState } from "react"
-import { AdminStatsSchemaT } from "@/lib/schemas"
+import { AdminStatsSchemaT, StudentSchemaT } from "@/lib/schemas"
 import { BaseRequestHeaders } from "@/lib/utils"
 
 export function AdminDashboard() {
 
+    const [students, setStudents] = useState<StudentSchemaT[]>([])
     const [adminStats, setAdminStats] = useState<AdminStatsSchemaT>({
         totalClasses: 0,
         totalStudents: 0,
@@ -35,6 +36,24 @@ export function AdminDashboard() {
         fetchAdminStats()
     }, [])
 
+    useEffect(() => {
+        const fetchStudents = async () => {
+            try {
+                const response = await fetch(`/api/students?query=all`, {
+                    headers: { ...BaseRequestHeaders },
+                })
+                const result = await response.json()
+                if (!response.ok) {
+                    return
+                } else {
+                    setStudents(result.data)
+                }
+            } catch (err: any) {
+            }
+        }
+        fetchStudents()
+    }, [])
+
     return (
         <div className="lg:h-dvh h-auto space-y-5">
             <WelcomeCard />
@@ -54,7 +73,7 @@ export function AdminDashboard() {
                 </div>
 
                 <div className="space-y-5">
-                    <AdminDashboardActions />
+                    <AdminDashboardActions data={students} />
                 </div>
             </div>
 

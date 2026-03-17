@@ -10,6 +10,7 @@ import { Suspense } from "react"
 import { ToastContainer } from 'react-toastify';
 import { HeroUIProvider } from "@heroui/react";
 import { AuthProvider } from "@/context/authContext"
+import { SchoolProvider } from "@/context/schoolContext"
 
 export default function RootLayout({
     children,
@@ -26,13 +27,15 @@ export default function RootLayout({
             <body className="font-sans">
                 <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
                     <AuthProvider >
-                        <Suspense fallback={null}>
-                            <ToastContainer />
-                            <HeroUIProvider>
-                                {children}
-                            </HeroUIProvider>
-                            <Analytics />
-                        </Suspense>
+                        <SchoolProvider>
+                            <Suspense fallback={null}>
+                                <ToastContainer />
+                                <HeroUIProvider>
+                                    {children}
+                                </HeroUIProvider>
+                                <Analytics />
+                            </Suspense>
+                        </SchoolProvider>
                     </AuthProvider>
                 </ThemeProvider>
             </body>

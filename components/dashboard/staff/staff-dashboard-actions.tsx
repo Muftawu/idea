@@ -17,9 +17,11 @@ import {
 } from "@heroui/react";
 import { Separator } from "@/components/ui/separator"
 import { useRouter } from "next/navigation"
+import { toast } from "react-toastify";
 
 export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) => {
 
+    console.log("userinfo", userInfo)
     const router = useRouter()
 
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
@@ -50,7 +52,7 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
     })
 
     // collection
-    const [staffDetailsFetched, setStaffDetailsFetched] = useState<boolean>(false)
+    const [staffDetailsLoaded, setStaffDetailsLoaded] = useState<boolean>(false)
     const [retrievedAssignedClasses, setRetrievedAssignedClasses] = useState<ClassRoomSchemaT[]>([])
     const [allHandledStudentsClassList, setAllHandledStudentsClassList] = useState<Record<string, MinimalStudentInfoSchemaT[]>>({})
     const [currentClassList, setCurrentClassList] = useState<MinimalStudentInfoSchemaT[]>([])
@@ -67,20 +69,21 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                 const response = await fetch(`/api/staff?query=${userInfo.userTypeId}`, {
                     headers: { ...BaseRequestHeaders },
                 })
+                console.log("response====================", response)
                 const result = await response.json()
                 if (!response.ok) {
-                    setStaffDetailsFetched(false)
+                    return null
                 } else {
                     setRetrievedAssignedClasses(result.data.assignedClasses)
                     setAllHandledStudentsClassList(result.data.assignedClassStudentsList)
-                    setStaffDetailsFetched(true)
                 }
+                setStaffDetailsLoaded(true)
             } catch (err: any) {
-                setStaffDetailsFetched(false)
+                setStaffDetailsLoaded(true)
             }
         }
         fetchStaffDetails()
-    }, [])
+    }, [userInfo.userTypeId])
 
     if (!userInfo || !userInfo.userTypeId) return null
 
@@ -92,24 +95,8 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
         onOpen()
     }
 
-    const handleOnOpenModal = (action: string) => {
-        if (!action) return
-        onOpen()
-    }
-
     const handleOnCloseModal = () => {
         onClose()
-    }
-
-    const handleOnAcademicRecordFieldChanges = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    }
-
-    const handleCreateAcademicRecord = async () => {
-
-    }
-
-    const handleUpdateAcademicRecord = async () => {
-
     }
 
     return (
@@ -118,10 +105,10 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
 
                 <h1 className="text-lg mb-4">Your Handled Classes ({retrievedAssignedClasses?.length ?? 0})</h1>
                 <ul className="mt-6 divide-y divide-border">
-                    {!staffDetailsFetched ?
+                    {!staffDetailsLoaded ?
                         <div className="flex flex-row ">
                             <Spinner size="sm" className="text-center" />
-                            <p className="mx-4">Fetching classes...</p>
+                            <p className="mx-4">Fetching your classes...</p>
                         </div>
                         :
                         retrievedAssignedClasses?.length < 1 ? <div className="mx-4"><Alert color="primary" title="No assigned class. Please contact your school head" /> </div> :
@@ -141,12 +128,10 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                                         <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleViewClassList(item)}>
                                             <EyeIcon />
                                         </Button>
-
                                     </div>
                                 </li>
                             ))}
                 </ul>
-
             </section >
 
             <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4 scrollbar-hide`}>
@@ -158,40 +143,12 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                             </ModalHeader>
 
                             <ModalBody className="">
-                                <p className="font-bold">Student List ({currentClassList.length})</p>
-                                <p>Male: {currentClassList.filter(obj => obj.student__gender === "m").length} | Females: {currentClassList.filter(obj => obj.student__gender === "f").length}</p>
+                                <Alert variant="faded">
+                                    <p className="font-bold">Student List ({currentClassList.length})</p>
+                                    <p>Male: {currentClassList.filter(obj => obj.student__gender === "m").length} | Females: {currentClassList.filter(obj => obj.student__gender === "f").length}</p>
+                                </Alert>
                                 <Divider />
-                                {modalAction === "add" || modalAction === "update" ?
-                                    <>
-                                        <p className="font-semibold">Personal Info</p>
-                                        {/* <div className="mx-4 gap-8 space-y-12 mb-4"> */}
-                                        {/*     <Input */}
-                                        {/*         isRequired */}
-                                        {/*         name="surname" */}
-                                        {/*         label="Surname" */}
-                                        {/*         labelPlacement="outside" */}
-                                        {/*         placeholder="John" */}
-                                        {/*         className="w-full" */}
-                                        {/*         value={studentInfo.surname} */}
-                                        {/*         onChange={handleStudentInfoChange} */}
-                                        {/*     /> */}
-                                        {/*     <Select */}
-                                        {/*         name="nationality" */}
-                                        {/*         isRequired */}
-                                        {/*         label="Nationality" */}
-                                        {/*         labelPlacement="outside" */}
-                                        {/*         placeholder="Select nationality" */}
-                                        {/*         selectedKeys={new Set(["Ghanaian"])} */}
-                                        {/*         value={studentInfo.nationality} */}
-                                        {/*         defaultSelectedKeys={[studentInfo.nationality]} */}
-                                        {/*         onChange={handleStudentInfoChange} */}
-                                        {/*     > */}
-                                        {/*         {Nationalities.map((item) => ( */}
-                                        {/*             <SelectItem key={item}>{item}</SelectItem> */}
-                                        {/*         ))} */}
-                                        {/* </div> */}
-                                    </>
-                                    :
+                                {
                                     modalAction === "view" ?
                                         currentClassList.map((item: MinimalStudentInfoSchemaT, index: number) => (
                                             <Card key={index} className="w-full">
@@ -208,28 +165,7 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                                                 <Divider />
                                             </Card>
                                         ))
-                                        : modalAction === "delete" ?
-                                            <Card className="w-full">
-                                                <CardHeader className="flex gap-3">
-                                                    <UserRound className="border border rounded-lg" size={40} />
-                                                    {/* <div className="flex flex-col"> */}
-                                                    {/*     <p className="text-md">{studentInfo.surname} {studentInfo.otherNames}</p> */}
-                                                    {/*     <p className="text-small text-default-500">{studentInfo.gender} | {studentInfo.currentClass?.name}</p> */}
-                                                    {/* </div> */}
-                                                </CardHeader>
-                                                <Divider />
-                                                <CardBody className="gap-4">
-                                                    <h1 className="">Are you sure you want to delete this student?</h1>
-                                                    <Button className="color-brand-100" color="primary" onPress={() => { }}>
-                                                        Confirm Delete
-                                                    </Button>
-
-                                                </CardBody>
-                                                <Divider />
-                                            </Card>
-                                            :
-                                            null
-                                }
+                                        : null}
                             </ModalBody>
 
                             <ModalFooter>
@@ -254,3 +190,7 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
         </>
     )
 }
+
+
+
+

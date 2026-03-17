@@ -19,12 +19,15 @@ import { useRouter } from "next/navigation";
 import { SchoolSettingsSchemaT } from "@/lib/schemas";
 import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils";
 import { toast } from "react-toastify";
+import { Spinner } from "@heroui/react";
+import { useAuthContext } from "@/context/authContext";
 
 export default function Settings() {
 
     const router = useRouter()
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
 
+    const userData = useAuthContext()
     const [modalAction, setModalAction] = useState<string>("edit")
     const [loading, setLoading] = useState<boolean>(false)
     const [fetchedSchoolSettings, setFetchedSchoolSettings] = useState<boolean>(false)
@@ -38,12 +41,12 @@ export default function Settings() {
     useEffect(() => {
         const fetchSchoolSettings = async () => {
             try {
-                const response = await fetch(`/api/stats?query=main`, {
+                const response = await fetch(`/api/stats?query=main&admin_id=${userData?.userInfo.id}`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
                 if (!response.ok) {
-                    setFetchedSchoolSettings(true)
+                    return null
                 } else {
                     setSchoolSettings(result.data)
                 }
@@ -53,8 +56,9 @@ export default function Settings() {
             }
         }
         fetchSchoolSettings()
-    }, [loading])
+    }, [loading, userData?.userInfo.id])
 
+    if (!userData) return null
 
     const handleOnSchoolSettingsFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         if (e.target.name.startsWith("term")) {
@@ -65,14 +69,14 @@ export default function Settings() {
     }
 
     const handleUpdateSchoolSettings = async () => {
-        console.log(schoolSettings)
-        return
+        if (!userData.userInfo.id) return null
+        const payload = { currentTerm: schoolSettings.currentTerm, termStarts: new Date(schoolSettings.termStarts).toISOString().split("T")[0], termEnds: new Date(schoolSettings.termEnds).toISOString().split("T")[0] }
         const fn = async () => {
             try {
-                const response = await fetch(`/api/stats?query=main`, {
+                const response = await fetch(`/api/stats?query=main&admin_id=${userData?.userInfo.id}`, {
                     method: "PATCH",
                     headers: { ...BaseRequestHeaders },
-                    body: JSON.stringify(schoolSettings)
+                    body: JSON.stringify(payload)
                 })
                 const result = await response.json()
                 if (!response.ok) {
@@ -93,6 +97,7 @@ export default function Settings() {
                 success: "Student record successfully saved",
                 error: BaseErrMsg,
             })
+        router.refresh()
         setLoading(false)
     }
 
@@ -106,47 +111,49 @@ export default function Settings() {
                     </Button>
                 </div>
                 <p className="mt-2 text-muted-foreground">Make school changes and setting here.</p>
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <div className="rounded-xl bg-background p-4 ring-1 ring-border">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Button isIconOnly={true} color="primary">
-                                    <BadgeInfoIcon />
-                                </Button>
-                                <div>
-                                    <h1 className="text-lg font-bold">{schoolSettings.currentTerm}</h1>
-                                    <p className="font-normal text-foreground">Term</p>
+                {!fetchedSchoolSettings ? <div className="flex flex-row justify-center items-center"><Spinner /> </div> :
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="rounded-xl bg-background p-4 ring-1 ring-border">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Button isIconOnly={true} color="primary">
+                                        <BadgeInfoIcon />
+                                    </Button>
+                                    <div>
+                                        <h1 className="text-lg font-bold">{schoolSettings.currentTerm}</h1>
+                                        <p className="font-normal text-foreground">Term</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="rounded-xl bg-background p-4 ring-1 ring-border">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Button isIconOnly={true} color="primary">
+                                        <BadgeInfoIcon />
+                                    </Button>
+                                    <div>
+                                        <h1 className="text-lg font-bold">{new Date(schoolSettings.termStarts).toDateString()}</h1>
+                                        <p className="font-normal text-foreground">Term Start</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="rounded-xl bg-background p-4 ring-1 ring-border">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Button isIconOnly={true} color="primary">
+                                        <BadgeInfoIcon />
+                                    </Button>
+                                    <div>
+                                        <h1 className="text-lg font-bold">{new Date(schoolSettings.termEnds).toDateString()}</h1>
+                                        <p className="font-normal text-foreground">Term Start</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="rounded-xl bg-background p-4 ring-1 ring-border">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Button isIconOnly={true} color="primary">
-                                    <BadgeInfoIcon />
-                                </Button>
-                                <div>
-                                    <h1 className="text-lg font-bold">{new Date(schoolSettings.termStarts).toDateString()}</h1>
-                                    <p className="font-normal text-foreground">Term Start</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="rounded-xl bg-background p-4 ring-1 ring-border">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Button isIconOnly={true} color="primary">
-                                    <BadgeInfoIcon />
-                                </Button>
-                                <div>
-                                    <h1 className="text-lg font-bold">{new Date(schoolSettings.termEnds).toDateString()}</h1>
-                                    <p className="font-normal text-foreground">Term Start</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                }
             </section>
 
 
@@ -186,9 +193,9 @@ export default function Settings() {
                                                         new Date(schoolSettings.termStarts).getMonth() + 1,
                                                         new Date(schoolSettings.termStarts).getDate()
                                                     ) as unknown as DateValue
-                                                    : new CalendarDate(2005, 5, 15) as unknown as DateValue
+                                                    : new CalendarDate(2026, 3, 17) as unknown as DateValue
                                             }
-                                            placeholderValue={new CalendarDate(2005, 5, 15) as unknown as DateValue}
+                                            placeholderValue={new CalendarDate(2026, 3, 17) as unknown as DateValue}
                                             onChange={(value) => setSchoolSettings({
                                                 ...schoolSettings,
                                                 termStarts: value ? value.toDate(getLocalTimeZone()) : new Date()
@@ -206,9 +213,9 @@ export default function Settings() {
                                                         new Date(schoolSettings.termEnds).getMonth() + 1,
                                                         new Date(schoolSettings.termEnds).getDate()
                                                     ) as unknown as DateValue
-                                                    : new CalendarDate(2005, 5, 15) as unknown as DateValue
+                                                    : new CalendarDate(2026, 3, 17) as unknown as DateValue
                                             }
-                                            placeholderValue={new CalendarDate(2005, 5, 15) as unknown as DateValue}
+                                            placeholderValue={new CalendarDate(2026, 3, 17) as unknown as DateValue}
                                             onChange={(value) => setSchoolSettings({
                                                 ...schoolSettings,
                                                 termEnds: value ? value.toDate(getLocalTimeZone()) : new Date()

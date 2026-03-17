@@ -2,11 +2,11 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
 import { AuthContext } from "@/context/authContext"
-import { ClassRoomSchemaT, ClassSubjectGroupT, StudentSchemaT, SubjectSchemaT } from "@/lib/schemas"
+import { ClassRoomSchemaT, ClassSubjectGroupT, StudentConductSchemaT, StudentSchemaT, SubjectSchemaT } from "@/lib/schemas"
 import { BaseRequestHeaders, capitalize, getSubjectGroupScoreOptions, studentConductFormFields } from "@/lib/utils"
 import { PlusCircle } from "lucide-react"
 import { useContext, useState, useEffect, use } from "react"
-import { Alert, Input, Select, SelectItem, Button, DatePicker, Spinner, Snippet, Tabs, Tab } from "@heroui/react";
+import { Alert, Input, Select, SelectItem, Button, DatePicker, Spinner, Snippet, Tabs, Tab, NumberInput } from "@heroui/react";
 import {
     Modal,
     ModalContent,
@@ -20,6 +20,7 @@ import { BaseErrMsg } from "@/lib/utils";
 import { Card, CardHeader, CardBody, Divider } from "@heroui/react";
 import { toast } from "react-toastify";
 import { dynamicFormUpdates } from "@/lib/utils";
+import { useSchoolContext } from "@/context/schoolContext"
 
 type classListProps = {
     scoreType: string,
@@ -30,7 +31,9 @@ type classListProps = {
 }
 
 export default function AcademicReportPage({ params }: { params: Promise<{ slug: string }> }) {
+
     const { slug } = use(params)
+    const schoolData = useSchoolContext()
     const userData = useContext(AuthContext)
 
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
@@ -50,6 +53,15 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         currentClass: { id: "", name: "" },
         guardianId: "",
         religion: "",
+    })
+
+    const [studentConductInfo, setStudentConductInfo] = useState<StudentConductSchemaT>({
+        rollNo: 0,
+        attendance: 0,
+        attitude: "",
+        conduct: "",
+        interest: "",
+        teachersRemarks: ""
     })
 
     const [pastAcademicRecords, setPastAcademicRecords] = useState([])
@@ -103,7 +115,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }, [studentInfo.currentClass.classGroup])
 
 
-    if (!userData) return <Spinner label="Loading please wait" />
+    if (!userData || !schoolData) return <Spinner label="Loading please wait" />
 
     const handleOpenModal = (action: typeof modalAction, item?: any) => {
         if (!action) return
@@ -135,9 +147,14 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
     const handleSubmitStudentScores = async () => {
         // if (studentScores.length !== classSubjectList.subjects.length) return toast.info("All fields are required.")
+        //
+
         const studentId = studentInfo.id
-        const subjectScores = studentScores.map((item) => ({subject: item.field, score_val: item.value}))
-        const payload = { studentId, subjectScores}
+        const academicTerm = schoolData.schoolSettings.currentTerm
+        const subjectScores = studentScores.map((item) => ({ subject: item.field, score_val: item.value }))
+
+        const payload = { academicTerm, studentId, subjectScores, studentConductInfo }
+        console.log("payload", payload)
 
         const fn = async () => {
             try {
@@ -319,16 +336,80 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                 </Tab>
                                                 <Tab key="conduct" title="Conduct">
                                                     <Card className="flex flex-col gap-y-4">
-                                                        <div className="grid grid-cols-2 gap-y-8 m-4">
-                                                            <div className="mx-4 gap-8 space-y-12">
-                                                                <Input
-                                                                    name=""
-                                                                    label=""
-                                                                    labelPlacement="outside"
-                                                                    placeholder=""
+                                                        <div className="gap-y-8 m-4">
+                                                            <div className="grid grid-cols-2 mx-4 gap-8 space-y-12">
+                                                                <NumberInput
+                                                                    isRequired
+                                                                    label="Number on roll"
+                                                                    placeholder="5"
+                                                                    labelPlacement="inside"
+                                                                    validate={(value) => {
+                                                                        if (value < 0) {
+                                                                            return "Number must be greater than 0";
+                                                                        }
+                                                                        if (value > 54) {
+                                                                            return "Number must be less than 54";
+                                                                        }
+                                                                    }}
                                                                     className="w-full"
+                                                                    // formatOptions={{
+                                                                    //     style: "percent",
+                                                                    // }}
+                                                                    onValueChange={(e) => setStudentConductInfo({ ...studentConductInfo, rollNo: e })}
+                                                                />
+                                                                <NumberInput
+                                                                    isRequired
+                                                                    label="Attendance"
+                                                                    placeholder="5"
+                                                                    labelPlacement="inside"
+                                                                    validate={(value) => {
+                                                                        if (value < 0) {
+                                                                            return "Number must be greater than 0";
+                                                                        }
+                                                                        if (value > 54) {
+                                                                            return "Number must be less than 54";
+                                                                        }
+                                                                    }}
+                                                                    className="w-full"
+                                                                    onValueChange={(e) => setStudentConductInfo({ ...studentConductInfo, attendance: e })}
                                                                 />
                                                             </div>
+                                                            <div className="mx-4 space-y-8 gap-y-4">
+                                                                <Input
+                                                                    label="Attitude"
+                                                                    labelPlacement="inside"
+                                                                    placeholder="Enter student attitude"
+                                                                    className="w-full"
+                                                                    value={studentConductInfo.attitude}
+                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, attitude: e.target.value })}
+                                                                />
+                                                                <Input
+                                                                    label="Conduct"
+                                                                    labelPlacement="inside"
+                                                                    placeholder="Enter student conduct"
+                                                                    className="w-full"
+                                                                    value={studentConductInfo.conduct}
+                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, conduct: e.target.value })}
+                                                                />
+                                                                <Input
+                                                                    label="Interest"
+                                                                    labelPlacement="inside"
+                                                                    placeholder="Enter student interest"
+                                                                    className="w-full"
+                                                                    value={studentConductInfo.interest}
+                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, interest: e.target.value })}
+                                                                />
+                                                                <Input
+                                                                    label="Teacher remarks"
+                                                                    labelPlacement="inside"
+                                                                    placeholder="Enter your remarks"
+                                                                    className="w-full"
+                                                                    value={studentConductInfo.teachersRemarks}
+                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, teachersRemarks: e.target.value })}
+                                                                />
+
+                                                            </div>
+
                                                         </div>
                                                     </Card>
                                                 </Tab>
@@ -336,12 +417,23 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                     <Card className="flex flex-col gap-y-4">
                                                         <div className="grid grid-cols-2 gap-y-8 m-4">
                                                             <div className="mx-4 gap-8 space-y-12">
-                                                                <Input
-                                                                    name="promotedTo"
-                                                                    label="Promoted To"
+                                                                <NumberInput
+                                                                    isRequired
+                                                                    name="rollNo"
+                                                                    label="Number on roll"
                                                                     labelPlacement="outside"
-                                                                    placeholder="Basic 4"
+                                                                    validate={(value) => {
+                                                                        if (value < 0) {
+                                                                            return "Number must be greater than 0";
+                                                                        }
+                                                                        if (value > 54) {
+                                                                            return "Number must be less than 54";
+                                                                        }
+                                                                    }}
                                                                     className="w-full"
+                                                                    formatOptions={{
+                                                                        style: "percent",
+                                                                    }}
                                                                 />
                                                             </div>
                                                         </div>

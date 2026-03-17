@@ -131,6 +131,16 @@ const GuardianSchema = z.object({
     houseNumber: z.string().optional(),
 })
 
+const StudentConductSchema = z.object({
+    rollNo: z.number(),
+    attendance: z.number(),
+    attitude: z.string().optional(),
+    conduct: z.string(),
+    interest: z.string().optional(),
+    teachersRemarks: z.string(),
+    promotedTo: z.string().optional(),
+})
+
 export type ClassRoomSchemaT = z.infer<typeof ClassRoomSchema>
 export type UserSchemaT = z.infer<typeof UserSchema>
 export type StaffT = z.infer<typeof StaffInfoSchema>
@@ -144,3 +154,4 @@ export type SubjectStatsSchemaT = z.infer<typeof SubjectStatsSchema>
 export type AdminStatsSchemaT = z.infer<typeof AdminStatsSchema>
 export type SchoolSettingsSchemaT = z.infer<typeof SchoolSettingsSchema>
 export type MinimalStudentInfoSchemaT = z.infer<typeof MinimalStudentInfoSchema> 
+export type StudentConductSchemaT = z.infer<typeof StudentConductSchema> 

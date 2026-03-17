@@ -7,6 +7,7 @@ import { Topbar } from "@/components/topbar"
 import { HeroUIProvider } from "@heroui/react";
 import { ToastContainer } from "react-toastify"
 import { AuthProvider } from "@/context/authContext"
+import { SchoolProvider } from "@/context/schoolContext"
 
 export default function DashboardLayout({
     children,
@@ -42,7 +43,9 @@ export default function DashboardLayout({
                             <ToastContainer />
                             <HeroUIProvider>
                                 <AuthProvider>
+                                    <SchoolProvider>
                                     {children}
+                                    </SchoolProvider>
                                 </AuthProvider>
                             </HeroUIProvider>
                         </main>

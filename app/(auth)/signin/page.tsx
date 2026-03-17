@@ -46,7 +46,7 @@ export default function SignInPage() {
 
     return (
         <main className="h-dvh flex items-center justify-center p-6">
-            <div className="w-full max-w-sm rounded-2xl bg-card p-6 ring-1 ring-border">
+            <div className="w-full max-w-sm rounded-2xl bg-card p-6 ring-1 ring-border shadow-lg">
                 <div className="flex flex-row justify-center items-center">
                     <Image
                         src={IdeaLogo}

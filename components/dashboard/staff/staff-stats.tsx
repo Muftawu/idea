@@ -4,6 +4,11 @@ import { useMemo, useState } from "react"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell } from "recharts"
 import { cn } from "@/lib/utils"
 import { StaffStatSchemaT } from "@/lib/schemas"
+import { PDFDownloadLink } from "@react-pdf/renderer"
+import { Alert, Button, Spinner } from "@heroui/react"
+import { DownloadIcon } from "lucide-react"
+import { StudentPDFList } from "../reports/student_pdf_list"
+import { sampleReportData } from "../reports/IdeaSchoolReport"
 
 function Gauge({ value }: { value: number }) {
     const radius = 85
@@ -99,32 +104,37 @@ export default function StaffStatistics({ className, data }: { className?: strin
             </div>
 
 
-            {/* <div className="flex flex-col"> */}
-            {/*     <h3 className="text-sm font-semibold text-muted-foreground mb-2">Last days</h3> */}
-            {/*     <div className="h-40"> */}
-            {/*         <ResponsiveContainer width="100%" height="100%"> */}
-            {/*             <BarChart data={bars} barCategoryGap={18}> */}
-            {/*                 <XAxis */}
-            {/*                     dataKey="d" */}
-            {/*                     tickLine={false} */}
-            {/*                     axisLine={false} */}
-            {/*                     tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} */}
-            {/*                 /> */}
-            {/*                 <YAxis hide /> */}
-            {/*                 <Bar dataKey="v" radius={[6, 6, 6, 6]}> */}
-            {/*                     {bars.map((entry, i) => ( */}
-            {/*                         <Cell key={i} fill={entry.fill as string} /> */}
-            {/*                     ))} */}
-            {/*                 </Bar> */}
-            {/*             </BarChart> */}
-            {/*         </ResponsiveContainer> */}
-            {/*     </div> */}
-            {/*     <div className="mt-4 grid grid-cols-3 gap-3"> */}
-            {/*         <button className="rounded-xl bg-muted py-2 text-sm">Devices</button> */}
-            {/*         <button className="rounded-xl bg-muted py-2 text-sm">Schedule</button> */}
-            {/*         <button className="rounded-xl bg-[var(--brand)] text-background py-2 text-sm">Boost</button> */}
-            {/*     </div> */}
-            {/* </div> */}
+            <div className="flex flex-col">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Last days</h3>
+                <div className="h-40">
+
+                    <div className="flex items-center justify-center w-full mb-4">
+                        <Alert
+                            color="default"
+                            description="Download PDF list of all Staff"
+                            endContent={
+                                <PDFDownloadLink
+                                    document={<StudentPDFList data={sampleReportData} />}
+                                    fileName={`Student List_${new Date().toDateString()}`}>
+                                    {({ blob, url, loading, error }) =>
+                                        loading ? <Spinner size="sm" /> :
+                                            <div className="flex flex-row justify-center items-center">
+                                                <Button color="primary" isIconOnly={true}>
+                                                    <DownloadIcon />
+                                                </Button>
+                                            </div>
+                                    }
+                                </PDFDownloadLink>
+                                // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
+                                //     <DownloadIcon />
+                                // </Button>
+                            }
+                            title="Staff PDF List"
+                            variant="faded"
+                        />
+                    </div>
+                </div>
+            </div>
 
         </section>
     )

@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
 
     const { pathname } = request.nextUrl
 
-    const public_paths = ["/signin", "/signup"]
+    const public_paths = ["/signin"]
 
     if (!request.cookies.has("access_token") || !request.cookies.has("refresh_token")) {
 

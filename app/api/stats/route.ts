@@ -7,13 +7,13 @@ import { SchoolSettingsSchemaT } from '@/lib/schemas';
 const baseApiUrl = `${process.env.BASE_API_URL}/stats`
 const baseApiUpdateUrl = `${process.env.BASE_API_URL}/stats/school-settings/`
 
-const getFn = async (query: string) => {
+const getFn = async (query: string, admin_id?: string) => {
     const cookieStore = await cookies()
     const access_token = cookieStore.get("access_token")?.value ?? ""
 
     let response
     if (query === "main") {
-        response = await fetch(`${baseApiUpdateUrl}${query}`, {
+        response = await fetch(`${baseApiUpdateUrl}${admin_id}`, {
             headers: {
                 ...BaseRequestHeaders,
                 "Authorization": `Bearer ${access_token}`
@@ -33,11 +33,11 @@ const getFn = async (query: string) => {
     return { response, result }
 }
 
-const updateFn = async (payload: SchoolSettingsSchemaT) => {
+const updateFn = async (admin_id: string, payload: SchoolSettingsSchemaT) => {
     const cookieStore = await cookies()
     const access_token = cookieStore.get("access_token")?.value ?? ""
 
-    const response = await fetch(`${baseApiUpdateUrl}${payload.name}/`, {
+    const response = await fetch(`${baseApiUpdateUrl}${admin_id}/`, {
         method: "PATCH",
         headers: {
             ...BaseRequestHeaders,
@@ -52,15 +52,16 @@ const updateFn = async (payload: SchoolSettingsSchemaT) => {
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const query = searchParams.get("query") ?? ""
+    const admin_id = searchParams.get("admin_id") ?? ""
 
-    let out = await getFn(query)
+    let out = await getFn(query, admin_id)
     if (!out?.response.ok) {
         if (out?.response.status === 401) {
             const cookieStore = await cookies()
             const refresh_token = cookieStore.get("refresh_token")?.value ?? ""
             const refetchSuccess = await refetchTokens(refresh_token)
             if (refetchSuccess) {
-                out = await getFn(query)
+                out = await getFn(query, admin_id)
             } else {
                 await removeAuthTokens()
             }
@@ -77,14 +78,18 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
     const payload = await request.json()
-    let out = await updateFn(payload)
+    const searchParams = request.nextUrl.searchParams
+    const query = searchParams.get("query") ?? ""
+    const admin_id = searchParams.get("admin_id") ?? ""
+
+    let out = await updateFn(admin_id, payload)
     if (!out?.response.ok) {
         if (out?.response.status === 401) {
             const cookieStore = await cookies()
             const refresh_token = cookieStore.get("refresh_token")?.value ?? ""
             const refetchSuccess = await refetchTokens(refresh_token)
             if (refetchSuccess) {
-                out = await updateFn(payload)
+                out = await updateFn(admin_id, payload)
             } else {
                 await removeAuthTokens()
             }

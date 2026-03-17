@@ -340,6 +340,7 @@ export default function Staff() {
                     <p className="mt-2 text-muted-foreground">All Staff ({allStaff.length})</p>
                 </div>
 
+
                 <ul className="mt-6 divide-y divide-border">
                     {!staffFetched ?
                         <div className="flex flex-row ">
