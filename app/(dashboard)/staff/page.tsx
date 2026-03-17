@@ -135,6 +135,8 @@ export default function Staff() {
             setDefaultSelectedAssignedClasses(assignedClasses)
             setStaffAssignedClasses(assignedClasses?.join())
             setStaffInfo(item)
+        } else {
+            handleOnCloseModal()
         }
         onOpen()
     }

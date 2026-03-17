@@ -2,11 +2,11 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
 import { AuthContext } from "@/context/authContext"
-import { ClassRoomSchemaT, ClassSubjectGroupT, StudentSchemaT } from "@/lib/schemas"
-import { BaseRequestHeaders, capitalize, getSubjectGroupScoreOptions } from "@/lib/utils"
+import { ClassRoomSchemaT, ClassSubjectGroupT, StudentSchemaT, SubjectSchemaT } from "@/lib/schemas"
+import { BaseRequestHeaders, capitalize, getSubjectGroupScoreOptions, studentConductFormFields } from "@/lib/utils"
 import { PlusCircle } from "lucide-react"
 import { useContext, useState, useEffect, use } from "react"
-import { Alert, Input, Select, SelectItem, Button, DatePicker, Spinner, Snippet } from "@heroui/react";
+import { Alert, Input, Select, SelectItem, Button, DatePicker, Spinner, Snippet, Tabs, Tab } from "@heroui/react";
 import {
     Modal,
     ModalContent,
@@ -32,8 +32,6 @@ type classListProps = {
 export default function AcademicReportPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params)
     const userData = useContext(AuthContext)
-
-    if (!userData) return <Spinner label="Loading please wait" />
 
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
     const [loading, setLoading] = useState<boolean>(false)
@@ -61,6 +59,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     })
     const [availableClasses, setAvailableClasses] = useState<ClassRoomSchemaT[]>([])
     const [isClassSubjectListFetched, setIsClassSubjectListFetched] = useState<boolean>(false)
+
+    const [studentScores, setStudentScores] = useState<dynamicFormUpdates[]>([])
 
     useEffect(() => {
         const fetchStudentInfo = async () => {
@@ -102,6 +102,9 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         fetchStudentCurrentClassSubjects()
     }, [studentInfo.currentClass.classGroup])
 
+
+    if (!userData) return <Spinner label="Loading please wait" />
+
     const handleOpenModal = (action: typeof modalAction, item?: any) => {
         if (!action) return
         setModalAction(action)
@@ -123,8 +126,45 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             guardianId: "",
             religion: "",
         })
-
         onClose()
+    }
+
+    const handleOnChangeScoreType = (subject: string, score: string) => {
+        setStudentScores(prev => prev.find(obj => obj.field === subject) ? prev.map(obj => obj.field === subject ? { ...obj, value: score } : obj) : [...prev, { field: subject, value: score }])
+    }
+
+    const handleSubmitStudentScores = async () => {
+        // if (studentScores.length !== classSubjectList.subjects.length) return toast.info("All fields are required.")
+        const studentId = studentInfo.id
+        const subjectScores = studentScores.map((item) => ({subject: item.field, score_val: item.value}))
+        const payload = { studentId, subjectScores}
+
+        const fn = async () => {
+            try {
+                const response = await fetch(`/api/academic-record-item-option`, {
+                    method: "POST",
+                    headers: { ...BaseRequestHeaders },
+                    body: JSON.stringify(payload)
+                })
+                const result = await response.json()
+                if (!response.ok) {
+                    return Promise.reject(result.message)
+                } else {
+                    return Promise.resolve(result.message)
+                }
+            } catch (err: any) {
+            }
+        }
+
+        setLoading(true)
+        await toast.promise(
+            fn,
+            {
+                pending: "Saving student record",
+                success: "Student record successfully saved",
+                error: BaseErrMsg,
+            })
+        setLoading(false)
     }
 
     return (
@@ -138,7 +178,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                     </Button>
                 </div>
 
-                <div className="mt-6 grid gap-6 md:grid-cols-3">
+                <div className="mt-6 grid gap-6 md:grid-cols-2">
                     <div className="rounded-xl bg-background p-4 ring-1 ring-border">
                         <div className="flex items-center gap-3">
                             <Avatar className="size-12">
@@ -213,68 +253,102 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                     {(onClose) => (
                         <>
                             <ModalHeader className="flex flex-col bg-primary text-white">
-                                {modalAction === "add" ? "New Academic Record" : modalAction === "view" || modalAction === "update" ? "Staff Info" : "Delete Staff"} <br />
-                                {studentInfo.currentClass.name} {studentInfo.surname} {studentInfo.otherNames}
+                                {modalAction === "add" ? "New Academic Record" : modalAction === "view" || modalAction === "update" ? "Staff Info" : "Delete Staff"} ({studentInfo.currentClass.name})
                             </ModalHeader>
 
-                            <ModalBody className="gap-y-4 space-y-4">
+                            <ModalBody className="gap-y-4 space-y-2">
+                                <Alert className="mt-2" color="default" variant="faded" title={`${studentInfo.surname} ${studentInfo.otherNames}`} description={`${studentInfo.currentClass.name} | ${studentInfo.gender === "m" ? "Male" : "Female"}`} />
+
+                                {/* <p className="mx-4">Please complete the fields below</p> */}
+                                {/* <Divider /> */}
+
                                 {modalAction === "add" || modalAction === "update" ?
                                     <>
-
-                                        <Alert className="mt-4" color="primary" variant="faded" title="All fields are required" />
-
                                         {!classSubjectList ? <Spinner label="Loading subjects. Please wait..." /> :
-
-                                            classSubjectList?.scoreType === "options" ?
-                                                classSubjectList?.subjects.map((item) => (
-                                                    <div key={item.id} className="mx-4 gap-8 space-y-12">
-                                                        <Select
-                                                            name={item.id}
-                                                            label={item.subjectName}
-                                                            labelPlacement="outside"
-                                                            selectedKeys={new Set([])}
-                                                            placeholder="Select grade"
-                                                        // onChange={handleStaffAssignedClassesChanged}
-                                                        >
-                                                            {getSubjectGroupScoreOptions(studentInfo.currentClass.classGroup).map((item, index) => (
-                                                                <SelectItem key={index}>{item}</SelectItem>
-                                                            ))}
-                                                        </Select>
-                                                    </div>
-                                                ))
-                                                :
-                                                classSubjectList?.subjects.map((item) => (
-                                                    <div key={item.id}>
-                                                        <h1 className="mx-4">{item.subjectName}</h1>
-                                                        <div className="flex flex-row justify-between items-center">
-                                                            <Input
-                                                                name={`${item.id}_class_score`}
-                                                                label="Class Score"
-                                                                labelPlacement="inside"
-                                                                minLength={1}
-                                                                maxLength={2}
-                                                                validate={(val) => { if (Number(val) > 50) return "Score cannot exceed 50" }}
-                                                                placeholder="0.0"
-                                                                className="w-full mx-2"
-                                                            // value={staffInfo.placeOfBirth ?? ""}
-                                                            // onChange={handleStaffInfoChange}
-                                                            />
-                                                            <Input
-                                                                name={`${item.id}_exam_score`}
-                                                                label="Exam Score"
-                                                                labelPlacement="inside"
-                                                                minLength={1}
-                                                                maxLength={2}
-                                                                validate={(val) => { if (Number(val) > 50) return "Score cannot exceed 50" }}
-                                                                placeholder="0.0"
-                                                                className="w-full mx-2"
-                                                            // value={staffInfo.placeOfBirth ?? ""}
-                                                            // onChange={handleStaffInfoChange}
-                                                            />
-
+                                            <Tabs size="lg" radius="md" color="primary" disabledKeys={["promotions"]}>
+                                                <Tab key="scores" title="Scores">
+                                                    <Card className="flex flex-col gap-y-4">
+                                                        <CardBody>
+                                                            {classSubjectList?.scoreType === "options" ?
+                                                                <div className="grid grid-cols-2 gap-y-8 m-2">
+                                                                    {classSubjectList?.subjects.map((item) => (
+                                                                        <div key={item.id} className="mx-1 gap-8">
+                                                                            <Select
+                                                                                isRequired={true}
+                                                                                name={item.id}
+                                                                                color={studentScores.find(obj => obj.field === item.id) ? "success" : "default"}
+                                                                                defaultSelectedKeys={["good"]}
+                                                                                label={item.subjectName}
+                                                                                labelPlacement="inside"
+                                                                                selectedKeys={new Set(studentScores.filter(obj => obj.field === item.id).map(({ value }) => value))}
+                                                                                placeholder="Select grade"
+                                                                                onChange={(e) => handleOnChangeScoreType(item.id, e.target.value)}
+                                                                            >
+                                                                                {getSubjectGroupScoreOptions(studentInfo.currentClass.classGroup).map((scoreoption) => (
+                                                                                    <SelectItem key={scoreoption.key}>{scoreoption.label}</SelectItem>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                :
+                                                                <div className="grid grid-cols-2 gap-y-8 m-4">
+                                                                    {classSubjectList?.subjects.map((item) => (
+                                                                        <div key={item.id} className="mx-4 gap-8">
+                                                                            <Select
+                                                                                isRequired={true}
+                                                                                name={item.id}
+                                                                                color={studentScores.find(obj => obj.field === item.id) ? "success" : "default"}
+                                                                                defaultSelectedKeys={["good"]}
+                                                                                label={item.subjectName}
+                                                                                labelPlacement="inside"
+                                                                                selectedKeys={new Set(studentScores.filter(obj => obj.field === item.id).map(({ value }) => value))}
+                                                                                placeholder="Select grade"
+                                                                                onChange={(e) => handleOnChangeScoreType(item.id, e.target.value)}
+                                                                            >
+                                                                                {getSubjectGroupScoreOptions(studentInfo.currentClass.classGroup).map((scoreoption) => (
+                                                                                    <SelectItem key={scoreoption.label}>{scoreoption.label}</SelectItem>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            }
+                                                        </CardBody>
+                                                    </Card>
+                                                </Tab>
+                                                <Tab key="conduct" title="Conduct">
+                                                    <Card className="flex flex-col gap-y-4">
+                                                        <div className="grid grid-cols-2 gap-y-8 m-4">
+                                                            <div className="mx-4 gap-8 space-y-12">
+                                                                <Input
+                                                                    name=""
+                                                                    label=""
+                                                                    labelPlacement="outside"
+                                                                    placeholder=""
+                                                                    className="w-full"
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))
+                                                    </Card>
+                                                </Tab>
+                                                <Tab key="promotions" title="Promotions">
+                                                    <Card className="flex flex-col gap-y-4">
+                                                        <div className="grid grid-cols-2 gap-y-8 m-4">
+                                                            <div className="mx-4 gap-8 space-y-12">
+                                                                <Input
+                                                                    name="promotedTo"
+                                                                    label="Promoted To"
+                                                                    labelPlacement="outside"
+                                                                    placeholder="Basic 4"
+                                                                    className="w-full"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                </Tab>
+
+                                            </Tabs>
                                         }
 
                                         <Separator />
@@ -402,16 +476,16 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                 <Button color="default" variant="flat" onPress={() => handleOnCloseModal()}>
                                     Close
                                 </Button>
-                                {/* {modalAction === "add" ? */}
-                                {/*     <Button type="submit" color="primary" onPress={handleCreateNewStaff}> */}
-                                {/*         Submit */}
-                                {/*     </Button> */}
-                                {/*     : modalAction === "update" ? */}
-                                {/*         <Button type="submit" color="primary" onPress={handleUpdateStaffInfo}> */}
-                                {/*             Save Changes */}
-                                {/*         </Button> */}
-                                {/*         : null */}
-                                {/* } */}
+                                {modalAction === "add" ?
+                                    <Button type="submit" color="primary" onPress={handleSubmitStudentScores}>
+                                        Submit
+                                    </Button>
+                                    : modalAction === "update" ?
+                                        <Button type="submit" color="primary" onPress={() => { }}>
+                                            Save Changes
+                                        </Button>
+                                        : null
+                                }
                             </ModalFooter>
                         </>
                     )}

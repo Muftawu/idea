@@ -31,20 +31,49 @@ export const Nationalities: string[] = ["Ghanaian", "Other"]
 
 export const EducationalBackgrounds: string[] = ["WASSCE", "Diploma", "Bachelor"]
 
-export const DefaultSubjectScoreOptions: string[] = ["Yes", "Always", "Sometimes", "No"]
-export const NurserySubjectScoreOptions: string[] = ["Good", "Very Good", "Excellent", "Needs Improvement"]
-export const KGSubjectScoreOptions: string[] = ["Good", "Very Good", "Excellent", "Needs Improvement"]
-
 export const capitalize = (text: string) => {
     if (!text) return ""
     return text[0].toUpperCase() + text.substring(1)
 }
+
+type optionsSchema = {
+    key: string,
+    label: string
+}
+
+export const DefaultSubjectScoreOptions: optionsSchema[] = [
+    {key: "no", label: "No"},
+    {key: "yes", label: "Yes"}, 
+    {key: "always", label: "Always"}, 
+    {key: "sometimes", label: "Sometimes"}, 
+]
+
+export const NurserySubjectScoreOptions: optionsSchema[] = [
+    { key: "good", label: "Good" },
+    { key: "very_good", label: "Very Good" },
+    { key: "excellent", label: "Excellent" },
+    { key: "needs_improvements", label: "Needs Improvement" }
+]
+
+export const KGSubjectScoreOptions: optionsSchema[] = [
+    { key: "good", label: "Good" },
+    { key: "very_good", label: "Very Good" },
+    { key: "excellent", label: "Excellent" },
+    { key: "needs_improvements", label: "Needs Improvement" }
+]
 
 export const getSubjectGroupScoreOptions = (subjectGroup?: string) => {
     if (!subjectGroup) return DefaultSubjectScoreOptions
     if (subjectGroup.startsWith("nursery")) return NurserySubjectScoreOptions
     else if (subjectGroup.startsWith("kg")) return KGSubjectScoreOptions
     else return DefaultSubjectScoreOptions
-
 }
 
+export const studentConductFormFields: optionsSchema[] = [
+    {key: "roll_no", label: "Number on Roll"},
+    {key: "attendance", label: "Attendance"},
+    {key: "attitude", label: "Attitude in class"},
+    {key: "conduct", label: "Conduct in Class"},
+    {key: "interest", label: "Interest"},
+    {key: "remarks", label: "Teacher's remarks"},
+]

@@ -11,7 +11,7 @@ export const StaffDashboard = () => {
 
     const userData = useContext(AuthContext)
 
-    if (!userData || !userData.userInfo) return 
+    if (!userData || !userData.userInfo) return null
 
     return (
         <div className="lg:h-dvh h-auto overflow-auto scrollbar-hide space-y-5">

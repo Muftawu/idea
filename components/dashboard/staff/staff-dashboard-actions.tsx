@@ -20,9 +20,8 @@ import { useRouter } from "next/navigation"
 
 export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) => {
 
-    if (!userInfo || !userInfo.userTypeId) return
-
     const router = useRouter()
+
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
     const [modalAction, setModalAction] = useState<"view" | "add" | "delete" | "update">("view")
 
@@ -83,6 +82,7 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
         fetchStaffDetails()
     }, [])
 
+    if (!userInfo || !userInfo.userTypeId) return null
 
     const handleViewClassList = (item: ClassRoomSchemaT) => {
         if (!item) return
@@ -149,15 +149,18 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
 
             </section >
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4 scrollbar-hide`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
                             <ModalHeader className="flex flex-col bg-primary text-white mb-4">
-                                {classInfo?.name} class list ({currentClassList.length})
+                                Class list {classInfo?.name} ({currentClassList.length})
                             </ModalHeader>
 
                             <ModalBody className="">
+                                <p className="font-bold">Student List ({currentClassList.length})</p>
+                                <p>Male: {currentClassList.filter(obj => obj.student__gender === "m").length} | Females: {currentClassList.filter(obj => obj.student__gender === "f").length}</p>
+                                <Divider />
                                 {modalAction === "add" || modalAction === "update" ?
                                     <>
                                         <p className="font-semibold">Personal Info</p>
@@ -195,7 +198,7 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                                                 <CardHeader className="flex flex-row justify-between items-center gap-3">
                                                     <div className="flex flex-row">
                                                         <UserRound className="border border rounded-lg" size={40} />
-                                                        <h1 className="font-bold m-2 mx-4">{index + 1}. {item.student__surname} {item.student__otherNames}</h1>
+                                                        <h1 className="font-normal m-2 mx-4">{index + 1}. {item.student__surname} {item.student__otherNames}</h1>
                                                     </div>
                                                     <Button onPress={() => router.push(`/academic-reports/${item.student_id}`)} isIconOnly={true} className="color-brand-100" color="primary">
                                                         <EyeIcon />

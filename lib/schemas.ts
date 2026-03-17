@@ -37,10 +37,10 @@ const AdminStatsSchema = z.object({
 
 // SCHOOL
 const SchoolSettingsSchema = z.object({
+    name: z.string(),
     currentTerm: z.string(),
-    termDuration: z.string(),
-    termStart: z.date(),
-    termEnd: z.date(),
+    termStarts: z.date(),
+    termEnds: z.date(),
 })
 
 const StaffCredentialSchema = z.object({
@@ -61,6 +61,7 @@ const MinimalStudentInfoSchema = z.object({
     student_id: z.string(),
     student__surname: z.string(),
     student__otherNames: z.string(),
+    student__gender: z.string(),
 })
 
 const StaffInfoSchema = z.object({
