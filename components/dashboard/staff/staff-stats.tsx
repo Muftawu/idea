@@ -104,37 +104,36 @@ export default function StaffStatistics({ className, data }: { className?: strin
             </div>
 
 
-            <div className="flex flex-col">
-                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Last days</h3>
-                <div className="h-40">
-
-                    <div className="flex items-center justify-center w-full mb-4">
-                        <Alert
-                            color="default"
-                            description="Download PDF list of all Staff"
-                            endContent={
-                                <PDFDownloadLink
-                                    document={<StudentPDFList data={sampleReportData} />}
-                                    fileName={`Student List_${new Date().toDateString()}`}>
-                                    {({ blob, url, loading, error }) =>
-                                        loading ? <Spinner size="sm" /> :
-                                            <div className="flex flex-row justify-center items-center">
-                                                <Button color="primary" isIconOnly={true}>
-                                                    <DownloadIcon />
-                                                </Button>
-                                            </div>
-                                    }
-                                </PDFDownloadLink>
-                                // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
-                                //     <DownloadIcon />
-                                // </Button>
-                            }
-                            title="Staff PDF List"
-                            variant="faded"
-                        />
-                    </div>
-                </div>
-            </div>
+            {/* <div className="flex flex-col"> */}
+            {/*     <h3 className="text-sm font-semibold text-muted-foreground mb-2">Last days</h3> */}
+            {/*     <div className="h-40"> */}
+            {/*         <div className="flex items-center justify-center w-full mb-4"> */}
+            {/*             <Alert */}
+            {/*                 color="default" */}
+            {/*                 description="Download PDF list of all Staff" */}
+            {/*                 endContent={ */}
+            {/*                     <PDFDownloadLink */}
+            {/*                         document={<StudentPDFList data={sampleReportData} />} */}
+            {/*                         fileName={`Student List_${new Date().toDateString()}`}> */}
+            {/*                         {({ blob, url, loading, error }) => */}
+            {/*                             loading ? <Spinner size="sm" /> : */}
+            {/*                                 <div className="flex flex-row justify-center items-center"> */}
+            {/*                                     <Button color="primary" isIconOnly={true}> */}
+            {/*                                         <DownloadIcon /> */}
+            {/*                                     </Button> */}
+            {/*                                 </div> */}
+            {/*                         } */}
+            {/*                     </PDFDownloadLink> */}
+            {/*                     // <Button isIconOnly={false} color="warning" size="sm" variant="flat"> */}
+            {/*                     //     <DownloadIcon /> */}
+            {/*                     // </Button> */}
+            {/*                 } */}
+            {/*                 title="Staff PDF List" */}
+            {/*                 variant="faded" */}
+            {/*             /> */}
+            {/*         </div> */}
+            {/*     </div> */}
+            {/* </div> */}
 
         </section>
     )

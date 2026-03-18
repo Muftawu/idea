@@ -48,6 +48,13 @@ const StaffCredentialSchema = z.object({
     password: z.string(),
 })
 
+const MinimalStudentInfoSchema = z.object({
+    student_id: z.string(),
+    student__surname: z.string(),
+    student__otherNames: z.string(),
+    student__gender: z.string(),
+})
+
 const ClassRoomSchema = z.object({
     id: z.string().optional(),
     name: z.string(),
@@ -55,13 +62,7 @@ const ClassRoomSchema = z.object({
     classGroup: z.string().optional(),
     classTeacherName: z.string().optional(),
     studentCount: z.number().optional(),
-})
-
-const MinimalStudentInfoSchema = z.object({
-    student_id: z.string(),
-    student__surname: z.string(),
-    student__otherNames: z.string(),
-    student__gender: z.string(),
+    studentList: z.array(MinimalStudentInfoSchema).optional()
 })
 
 const StaffInfoSchema = z.object({

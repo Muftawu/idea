@@ -1,9 +1,9 @@
 "use client"
-import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, UsersRound } from "lucide-react"
+import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, CircleUser } from "lucide-react"
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { useState, useEffect, useRef } from "react"
 import { ClassRoomSchemaT } from "@/lib/schemas"
-import { Form, Input, Select, SelectItem, Checkbox, Button } from "@heroui/react";
+import { Form, Input, Select, SelectItem, Checkbox, Button, Alert } from "@heroui/react";
 import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
 import {
     Modal,
@@ -34,7 +34,8 @@ export default function Classrooms() {
         name: "",
         classTeacher: "",
         classGroup: "",
-        studentCount: 0
+        studentCount: 0,
+        studentList: []
     })
 
     useEffect(() => {
@@ -270,10 +271,10 @@ export default function Classrooms() {
                                                 <p className="truncate font-medium text-foreground">{item.name}</p>
                                                 {/* <span className="text-xs text-muted-foreground">{t.studentCount}</span> */}
                                             </div>
-                                            <p className="truncate text-sm text-muted-foreground">Group: {item.classGroup?.toUpperCase()}</p>
+                                            <p className="truncate text-sm text-muted-foreground">Group: {item.classGroup?.toUpperCase()} | Class size: {item.studentCount}</p>
                                             {/* <p className="truncate text-sm text-muted-foreground">ClassTeacher: {item.classTeacherName}</p> */}
                                         </div>
-                                        <div className="flex flex-row justify-center items-center">
+                                        <div className="flex flex-row justify-center items-center mx-8">
                                             <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("update", item)}>
                                                 <Edit />
                                             </Button>
@@ -291,7 +292,7 @@ export default function Classrooms() {
                 </section>
             </div>
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4 scrollbar-hide`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
@@ -347,30 +348,30 @@ export default function Classrooms() {
                                 </>
                                 :
                                 modalAction === "view" ?
-                                    <Card className="w-full">
-                                        <CardHeader className="flex gap-3">
-                                            <UsersRound className="border border rounded-lg" size={40} />
+                                    <>
+                                        <Alert color="primary">
                                             <div className="flex flex-col">
                                                 <p className="text-md">{classRoomInfo.name}</p>
-                                                <p className="text-small text-default-500">{classRoomInfo.classGroup}</p>
+                                                <p className="text-small text-default-500">{classRoomInfo.classGroup} | Class size: {classRoomInfo.studentCount}</p>
                                             </div>
-                                        </CardHeader>
+                                        </Alert>
+
+                                        <p className="mt-4">Student List ({classRoomInfo?.studentList?.length ?? 0})</p>
                                         <Divider />
-                                        <CardBody className="gap-4">
-                                            <div className="mx-4">
-                                                <p>Name: {classRoomInfo.name}</p>
-                                                <p>Class Group: {classRoomInfo.classGroup?.toUpperCase()} Group</p>
-                                                <p>ClassTeacher: {classRoomInfo.classTeacherName}</p>
-                                                <p>StudentCount: {classRoomInfo.studentCount}</p>
-                                            </div>
-                                        </CardBody>
-                                        <Divider />
-                                        <CardFooter>
-                                            <Button className="w-full">
-                                                View Students
-                                            </Button>
-                                        </CardFooter>
-                                    </Card>
+                                        {!classRoomInfo?.studentList ? null :
+                                            classRoomInfo.studentList?.length < 1 ? <p>No students available</p> :
+                                                classRoomInfo?.studentList?.map((item, index) => (
+                                                    <Card className="w-full">
+                                                        <CardHeader className="flex gap-3">
+                                                            <CircleUser className="border border rounded-lg" size={40} />
+                                                            <p>{index + 1}. {item.student__surname} {item.student__otherNames}</p>
+                                                            <p>{item.student__gender === "m" ? "Male" : "Female"}</p>
+                                                        </CardHeader>
+                                                        <Divider />
+                                                    </Card>
+
+                                                ))}
+                                    </>
                                     : modalAction === "delete" ?
                                         <Card className="w-full">
                                             <CardHeader className="flex gap-3">
@@ -414,7 +415,7 @@ export default function Classrooms() {
                         </>
                     )}
                 </ModalContent>
-            </Modal>
+            </Modal >
         </>
 
 

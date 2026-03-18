@@ -22,6 +22,8 @@ import { toast } from "react-toastify";
 import { dynamicFormUpdates } from "@/lib/utils";
 import { useSchoolContext } from "@/context/schoolContext"
 import { PDFDownloadLink } from "@react-pdf/renderer"
+import AcademicReportOptionWrapper from "@/components/dashboard/reports/AcademicReportOptionWrapper"
+import { RecordOptionSchema, RecordOptionPackage } from "@/components/dashboard/reports/reportSchema"
 
 type classListProps = {
     scoreType: string,
@@ -34,19 +36,6 @@ type classListProps = {
 type recordFilterSchema = {
     academicTerm: string,
     classGroup: string,
-}
-
-type recordItemOptionSchema = {
-    classGroup: string,
-    academicTerm: string,
-    conductObj: StudentConductSchemaT,
-    recordObj: {
-        id: string,
-        academicTerm: string,
-        scoreValue: string,
-        classSubject: string,
-        student: string
-    }
 }
 
 export default function AcademicReportPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -94,9 +83,14 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     const [isClassSubjectListFetched, setIsClassSubjectListFetched] = useState<boolean>(false)
 
     // student records 
-    const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<recordItemOptionSchema[]>([])
+    const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<RecordOptionSchema[]>([])
     const [isStudentAcademicRecordsFetched, setIsStudentAcademicRecordsFetched] = useState<boolean>(false)
     const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", classGroup: "kg_1" })
+    const [currentResultsToPrint, setCurrentResultToPrint] = useState<RecordOptionSchema[]>([])
+    const [isCurrentResultToPrintReady, setIsCurrentResultToPrintReady] = useState<boolean>(false)
+
+    // export
+    const [finalRecordExportDataOptions, setFinalRecordExportDataOptions] = useState<RecordOptionPackage>()
 
     useEffect(() => {
         const fetchStudentInfo = async () => {
@@ -159,10 +153,9 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         fetchAllStudentAcademicRecords()
     }, [studentInfo.id])
 
-    // useEffect(() => {
-    //     setFilteredAcademicRecords(allTimeStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.term))
-    //     setFilteredAcademicRecords(allTimeStudentAcademicRecords.filter(obj => obj.classSubject.classGroup === academicRecordsFilterOptions.classgroup))
-    // }, [academicRecordsFilterOptions.classgroup, academicRecordsFilterOptions.term])
+    useEffect(() => {
+        setCurrentResultToPrint(allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.classGroup === academicRecordsFilterOptions.classGroup))
+    }, [academicRecordsFilterOptions.academicTerm, academicRecordsFilterOptions.classGroup])
 
 
     if (!userData || !schoolData) return <Spinner label="Loading please wait" />
@@ -242,6 +235,30 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         setLoading(false)
     }
 
+    const handlePrintCurrentResults = () => {
+        if (currentResultsToPrint.length < 1) return toast.info("Current filter has no records. Please re-filter.")
+        setIsCurrentResultToPrintReady(true)
+        // export type RecordOptionPackage = {
+        //     academicTerm: string,
+        //     details: {
+        //         conduct: StudentConductSchemaT,
+        //         record: {
+        //             classSubject: string,
+        //             scoreValue: string
+        //         }
+        //     }[]
+        // }
+        const single = currentResultsToPrint.at(0)
+        if (single) {
+            const out = currentResultsToPrint.map(({ recordObj: { classSubject, scoreValue } }) => ({ classSubject, scoreValue }))
+            setFinalRecordExportDataOptions({ academicTerm: single?.academicTerm, conduct: single?.conductObj, student: single.recordObj.student, records: out })
+            console.log("current to print", currentResultsToPrint)
+        }
+        setTimeout(() => {
+            setIsCurrentResultToPrintReady(false)
+        }, 200)
+    }
+
     return (
         <div className="lg:h-dvh h-auto overflow-auto scrollbar-hide">
             <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border">
@@ -273,17 +290,24 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                             <div className="flex items-center justify-center w-full mb-4">
                                 <Alert
                                     color="default"
-                                    description="Download PDF list of all Students"
+                                    description="Click the download icon to print or export the currently filtered result"
                                     endContent={
                                         <PDFDownloadLink
-                                            document={<item.component data={sampleReportData} />}
-                                            fileName={`Student List_${new Date().toDateString()}`}>
+                                            document={<AcademicReportOptionWrapper data={finalRecordExportDataOptions} />}
+                                            fileName={`Academic_Report_${new Date().toDateString()}`}>
                                             {({ blob, url, loading, error }) =>
-                                                loading ? <Spinner size="sm" /> :
+                                                isCurrentResultToPrintReady ? <Spinner size="sm" /> :
                                                     <div className="flex flex-row justify-center items-center">
-                                                        <Button color="primary" isIconOnly={true}>
-                                                            <DownloadIcon />
-                                                        </Button>
+                                                        {currentResultsToPrint.length < 1 ?
+                                                            <Button onPress={() => currentResultsToPrint.length < 1 ? toast.info("Current filter has no records. Please apply a different filter and try again.") : null}
+                                                                color="primary" isIconOnly={true}>
+                                                                <DownloadIcon />
+                                                            </Button>
+                                                            :
+                                                            <Button onPress={() => handlePrintCurrentResults()} color="primary" isIconOnly={true}>
+                                                                <DownloadIcon />
+                                                            </Button>
+                                                        }
                                                     </div>
                                             }
                                         </PDFDownloadLink>
@@ -291,7 +315,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                         //     <DownloadIcon />
                                         // </Button>
                                     }
-                                    title="PDF Student List"
+                                    title="Download Result"
                                     variant="faded"
                                 />
                             </div>
@@ -339,8 +363,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                             <p className="mx-4">Fetching academic records...</p>
                         </div>
                         :
-                        allStudentAcademicRecords.length < 1 ? <p className="mx-4">No records found</p> :
-                            allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.classGroup === academicRecordsFilterOptions.classGroup).map((item, index) => (
+                        currentResultsToPrint.length < 1 ? <p className="mx-4">No records found</p> :
+                            currentResultsToPrint.map((item, index) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">
                                         {item.recordObj.classSubject.at(0)}
