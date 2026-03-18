@@ -6,12 +6,13 @@ import { refetchTokens, removeAuthTokens } from '@/lib/actions';
 
 const baseUrlList = `${process.env.BASE_API_URL}/api-utils/get-subjects-by-class-group`
 const baseUrlDetail = `${process.env.BASE_API_URL}/api-utils/get-subjects-by-class-group/`
+const allStudentRecordsLink = `${process.env.BASE_API_URL}/api-utils/all-student-academic-records/`
 
-const getFn = async (query: string) => {
+const getFn = async (query: string, student_id?: string) => {
     const cookieStore = await cookies()
     const access_token = cookieStore.get("access_token")?.value ?? ""
 
-    const link = query === "all" ? baseUrlList : `${baseUrlDetail}${query}`
+    const link = query === "all" ? baseUrlList : query === "records" ? `${allStudentRecordsLink}${student_id}` : `${baseUrlDetail}${query}`
 
     const response = await fetch(link, {
         headers: {
@@ -72,15 +73,16 @@ const deleteFn = async (payload: string) => {
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const query = searchParams.get("query") ?? ""
+    const student_id = searchParams.get("student_id") ?? ""
 
-    let out = await getFn(query)
+    let out = await getFn(query, student_id)
     if (!out?.response.ok) {
         if (out?.response.status === 401) {
             const cookieStore = await cookies()
             const refresh_token = cookieStore.get("refresh_token")?.value ?? ""
             const refetchSuccess = await refetchTokens(refresh_token)
             if (refetchSuccess) {
-                out = await getFn(query)
+                out = await getFn(query, student_id)
             } else {
                 await removeAuthTokens()
             }

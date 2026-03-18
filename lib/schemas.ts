@@ -137,7 +137,7 @@ const StudentConductSchema = z.object({
     attitude: z.string().optional(),
     conduct: z.string(),
     interest: z.string().optional(),
-    teachersRemarks: z.string(),
+    teacherRemarks: z.string(),
     promotedTo: z.string().optional(),
 })
 

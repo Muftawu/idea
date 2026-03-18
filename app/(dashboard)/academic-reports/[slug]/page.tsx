@@ -3,8 +3,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
 import { AuthContext } from "@/context/authContext"
 import { ClassRoomSchemaT, ClassSubjectGroupT, StudentConductSchemaT, StudentSchemaT, SubjectSchemaT } from "@/lib/schemas"
-import { BaseRequestHeaders, capitalize, getSubjectGroupScoreOptions, studentConductFormFields } from "@/lib/utils"
-import { PlusCircle } from "lucide-react"
+import { BaseRequestHeaders, capitalize, ClassGroups, getSubjectGroupScoreOptions, studentConductFormFields } from "@/lib/utils"
+import { DownloadIcon, PlusCircle } from "lucide-react"
 import { useContext, useState, useEffect, use } from "react"
 import { Alert, Input, Select, SelectItem, Button, DatePicker, Spinner, Snippet, Tabs, Tab, NumberInput } from "@heroui/react";
 import {
@@ -21,6 +21,7 @@ import { Card, CardHeader, CardBody, Divider } from "@heroui/react";
 import { toast } from "react-toastify";
 import { dynamicFormUpdates } from "@/lib/utils";
 import { useSchoolContext } from "@/context/schoolContext"
+import { PDFDownloadLink } from "@react-pdf/renderer"
 
 type classListProps = {
     scoreType: string,
@@ -28,6 +29,24 @@ type classListProps = {
         id: string,
         subjectName: string,
     }[]
+}
+
+type recordFilterSchema = {
+    academicTerm: string,
+    classGroup: string,
+}
+
+type recordItemOptionSchema = {
+    classGroup: string,
+    academicTerm: string,
+    conductObj: StudentConductSchemaT,
+    recordObj: {
+        id: string,
+        academicTerm: string,
+        scoreValue: string,
+        classSubject: string,
+        student: string
+    }
 }
 
 export default function AcademicReportPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -61,18 +80,23 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         attitude: "",
         conduct: "",
         interest: "",
-        teachersRemarks: ""
+        teacherRemarks: ""
     })
 
-    const [pastAcademicRecords, setPastAcademicRecords] = useState([])
     const [classSubjectList, setClassSubjectList] = useState<classListProps>({
         scoreType: "",
         subjects: []
     })
+
+    // record crud actions
+    const [studentScores, setStudentScores] = useState<dynamicFormUpdates[]>([])
     const [availableClasses, setAvailableClasses] = useState<ClassRoomSchemaT[]>([])
     const [isClassSubjectListFetched, setIsClassSubjectListFetched] = useState<boolean>(false)
 
-    const [studentScores, setStudentScores] = useState<dynamicFormUpdates[]>([])
+    // student records 
+    const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<recordItemOptionSchema[]>([])
+    const [isStudentAcademicRecordsFetched, setIsStudentAcademicRecordsFetched] = useState<boolean>(false)
+    const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", classGroup: "kg_1" })
 
     useEffect(() => {
         const fetchStudentInfo = async () => {
@@ -90,7 +114,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             }
         }
         fetchStudentInfo()
-    }, [])
+    }, [loading])
 
     useEffect(() => {
         if (!studentInfo.currentClass.classGroup) return
@@ -102,17 +126,43 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                 })
                 const result = await response.json()
                 if (!response.ok) {
-                    return Promise.reject(response.status)
+                    setIsClassSubjectListFetched(true)
                 } else {
                     setClassSubjectList(result.data)
-                    setClassSubjectList
+                    setIsClassSubjectListFetched(true)
                 }
             } catch (err: any) {
             }
-            setIsClassSubjectListFetched(true)
         }
         fetchStudentCurrentClassSubjects()
     }, [studentInfo.currentClass.classGroup])
+
+    useEffect(() => {
+        if (!studentInfo.id) return
+        const fetchAllStudentAcademicRecords = async () => {
+            try {
+                const response = await fetch(`/api/api-utils?query=records&student_id=${studentInfo.id}`, {
+                    headers: { ...BaseRequestHeaders },
+                })
+                const result = await response.json()
+                if (!response.ok) {
+                    setIsStudentAcademicRecordsFetched(true)
+                } else {
+                    setAllStudentAcademicRecord(result.data)
+                    setIsStudentAcademicRecordsFetched(true)
+                    console.log("mp", result.data)
+                }
+            } catch (err: any) {
+                setIsStudentAcademicRecordsFetched(true)
+            }
+        }
+        fetchAllStudentAcademicRecords()
+    }, [studentInfo.id])
+
+    // useEffect(() => {
+    //     setFilteredAcademicRecords(allTimeStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.term))
+    //     setFilteredAcademicRecords(allTimeStudentAcademicRecords.filter(obj => obj.classSubject.classGroup === academicRecordsFilterOptions.classgroup))
+    // }, [academicRecordsFilterOptions.classgroup, academicRecordsFilterOptions.term])
 
 
     if (!userData || !schoolData) return <Spinner label="Loading please wait" />
@@ -138,6 +188,14 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             guardianId: "",
             religion: "",
         })
+        setStudentConductInfo({
+            rollNo: 0,
+            attendance: 0,
+            attitude: "",
+            conduct: "",
+            interest: "",
+            teacherRemarks: ""
+        })
         onClose()
     }
 
@@ -146,15 +204,14 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }
 
     const handleSubmitStudentScores = async () => {
-        // if (studentScores.length !== classSubjectList.subjects.length) return toast.info("All fields are required.")
-        //
+        if (studentScores.length !== classSubjectList.subjects.length) return toast.info("All score fields are required. Please check the `Scores` tab.")
+        if (!studentConductInfo.rollNo || !studentConductInfo.attendance || !studentConductInfo.attitude || !studentConductInfo.interest || !studentConductInfo.conduct || !studentConductInfo.teacherRemarks) return toast.info("Please complete all fields in the `Conducts` Tab before saving.")
 
         const studentId = studentInfo.id
         const academicTerm = schoolData.schoolSettings.currentTerm
         const subjectScores = studentScores.map((item) => ({ subject: item.field, score_val: item.value }))
 
         const payload = { academicTerm, studentId, subjectScores, studentConductInfo }
-        console.log("payload", payload)
 
         const fn = async () => {
             try {
@@ -173,6 +230,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             }
         }
 
+        handleOnCloseModal()
         setLoading(true)
         await toast.promise(
             fn,
@@ -185,7 +243,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }
 
     return (
-        <div className="h-dvh">
+        <div className="lg:h-dvh h-auto overflow-auto scrollbar-hide">
             <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border">
                 <div className="flex flex-row justify-between items-center mb-4">
                     <h1 className="text-balance text-2xl font-semibold text-foreground">Student Info</h1>
@@ -210,43 +268,89 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                         </div>
                     </div>
 
-                    {/* <div className="rounded-xl bg-background p-4 ring-1 ring-border"> */}
-                    {/*     <div className="flex items-center gap-3"> */}
-                    {/*         <Avatar className="size-12"> */}
-                    {/*             <AvatarFallback className="text-lg">{userData.userInfo.userType.toUpperCase().at(0)}</AvatarFallback> */}
-                    {/*         </Avatar> */}
-                    {/*         <div> */}
-                    {/*             <p className="font-medium text-foreground">{capitalize(userData.userInfo.userType)}</p> */}
-                    {/*             <p className="text-sm text-muted-foreground">User Role</p> */}
-                    {/*         </div> */}
-                    {/*     </div> */}
-                    {/* </div> */}
+                    <div className="rounded-xl bg-background p-4 ring-1 ring-border">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-full mb-4">
+                                <Alert
+                                    color="default"
+                                    description="Download PDF list of all Students"
+                                    endContent={
+                                        <PDFDownloadLink
+                                            document={<item.component data={sampleReportData} />}
+                                            fileName={`Student List_${new Date().toDateString()}`}>
+                                            {({ blob, url, loading, error }) =>
+                                                loading ? <Spinner size="sm" /> :
+                                                    <div className="flex flex-row justify-center items-center">
+                                                        <Button color="primary" isIconOnly={true}>
+                                                            <DownloadIcon />
+                                                        </Button>
+                                                    </div>
+                                            }
+                                        </PDFDownloadLink>
+                                        // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
+                                        //     <DownloadIcon />
+                                        // </Button>
+                                    }
+                                    title="PDF Student List"
+                                    variant="faded"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-
                 <div className="mt-8">
-                    <p className="mt-2 text-muted-foreground">Past Academic Records ({pastAcademicRecords.length})</p>
+                    <p className="mt-2 text-muted-foreground">Past Academic Records ({allStudentAcademicRecords.length})</p>
+                </div>
+
+                <div className="p-4 bg-primary-100 rounded-lg">
+                    <p className="mt-2 text-muted-foreground">Filter using the select options below</p>
+                    <div className="grid grid-cols-2 flex flex-row gap-4">
+                        <Select
+                            label="Term"
+                            className="flex"
+                            labelPlacement="inside"
+                            placeholder="Select term"
+                            selectedKeys={new Set([academicRecordsFilterOptions.academicTerm])}
+                            onChange={(e) => setAcademicRecordFilterOptions({ ...academicRecordsFilterOptions, academicTerm: e.target.value })}
+                        >
+                            {["1st", "2nd", "3rd"].map((item) => (
+                                <SelectItem key={item}>{item}</SelectItem>
+                            ))}
+                        </Select>
+                        <Select
+                            label="Class Group"
+                            labelPlacement="inside"
+                            placeholder="Select class group"
+                            selectedKeys={new Set([academicRecordsFilterOptions.classGroup])}
+                            onChange={(e) => setAcademicRecordFilterOptions({ ...academicRecordsFilterOptions, classGroup: e.target.value })}
+                        >
+                            {ClassGroups.map((item) => (
+                                <SelectItem key={item.key}>{item.value}</SelectItem>
+                            ))}
+                        </Select>
+                    </div>
                 </div>
 
                 <ul className="mt-6 divide-y divide-border">
-                    {!pastAcademicRecords ?
+                    {!isStudentAcademicRecordsFetched ?
                         <div className="flex flex-row ">
                             <Spinner size="sm" className="text-center" />
-                            <p className="mx-4">Fetching staff data...</p>
+                            <p className="mx-4">Fetching academic records...</p>
                         </div>
                         :
-                        pastAcademicRecords.length < 1 ? <p className="mx-4">No academic records available</p> :
-                            pastAcademicRecords.map((item, index) => (
+                        allStudentAcademicRecords.length < 1 ? <p className="mx-4">No records found</p> :
+                            allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.classGroup === academicRecordsFilterOptions.classGroup).map((item, index) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">
-                                        {/* {item.personalInfo?.first_name[0]}{item.personalInfo?.last_name[0]} */}
+                                        {item.recordObj.classSubject.at(0)}
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between">
-                                            {/* <p className="truncate font-medium text-foreground">{item.personalInfo?.first_name} {item.personalInfo?.last_name}</p> */}
-                                            {/* <span className="text-xs text-muted-foreground">{t.studentCount}</span> */}
+                                            <p className="truncate font-medium text-foreground">{item.recordObj.classSubject}</p>
+                                            {/* <span className="text-xs text-muted-foreground">{item.recordObj.scoreValue}</span> */}
                                         </div>
-                                        {/* <p className="truncate text-sm text-muted-foreground">Phone: {item.personalInfo?.phone}</p> */}
+                                        <p className="truncate text-sm text-muted-foreground">Score: {capitalize(item.recordObj.scoreValue).replace("_", " ")}</p>
                                     </div>
                                     {/* <div className="flex flex-row justify-center items-center"> */}
                                     {/*     <Button size="sm" isIconOnly={true} className="color-brand-100 max-w-sm" color="primary" onPress={() => handleOpenModal("update", item)}> */}
@@ -404,8 +508,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     labelPlacement="inside"
                                                                     placeholder="Enter your remarks"
                                                                     className="w-full"
-                                                                    value={studentConductInfo.teachersRemarks}
-                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, teachersRemarks: e.target.value })}
+                                                                    value={studentConductInfo.teacherRemarks}
+                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, teacherRemarks: e.target.value })}
                                                                 />
 
                                                             </div>
