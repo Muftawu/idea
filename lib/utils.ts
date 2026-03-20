@@ -16,6 +16,9 @@ export const ClassGroups = [
     { key: "jhs", value: "jhs" },
 ]
 
+export const ClassGroupListOptions: string[] = ["creche", "nursery_1", "nursery_2", "kg_1", "kg_2"]
+export const ClassGroupListNumber: string[] = ["lower_primary", "upper_primary", "jhs"]
+
 export const BaseRequestHeaders = {
     "Content-Type": "application/json"
 }
@@ -42,10 +45,10 @@ type optionsSchema = {
 }
 
 export const DefaultSubjectScoreOptions: optionsSchema[] = [
-    {key: "no", label: "No"},
-    {key: "yes", label: "Yes"}, 
-    {key: "always", label: "Always"}, 
-    {key: "sometimes", label: "Sometimes"}, 
+    { key: "no", label: "No" },
+    { key: "yes", label: "Yes" },
+    { key: "always", label: "Always" },
+    { key: "sometimes", label: "Sometimes" },
 ]
 
 export const NurserySubjectScoreOptions: optionsSchema[] = [
@@ -70,10 +73,10 @@ export const getSubjectGroupScoreOptions = (subjectGroup?: string) => {
 }
 
 export const studentConductFormFields: optionsSchema[] = [
-    {key: "roll_no", label: "Number on Roll"},
-    {key: "attendance", label: "Attendance"},
-    {key: "attitude", label: "Attitude in class"},
-    {key: "conduct", label: "Conduct in Class"},
-    {key: "interest", label: "Interest"},
-    {key: "remarks", label: "Teacher's remarks"},
+    { key: "roll_no", label: "Number on Roll" },
+    { key: "attendance", label: "Attendance" },
+    { key: "attitude", label: "Attitude in class" },
+    { key: "conduct", label: "Conduct in Class" },
+    { key: "interest", label: "Interest" },
+    { key: "remarks", label: "Teacher's remarks" },
 ]

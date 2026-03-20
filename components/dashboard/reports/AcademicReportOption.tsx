@@ -7,9 +7,10 @@ import {
     Text,
     View,
     StyleSheet,
-    PDFDownloadLink,
 } from "@react-pdf/renderer";
-import { RecordOptionPackage, RecordOptionSchema } from "./reportSchema";
+
+import { RecordNumberPackage, RecordOptionPackage } from "./reportSchema";
+import { capitalize } from "@/lib/utils";
 
 export type ActivityResult = "YES" | "NO" | "SOMETIMES" | "ALWAYS" | "NEVER";
 
@@ -331,7 +332,7 @@ const s = StyleSheet.create({
         flexDirection: "row",
     },
     remarksBox: {
-        flex: 2,
+        flex: 1,
         backgroundColor: C.white,
         borderRadius: 8,
         borderWidth: 1.5,
@@ -411,7 +412,7 @@ const s = StyleSheet.create({
     },
 });
 
-const getResultStyle = (result: ActivityResult) => {
+const getResultStyle = (result: string) => {
     switch (result) {
         case "YES":
         case "ALWAYS":
@@ -450,26 +451,29 @@ const ActivityTableRow = ({
     row,
     index,
 }: {
-    row: ActivityRow;
+    row: {
+        scoreValue: string,
+        classSubject: string,
+    };
     index: number;
 }) => {
-    const { pillBg, textColor } = getResultStyle(row.result);
+    const { pillBg, textColor } = getResultStyle(row.scoreValue);
     return (
         <View style={[s.tableRow, index % 2 === 1 ? s.tableRowAlt : {}]}>
             <Text style={s.tableNo}>{String(index + 1).padStart(2, "0")}</Text>
-            <Text style={s.tableActivity}>{row.activity}</Text>
+            <Text style={s.tableActivity}>{row.classSubject}</Text>
             <View style={s.tableResultCell}>
                 <View style={[s.resultPill, { backgroundColor: pillBg }]}>
-                    <Text style={[s.resultText, { color: textColor }]}>{row.result}</Text>
+                    <Text style={[s.resultText, { color: textColor }]}>{capitalize(row.scoreValue).replace("_", " ")}</Text>
                 </View>
             </View>
         </View>
     );
 };
 
-export const AcademicReportOption = ({ data }: { data: RecordOptionPackage }) => (
+export const AcademicReportOption = ({ data }: { data: RecordOptionPackage | RecordNumberPackage }) => (
     <Document
-        title={`${data.records } — ${data.academicTerm} Report`}
+        title={`${data.records} — ${data.academicTerm} Report`}
         author="Idea International School"
         subject="End of Term Achievement Report"
     >
@@ -505,11 +509,12 @@ export const AcademicReportOption = ({ data }: { data: RecordOptionPackage }) =>
                         <Text style={s.infoCardTitle}>STUDENT INFORMATION</Text>
                     </View>
                     <View style={s.infoGrid}>
-                        <InfoCell label="Full Name" value={val(data.recordObj.student)} wide />
-                        <InfoCell label="Class" value={val(data.recordObj.classSubject)} />
+                        <InfoCell label="Full Name" value={val(data.student)} wide />
+                        <InfoCell label="Class" value={val(data.classGroup)} />
                         <InfoCell label="Term" value={val(data.academicTerm)} />
                         <InfoCell label="Academic Year" value={val(new Date().getFullYear())} />
-                        <InfoCell label="No. on Roll" value={val(data.conductObj.rollNo)} />
+                        <InfoCell label="No. on Roll" value={val(data.conduct?.rollNo)} />
+                        <InfoCell label="Attendance" value={val(data.conduct?.attendance)} />
                         <InfoCell label="Vacation Date" value={val(new Date().toLocaleDateString())} />
                         <InfoCell label="Reopening Date" value={val(new Date().toLocaleDateString())} />
                     </View>
@@ -527,43 +532,77 @@ export const AcademicReportOption = ({ data }: { data: RecordOptionPackage }) =>
                         <Text style={s.tableHeaderActivity}>ACTIVITY / SKILL</Text>
                         <Text style={s.tableHeaderResult}>RESULT</Text>
                     </View>
-                    {data.activities.map((row, i) => (
-                        <ActivityTableRow key={i} row={row} index={i} />
+                    {data.records.map((item, index) => (
+                        <ActivityTableRow key={index} row={item} index={index} />
                     ))}
                 </View>
 
                 {/* Promotion Banner */}
-                {val(data.promotedTo) !== "—" && (
-                    <View style={s.promotionBanner}>
-                        <View style={{ marginRight: 12 }}>
-                            <Text style={s.promotionLabel}>PROMOTED TO</Text>
-                            <Text style={s.promotionValue}>{val(data.promotedTo)}</Text>
-                        </View>
-                    </View>
-                )}
+                {/* {val(data.promotedTo) !== "—" && ( */}
+                {/*     <View style={s.promotionBanner}> */}
+                {/*         <View style={{ marginRight: 12 }}> */}
+                {/*             <Text style={s.promotionLabel}>PROMOTED TO</Text> */}
+                {/*             <Text style={s.promotionValue}>{val(data.promotedTo)}</Text> */}
+                {/*         </View> */}
+                {/*     </View> */}
+                {/* )} */}
 
-                {/* Remarks + Signature */}
-                <View style={s.bottomRow}>
-                    <View style={s.remarksBox}>
-                        <View style={s.boxHeader}>
-                            <Text style={s.boxHeaderText}>CLASS TEACHER'S REMARKS</Text>
-                        </View>
-                        <View style={s.boxBody}>
-                            <Text style={s.remarksText}>
-                                {val(data.teacherRemarks, "No remarks provided.")}
-                            </Text>
-                        </View>
+                <View>
+                    <View style={s.boxHeader}>
+                        <Text style={s.boxHeaderText}>ATTITUDE IN CLASS</Text>
+                        <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
+                            {val(data.conduct?.attitude, "---")}
+                        </Text>
                     </View>
-                    <View style={s.signBox}>
-                        <View style={s.boxHeader}>
-                            <Text style={s.boxHeaderText}>SIGNATURE & STAMP</Text>
-                        </View>
-                        <View style={s.boxBody}>
-                            <View style={s.signLine} />
-                            <Text style={s.signLabel}>Class Teacher</Text>
-                        </View>
+                    <View style={s.boxHeader}>
+                        <Text style={s.boxHeaderText}>CONDUCT IN CLASS</Text>
+                        <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
+                            {val(data.conduct?.attitude, "---")}
+                        </Text>
                     </View>
                 </View>
+
+                <View>
+                    <View style={s.boxHeader}>
+                        <Text style={s.boxHeaderText}>INTERESTS</Text>
+                        <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
+                            {val(data.conduct?.attitude, "---")}
+                        </Text>
+                    </View>
+                    <View style={s.boxHeader}>
+                        <Text style={s.boxHeaderText}>TEACHER REMARKS</Text>
+                        <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
+                            {val(data.conduct?.attitude, "---")}
+                        </Text>
+                    </View>
+                </View>
+
+                {/* Attitude and Conduct*/}
+                {/* <View style={[s.bottomRow, { marginBottom: 2 }]}> */}
+                {/*     <View style={s.remarksBox}> */}
+                {/*         <View style={s.boxHeader}> */}
+                {/*             <Text style={s.boxHeaderText}>ATTITUDE IN CLASS</Text> */}
+                {/*         </View> */}
+                {/*         <View style={s.boxBody}> */}
+                {/*             <Text style={s.remarksText}> */}
+                {/*                 {val(data.conduct?.attitude, "No remarks provided.")} */}
+                {/*             </Text> */}
+                {/*         </View> */}
+                {/*     </View> */}
+                {/**/}
+                {/* <View style={s.remarksBox}> */}
+                {/*     <View style={s.boxHeader}> */}
+                {/*         <Text style={s.boxHeaderText}>CONDUCT IN CLASS</Text> */}
+                {/*     </View> */}
+                {/*     <View style={s.boxBody}> */}
+                {/*         <Text style={s.remarksText}> */}
+                {/*             {val(data.conduct?.conduct, "No conduct provided.")} */}
+                {/*         </Text> */}
+                {/*     </View> */}
+                {/* </View> */}
+
+                {/* </View> */}
+
 
                 {/* Footer */}
                 <View style={s.footer}>
@@ -571,7 +610,7 @@ export const AcademicReportOption = ({ data }: { data: RecordOptionPackage }) =>
                     <Text style={s.footerCenter}>
                         Confidential — For Parent / Guardian Use Only
                     </Text>
-                    <Text style={s.footerRight}>{val(data.term)} · {val(data.year)}</Text>
+                    <Text style={s.footerRight}>{val(data.academicTerm)} · {val(new Date().getFullYear())}</Text>
                 </View>
 
             </View>
@@ -579,34 +618,3 @@ export const AcademicReportOption = ({ data }: { data: RecordOptionPackage }) =>
     </Document>
 );
 
-// export const sampleReportData: ReportCardData = {
-//     studentName: "Abubakar Humul-Khair",
-//     className: "Creche",
-//     term: "1st Term",
-//     year: "2024 / 2025",
-//     rollNumber: 4,
-//     vacationDate: "—",
-//     reopeningDate: "—",
-//     promotedTo: "Nursery 1",
-//     teacherRemarks:
-//         "A wonderful student who is making great progress. With continued encouragement at home, we expect to see even more improvement next term.",
-//     activities: [
-//         { activity: "Keeps self-clean and follows rules of cleanliness e.g. washes hands", result: "SOMETIMES" },
-//         { activity: "Is child active?", result: "SOMETIMES" },
-//         { activity: "Keeps participation in group activities", result: "SOMETIMES" },
-//         { activity: "Speaks intelligently in mother's tongue", result: "SOMETIMES" },
-//         { activity: "Does child speak English?", result: "SOMETIMES" },
-//         { activity: "Is child well behaved?", result: "SOMETIMES" },
-//         { activity: "Does child play well with other children?", result: "SOMETIMES" },
-//         { activity: "Does child fight other children?", result: "NO" },
-//         { activity: "Is child willing to share things?", result: "SOMETIMES" },
-//         { activity: "Is it easy for child to say sorry when he or she is wrong?", result: "SOMETIMES" },
-//         { activity: "Can retain rhymes and recite them", result: "NO" },
-//         { activity: "Keeps attitude towards lesson", result: "SOMETIMES" },
-//         { activity: "Can settle for a few minutes and concentrate", result: "SOMETIMES" },
-//         { activity: "Can count up to the required level", result: "SOMETIMES" },
-//         { activity: "Can write up to the required level", result: "SOMETIMES" },
-//         { activity: "Knows colours and can recognise them", result: "SOMETIMES" },
-//         { activity: "Can identify letters", result: "SOMETIMES" },
-//     ],
-// };

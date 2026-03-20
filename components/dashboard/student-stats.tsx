@@ -7,7 +7,6 @@ import { StudentSchemaT, StudentStatsSchemaT } from "@/lib/schemas"
 import { Alert, Button, Spinner } from "@heroui/react"
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import { StudentPDFList } from "./reports/student_pdf_list"
-import { sampleReportData } from "./reports/IdeaSchoolReport"
 import { DownloadIcon } from "lucide-react"
 
 function Gauge({ value }: { value: number }) {
@@ -107,26 +106,26 @@ export default function StudentStatistics({ className, data }: { className?: str
             <div className="flex flex-col">
                 <h3 className="text-sm font-semibold text-muted-foreground mb-2">Export Student Data</h3>
                 <div className="h-auto">
-                    <Alert
-                        color="default"
-                        description="Download PDF list of all Students"
-                        endContent={
-                            <PDFDownloadLink
-                                document={<StudentPDFList data={sampleReportData} />}
-                                fileName={`Student List_${new Date().toDateString()}`}>
-                                {({ blob, url, loading, error }) =>
-                                    loading ? <Spinner size="sm" /> :
-                                        <div className="flex flex-row justify-center items-center">
-                                            <Button color="primary" isIconOnly={true}>
-                                                <DownloadIcon />
-                                            </Button>
-                                        </div>
-                                }
-                            </PDFDownloadLink>
-                        }
-                        title="Student PDF List"
-                        variant="faded"
-                    />
+                    {/* <Alert */}
+                    {/*     color="default" */}
+                    {/*     description="Download PDF list of all Students" */}
+                    {/*     endContent={ */}
+                    {/*         <PDFDownloadLink */}
+                    {/*             document={<StudentPDFList data={sampleReportData} />} */}
+                    {/*             fileName={`Student List_${new Date().toDateString()}`}> */}
+                    {/*             {({ blob, url, loading, error }) => */}
+                    {/*                 loading ? <Spinner size="sm" /> : */}
+                    {/*                     <div className="flex flex-row justify-center items-center"> */}
+                    {/*                         <Button color="primary" isIconOnly={true}> */}
+                    {/*                             <DownloadIcon /> */}
+                    {/*                         </Button> */}
+                    {/*                     </div> */}
+                    {/*             } */}
+                    {/*         </PDFDownloadLink> */}
+                    {/*     } */}
+                    {/*     title="Student PDF List" */}
+                    {/*     variant="faded" */}
+                    {/* /> */}
                 </div>
             </div>
 

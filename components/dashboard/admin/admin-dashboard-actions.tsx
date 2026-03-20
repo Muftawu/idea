@@ -7,7 +7,8 @@ import { Sunrise, DownloadIcon } from "lucide-react"
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import { StudentSchemaT } from "@/lib/schemas"
 import { StudentPDFList } from "../reports/student_pdf_list"
-import { ReportCard, sampleReportData } from "../reports/IdeaSchoolReport"
+// import { ReportCard, sampleReportData } from "../reports/Adm"
+
 
 export function AdminDashboardActions({ data }: { data: StudentSchemaT[] }) {
 
@@ -15,7 +16,7 @@ export function AdminDashboardActions({ data }: { data: StudentSchemaT[] }) {
         {
             "title": "Students list download",
             "description": "Download PDF list of all students",
-            "component": ReportCard,
+            "component": StudentPDFList,
         },
         {
             "title": "Staff list download",
@@ -36,21 +37,9 @@ export function AdminDashboardActions({ data }: { data: StudentSchemaT[] }) {
                             color="default"
                             description="Download PDF list of all Students"
                             endContent={
-                                <PDFDownloadLink
-                                    document={<item.component data={sampleReportData} />}
-                                    fileName={`Student List_${new Date().toDateString()}`}>
-                                    {({ blob, url, loading, error }) =>
-                                        loading ? <Spinner size="sm" /> :
-                                            <div className="flex flex-row justify-center items-center">
-                                                <Button color="primary" isIconOnly={true}>
-                                                    <DownloadIcon />
-                                                </Button>
-                                            </div>
-                                    }
-                                </PDFDownloadLink>
-                                // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
-                                //     <DownloadIcon />
-                                // </Button>
+                                <Button isIconOnly={false} color="warning" size="sm" variant="flat">
+                                    <DownloadIcon />
+                                </Button>
                             }
                             title="PDF Student List"
                             variant="faded"
@@ -62,3 +51,18 @@ export function AdminDashboardActions({ data }: { data: StudentSchemaT[] }) {
         </section>
     )
 }
+
+
+{/* <PDFDownloadLink */ }
+{/*     document={<item.component data={sampleReportData} />} */ }
+{/*     fileName={`Student List_${new Date().toDateString()}`}> */ }
+{/*     {({ blob, url, loading, error }) => */ }
+{/*         loading ? <Spinner size="sm" /> : */ }
+{/*             <div className="flex flex-row justify-center items-center"> */ }
+{/*                 <Button disabled={true} color="primary" isIconOnly={true}> */ }
+{/*                     <DownloadIcon /> */ }
+{/*                 </Button> */ }
+{/*             </div> */ }
+{/*     } */ }
+{/* </PDFDownloadLink> */ }
+

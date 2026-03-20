@@ -64,8 +64,7 @@ export function Sidebar() {
 
     return (
         <aside
-            className={`bg-brand text-white transition-[width] duration-300 rounded-l-sm flex flex-col h-full  ${open ? "w-52" : "w-20"
-                }`}
+            className={`bg-brand text-white transition-[width] duration-300 rounded-l-sm flex flex-col h-full  ${open ? "w-52" : "w-20"}`}
             aria-label="Primary navigation"
         >
             <div className="flex items-center justify-between gap-2 px-4 py-5">

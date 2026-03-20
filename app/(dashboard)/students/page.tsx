@@ -399,7 +399,7 @@ export default function Students() {
                                 </li>
                             ))}
                     <div className="mt-4 flex flex-row justify-end">
-                        <Pagination color="primary" page={currentPage} total={Math.ceil(allStudents.length/maxDisplay)} onChange={setCurrentPage} />
+                        <Pagination color="primary" page={currentPage} total={Math.ceil(allStudents.length / maxDisplay)} onChange={setCurrentPage} />
                     </div>
                 </ul>
             </section>

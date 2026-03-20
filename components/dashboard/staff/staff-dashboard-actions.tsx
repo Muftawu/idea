@@ -173,11 +173,11 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                                     Close
                                 </Button>
                                 {modalAction === "add" ?
-                                    <Button type="submit" color="primary" onPress={handleCreateAcademicRecord}>
+                                    <Button type="submit" color="primary" onPress={() => {}}>
                                         Submit
                                     </Button>
                                     : modalAction === "update" ?
-                                        <Button onPress={handleUpdateAcademicRecord} type="submit" color="primary">
+                                        <Button onPress={() => {}} type="submit" color="primary">
                                             Save Changes
                                         </Button>
                                         : null

@@ -1,12 +1,11 @@
 "use client"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Switch } from "@/components/ui/switch"
 import { AuthContext } from "@/context/authContext"
-import { ClassRoomSchemaT, ClassSubjectGroupT, StudentConductSchemaT, StudentSchemaT, SubjectSchemaT } from "@/lib/schemas"
-import { BaseRequestHeaders, capitalize, ClassGroups, getSubjectGroupScoreOptions, studentConductFormFields } from "@/lib/utils"
+import { ClassRoomSchemaT, StudentConductSchemaT, StudentSchemaT } from "@/lib/schemas"
+import { BaseRequestHeaders, capitalize, ClassGroupListNumber, ClassGroupListOptions, ClassGroups, getSubjectGroupScoreOptions } from "@/lib/utils"
 import { DownloadIcon, PlusCircle } from "lucide-react"
 import { useContext, useState, useEffect, use } from "react"
-import { Alert, Input, Select, SelectItem, Button, DatePicker, Spinner, Snippet, Tabs, Tab, NumberInput } from "@heroui/react";
+import { Alert, Input, Select, SelectItem, Button, Spinner, Tabs, Tab, NumberInput } from "@heroui/react";
 import {
     Modal,
     ModalContent,
@@ -17,13 +16,13 @@ import {
 } from "@heroui/react";
 import { Separator } from "@/components/ui/separator"
 import { BaseErrMsg } from "@/lib/utils";
-import { Card, CardHeader, CardBody, Divider } from "@heroui/react";
+import { Card, CardBody } from "@heroui/react";
 import { toast } from "react-toastify";
 import { dynamicFormUpdates } from "@/lib/utils";
 import { useSchoolContext } from "@/context/schoolContext"
 import { PDFDownloadLink } from "@react-pdf/renderer"
-import AcademicReportOptionWrapper from "@/components/dashboard/reports/AcademicReportOptionWrapper"
-import { RecordOptionSchema, RecordOptionPackage } from "@/components/dashboard/reports/reportSchema"
+import { AcademicReportOption } from "@/components/dashboard/reports/AcademicReportOption"
+import { RecordOptionSchema, RecordOptionPackage, RecordNumberSchema, RecordNumberPackage } from "@/components/dashboard/reports/reportSchema"
 
 type classListProps = {
     scoreType: string,
@@ -36,6 +35,7 @@ type classListProps = {
 type recordFilterSchema = {
     academicTerm: string,
     classGroup: string,
+    classname: string,
 }
 
 export default function AcademicReportPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -76,21 +76,38 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         scoreType: "",
         subjects: []
     })
+    const [allClassrooms, setAllClassrooms] = useState<ClassRoomSchemaT[]>([])
 
     // record crud actions
     const [studentScores, setStudentScores] = useState<dynamicFormUpdates[]>([])
-    const [availableClasses, setAvailableClasses] = useState<ClassRoomSchemaT[]>([])
+    // const [availableClasses, setAvailableClasses] = useState<ClassRoomSchemaT[]>([])
     const [isClassSubjectListFetched, setIsClassSubjectListFetched] = useState<boolean>(false)
 
-    // student records 
-    const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<RecordOptionSchema[]>([])
+    // student records options 
     const [isStudentAcademicRecordsFetched, setIsStudentAcademicRecordsFetched] = useState<boolean>(false)
-    const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", classGroup: "kg_1" })
-    const [currentResultsToPrint, setCurrentResultToPrint] = useState<RecordOptionSchema[]>([])
-    const [isCurrentResultToPrintReady, setIsCurrentResultToPrintReady] = useState<boolean>(false)
+    const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<(RecordOptionSchema | RecordNumberSchema)[]>([])
+    const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", classGroup: "kg_1", classname: "creche" })
+
+    // student records number
+    // const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<RecordOptionSchema[] | RecordNumberSchema[]>([])
 
     // export
-    const [finalRecordExportDataOptions, setFinalRecordExportDataOptions] = useState<RecordOptionPackage>()
+    const [currentResultsToPrint, setCurrentResultToPrint] = useState<(RecordOptionSchema | RecordNumberSchema)[]>([])
+    const [isCurrentResultToPrintReady, setIsCurrentResultToPrintReady] = useState<boolean>(false)
+    const [finalRecordExportDataOptions, setFinalRecordExportDataOptions] = useState<RecordOptionPackage | RecordNumberPackage>({
+        academicTerm: "",
+        student: "",
+        classGroup: "",
+        conduct: {
+            rollNo: 0,
+            attendance: 0,
+            attitude: "",
+            conduct: "",
+            interest: "",
+            teacherRemarks: ""
+        },
+        records: []
+    })
 
     useEffect(() => {
         const fetchStudentInfo = async () => {
@@ -109,6 +126,26 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         }
         fetchStudentInfo()
     }, [loading])
+
+    useEffect(() => {
+        const fetchAllClassrooms = async () => {
+            try {
+                const response = await fetch(`/api/classes?query=all`, {
+                    headers: { ...BaseRequestHeaders },
+                })
+                const result = await response.json()
+                if (!response.ok) {
+                    return Promise.reject(response.status)
+                } else {
+                    setAllClassrooms(result.data)
+                }
+            } catch (err: any) {
+                throw new Error(err)
+            }
+        }
+        fetchAllClassrooms()
+    }, [loading])
+
 
     useEffect(() => {
         if (!studentInfo.currentClass.classGroup) return
@@ -154,8 +191,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }, [studentInfo.id])
 
     useEffect(() => {
-        setCurrentResultToPrint(allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.classGroup === academicRecordsFilterOptions.classGroup))
-    }, [academicRecordsFilterOptions.academicTerm, academicRecordsFilterOptions.classGroup])
+        setCurrentResultToPrint(allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.classGroup === academicRecordsFilterOptions.classGroup && obj.classname === academicRecordsFilterOptions.classname))
+    }, [academicRecordsFilterOptions.academicTerm, academicRecordsFilterOptions.classGroup, academicRecordsFilterOptions.classname])
 
 
     if (!userData || !schoolData) return <Spinner label="Loading please wait" />
@@ -193,22 +230,34 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }
 
     const handleOnChangeScoreType = (subject: string, score: string) => {
+        console.log("did item change")
         setStudentScores(prev => prev.find(obj => obj.field === subject) ? prev.map(obj => obj.field === subject ? { ...obj, value: score } : obj) : [...prev, { field: subject, value: score }])
     }
 
     const handleSubmitStudentScores = async () => {
-        if (studentScores.length !== classSubjectList.subjects.length) return toast.info("All score fields are required. Please check the `Scores` tab.")
+        if (!studentInfo.currentClass.classGroup) return
+        const subjectLen = ClassGroupListNumber.includes(studentInfo.currentClass.classGroup) ? studentScores.length / 2 : studentScores.length
+        if (subjectLen !== classSubjectList.subjects.length) return toast.info("All score fields are required. Please check the `Scores` tab.")
         if (!studentConductInfo.rollNo || !studentConductInfo.attendance || !studentConductInfo.attitude || !studentConductInfo.interest || !studentConductInfo.conduct || !studentConductInfo.teacherRemarks) return toast.info("Please complete all fields in the `Conducts` Tab before saving.")
 
         const studentId = studentInfo.id
         const academicTerm = schoolData.schoolSettings.currentTerm
         const subjectScores = studentScores.map((item) => ({ subject: item.field, score_val: item.value }))
+        let payload = {}
+        const class_scores: { subject: string, score_val: string }[] = []
+        const exam_scores: { subject: string, score_val: string }[] = []
 
-        const payload = { academicTerm, studentId, subjectScores, studentConductInfo }
+        if (ClassGroupListNumber.includes(studentInfo.currentClass.classGroup)) {
+            studentScores.map((item) => item.field.startsWith("class") ? class_scores.push({ subject: item.field.split("__")[1], score_val: item.value }) : exam_scores.push({ subject: item.field.split("__")[1], score_val: item.value }))
+            payload = { academicTerm, studentId, class_scores, exam_scores, studentConductInfo }
+        } else {
+            payload = { academicTerm, studentId, subjectScores, studentConductInfo }
+        }
+        const submitApiUrl = ClassGroupListOptions.includes(studentInfo.currentClass.classGroup) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
 
         const fn = async () => {
             try {
-                const response = await fetch(`/api/academic-record-item-option`, {
+                const response = await fetch(submitApiUrl, {
                     method: "POST",
                     headers: { ...BaseRequestHeaders },
                     body: JSON.stringify(payload)
@@ -236,27 +285,37 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }
 
     const handlePrintCurrentResults = () => {
-        if (currentResultsToPrint.length < 1) return toast.info("Current filter has no records. Please re-filter.")
-        setIsCurrentResultToPrintReady(true)
-        // export type RecordOptionPackage = {
-        //     academicTerm: string,
-        //     details: {
-        //         conduct: StudentConductSchemaT,
-        //         record: {
-        //             classSubject: string,
-        //             scoreValue: string
-        //         }
-        //     }[]
-        // }
-        const single = currentResultsToPrint.at(0)
-        if (single) {
-            const out = currentResultsToPrint.map(({ recordObj: { classSubject, scoreValue } }) => ({ classSubject, scoreValue }))
-            setFinalRecordExportDataOptions({ academicTerm: single?.academicTerm, conduct: single?.conductObj, student: single.recordObj.student, records: out })
-            console.log("current to print", currentResultsToPrint)
-        }
-        setTimeout(() => {
+        if (currentResultsToPrint.length < 1) {
             setIsCurrentResultToPrintReady(false)
-        }, 200)
+            return toast.info("Current filter has no records. Please re-filter.")
+        }
+
+        const single = currentResultsToPrint.at(0)
+        if (!single) return
+
+        const type = single.type
+        const academicTerm = single?.academicTerm
+        const classGroup = single?.classGroup
+        const student = single?.recordObj.student
+        const conductObj = single?.conductObj
+
+        if (academicTerm && classGroup && student) {
+            if (type === "option") {
+                const out = (currentResultsToPrint as RecordOptionSchema[]).map(({ recordObj: { classSubject, scoreValue } }) => ({ classSubject, scoreValue }))
+                const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, records: out }
+                setFinalRecordExportDataOptions(data)
+                setIsCurrentResultToPrintReady(true)
+                console.log(data)
+            } else {
+                const out = (currentResultsToPrint as RecordNumberSchema[]).map(({ recordObj: { classSubject, classScoreValue, examScoreValue } }) => ({ classSubject, classScoreValue, examScoreValue }))
+                const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, records: out }
+                setFinalRecordExportDataOptions(data)
+                setIsCurrentResultToPrintReady(true)
+            }
+        } else {
+            console.log("failed single then")
+            setIsCurrentResultToPrintReady(false)
+        }
     }
 
     return (
@@ -288,43 +347,40 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                     <div className="rounded-xl bg-background p-4 ring-1 ring-border">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center justify-center w-full mb-4">
-                                <Alert
-                                    color="default"
-                                    description="Click the download icon to print or export the currently filtered result"
-                                    endContent={
-                                        <PDFDownloadLink
-                                            document={<AcademicReportOptionWrapper data={finalRecordExportDataOptions} />}
-                                            fileName={`Academic_Report_${new Date().toDateString()}`}>
-                                            {({ blob, url, loading, error }) =>
-                                                isCurrentResultToPrintReady ? <Spinner size="sm" /> :
-                                                    <div className="flex flex-row justify-center items-center">
-                                                        {currentResultsToPrint.length < 1 ?
-                                                            <Button onPress={() => currentResultsToPrint.length < 1 ? toast.info("Current filter has no records. Please apply a different filter and try again.") : null}
-                                                                color="primary" isIconOnly={true}>
-                                                                <DownloadIcon />
-                                                            </Button>
-                                                            :
+                                {currentResultsToPrint.length > 1 ?
+                                    <Alert
+                                        color="default"
+                                        description="Click the download icon to print or export the currently filtered result"
+                                        endContent={
+                                            <PDFDownloadLink
+                                                document={<AcademicReportOption data={finalRecordExportDataOptions} />}
+                                                fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${studentInfo.currentClass.name}_${new Date().getFullYear()}`}>
+                                                {({ blob, url, loading, error }) =>
+                                                    loading ? <Spinner size="sm" /> :
+                                                        <div className="flex flex-row justify-center items-center">
                                                             <Button onPress={() => handlePrintCurrentResults()} color="primary" isIconOnly={true}>
                                                                 <DownloadIcon />
                                                             </Button>
-                                                        }
-                                                    </div>
-                                            }
-                                        </PDFDownloadLink>
-                                        // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
-                                        //     <DownloadIcon />
-                                        // </Button>
-                                    }
-                                    title="Download Result"
-                                    variant="faded"
-                                />
+                                                        </div>
+                                                }
+                                            </PDFDownloadLink>
+                                            // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
+                                            //     <DownloadIcon />
+                                            // </Button>
+                                        }
+                                        title="Download Result"
+                                        variant="faded"
+                                    />
+                                    :
+                                    <Alert title="A downlaod button will appear here to download results once you set a filter" color="primary" />
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="mt-8">
-                    <p className="mt-2 text-muted-foreground">Past Academic Records ({allStudentAcademicRecords.length})</p>
+                    <p className="mt-2 text-muted-foreground mb-4">Past Academic Records ({allStudentAcademicRecords.length})</p>
                 </div>
 
                 <div className="p-4 bg-primary-100 rounded-lg">
@@ -364,7 +420,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                         </div>
                         :
                         currentResultsToPrint.length < 1 ? <p className="mx-4">No records found</p> :
-                            currentResultsToPrint.map((item, index) => (
+                            currentResultsToPrint.map((item: RecordOptionSchema | RecordNumberSchema, index: number) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">
                                         {item.recordObj.classSubject.at(0)}
@@ -374,7 +430,10 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                             <p className="truncate font-medium text-foreground">{item.recordObj.classSubject}</p>
                                             {/* <span className="text-xs text-muted-foreground">{item.recordObj.scoreValue}</span> */}
                                         </div>
-                                        <p className="truncate text-sm text-muted-foreground">Score: {capitalize(item.recordObj.scoreValue).replace("_", " ")}</p>
+                                        {item.type === "option" ?
+                                            <p className="truncate text-sm text-muted-foreground">Score: {capitalize(item.recordObj.scoreValue).replace("_", " ")}</p> :
+                                            <p className="truncate text-sm text-muted-foreground">Class Score: {capitalize(item.recordObj.classScoreValue)} | ExamScore: {item.recordObj.examScoreValue}</p>
+                                        }
                                     </div>
                                     {/* <div className="flex flex-row justify-center items-center"> */}
                                     {/*     <Button size="sm" isIconOnly={true} className="color-brand-100 max-w-sm" color="primary" onPress={() => handleOpenModal("update", item)}> */}
@@ -437,24 +496,59 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     ))}
                                                                 </div>
                                                                 :
-                                                                <div className="grid grid-cols-2 gap-y-8 m-4">
+                                                                <div className="">
+                                                                    <div className="flex flex-row justify-evenly items-center">
+                                                                        <p>Class Score</p>
+                                                                        <p>Exam Score</p>
+                                                                    </div>
                                                                     {classSubjectList?.subjects.map((item) => (
-                                                                        <div key={item.id} className="mx-4 gap-8">
-                                                                            <Select
-                                                                                isRequired={true}
-                                                                                name={item.id}
-                                                                                color={studentScores.find(obj => obj.field === item.id) ? "success" : "default"}
-                                                                                defaultSelectedKeys={["good"]}
-                                                                                label={item.subjectName}
-                                                                                labelPlacement="inside"
-                                                                                selectedKeys={new Set(studentScores.filter(obj => obj.field === item.id).map(({ value }) => value))}
-                                                                                placeholder="Select grade"
-                                                                                onChange={(e) => handleOnChangeScoreType(item.id, e.target.value)}
-                                                                            >
-                                                                                {getSubjectGroupScoreOptions(studentInfo.currentClass.classGroup).map((scoreoption) => (
-                                                                                    <SelectItem key={scoreoption.label}>{scoreoption.label}</SelectItem>
-                                                                                ))}
-                                                                            </Select>
+                                                                        <div key={item.id} className="grid grid-cols-2 gap-y-8 m-4">
+                                                                            <div key={`class__${item.id}`} className="mx-4 gap-8">
+                                                                                <NumberInput
+                                                                                    isRequired
+                                                                                    label={item.subjectName}
+                                                                                    placeholder="5"
+                                                                                    isWheelDisabled
+                                                                                    color={studentScores.find(obj => obj.field === `class__${item.id}`) ? "success" : "default"}
+                                                                                    minValue={0}
+                                                                                    maxValue={50}
+                                                                                    labelPlacement="inside"
+                                                                                    validate={(value) => {
+                                                                                        if (value < 0) {
+                                                                                            return "Minimum value is 50";
+                                                                                        }
+                                                                                        if (value > 50) {
+                                                                                            return "Maximum value is 50";
+                                                                                        }
+                                                                                    }}
+                                                                                    className="w-full"
+                                                                                    // formatOptions={{ style: "percent", }}
+                                                                                    onValueChange={(e) => handleOnChangeScoreType(`class__${item.id}`, e.toString())}
+                                                                                />
+                                                                            </div>
+                                                                            <div key={`exam__${item.id}`} className="mx-4 gap-8">
+                                                                                <NumberInput
+                                                                                    isRequired
+                                                                                    label={item.subjectName}
+                                                                                    placeholder="5"
+                                                                                    isWheelDisabled
+                                                                                    minValue={0}
+                                                                                    maxValue={50}
+                                                                                    color={studentScores.find(obj => obj.field === `exam__${item.id}`) ? "success" : "default"}
+                                                                                    labelPlacement="inside"
+                                                                                    validate={(value) => {
+                                                                                        if (value < 0) {
+                                                                                            return "Minimum value is 0";
+                                                                                        }
+                                                                                        if (value > 50) {
+                                                                                            return "Number must be less than 50";
+                                                                                        }
+                                                                                    }}
+                                                                                    className="w-full"
+                                                                                    // formatOptions={{ style: "percent", }}
+                                                                                    onValueChange={(e) => handleOnChangeScoreType(`exam__${item.id}`, e.toString())}
+                                                                                />
+                                                                            </div>
                                                                         </div>
                                                                     ))}
                                                                 </div>
@@ -483,6 +577,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     // formatOptions={{
                                                                     //     style: "percent",
                                                                     // }}
+
                                                                     onValueChange={(e) => setStudentConductInfo({ ...studentConductInfo, rollNo: e })}
                                                                 />
                                                                 <NumberInput
@@ -535,9 +630,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     value={studentConductInfo.teacherRemarks}
                                                                     onChange={(e) => setStudentConductInfo({ ...studentConductInfo, teacherRemarks: e.target.value })}
                                                                 />
-
                                                             </div>
-
                                                         </div>
                                                     </Card>
                                                 </Tab>

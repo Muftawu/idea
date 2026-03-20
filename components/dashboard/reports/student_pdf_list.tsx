@@ -4,14 +4,14 @@ import { Font, Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/
 import { LetterHead } from './letter_head';
 import { pageStyles } from './sytles';
 
-const MetaField = ({ label, value }: { label: string; value: string; }) => (
-    <View style={letterheadStyles.metaField}>
-        <Text style={letterheadStyles.metaLabel}>{label}</Text>
-        <Text style={[letterheadStyles.metaValue, letterheadStyles.metaValueHighlight]}>
-            {value}
-        </Text>
-    </View>
-);
+// const MetaField = ({ label, value }: { label: string; value: string; }) => (
+//     <View style={letterheadStyles.metaField}>
+//         <Text style={letterheadStyles.metaLabel}>{label}</Text>
+//         <Text style={[letterheadStyles.metaValue, letterheadStyles.metaValueHighlight]}>
+//             {value}
+//         </Text>
+//     </View>
+// );
 
 // const VendorReportTable = ({ items }: { items: VendorDTOType[] }) => (
 //     <View style={tableStyles.table}>
