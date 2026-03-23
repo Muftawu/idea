@@ -18,6 +18,7 @@ export const SchoolProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         currentTerm: "",
         termStarts: new Date(),
         termEnds: new Date(),
+        nextReopeningDate: new Date()
     })
 
     useEffect(() => {

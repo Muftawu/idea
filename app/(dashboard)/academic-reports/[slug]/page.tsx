@@ -23,6 +23,7 @@ import { useSchoolContext } from "@/context/schoolContext"
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import { AcademicReportOption } from "@/components/dashboard/reports/AcademicReportOption"
 import { RecordOptionSchema, RecordOptionPackage, RecordNumberSchema, RecordNumberPackage } from "@/components/dashboard/reports/reportSchema"
+import { AcademicReportNumber } from "@/components/dashboard/reports/AcademicRecordNumber"
 
 type classListProps = {
     scoreType: string,
@@ -35,7 +36,7 @@ type classListProps = {
 type recordFilterSchema = {
     academicTerm: string,
     classGroup: string,
-    classname: string,
+    className: string,
 }
 
 export default function AcademicReportPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -86,7 +87,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     // student records options 
     const [isStudentAcademicRecordsFetched, setIsStudentAcademicRecordsFetched] = useState<boolean>(false)
     const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<(RecordOptionSchema | RecordNumberSchema)[]>([])
-    const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", classGroup: "kg_1", classname: "creche" })
+    const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", classGroup: "kg_1", className: "creche" })
 
     // student records number
     // const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<RecordOptionSchema[] | RecordNumberSchema[]>([])
@@ -94,10 +95,12 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     // export
     const [currentResultsToPrint, setCurrentResultToPrint] = useState<(RecordOptionSchema | RecordNumberSchema)[]>([])
     const [isCurrentResultToPrintReady, setIsCurrentResultToPrintReady] = useState<boolean>(false)
-    const [finalRecordExportDataOptions, setFinalRecordExportDataOptions] = useState<RecordOptionPackage | RecordNumberPackage>({
+    const [finalRecordExportDataOptions, setFinalRecordExportDataOptions] = useState<RecordOptionPackage>({
         academicTerm: "",
         student: "",
         classGroup: "",
+        className: "",
+        type: "option",
         conduct: {
             rollNo: 0,
             attendance: 0,
@@ -108,6 +111,23 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         },
         records: []
     })
+    const [finalRecordExportDataNumber, setFinalRecordExportDataNumber] = useState<RecordNumberPackage>({
+        academicTerm: "",
+        student: "",
+        classGroup: "",
+        className: "",
+        type: "number",
+        conduct: {
+            rollNo: 0,
+            attendance: 0,
+            attitude: "",
+            conduct: "",
+            interest: "",
+            teacherRemarks: ""
+        },
+        records: []
+    })
+
 
     useEffect(() => {
         const fetchStudentInfo = async () => {
@@ -181,7 +201,6 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                 } else {
                     setAllStudentAcademicRecord(result.data)
                     setIsStudentAcademicRecordsFetched(true)
-                    console.log("mp", result.data)
                 }
             } catch (err: any) {
                 setIsStudentAcademicRecordsFetched(true)
@@ -191,8 +210,18 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }, [studentInfo.id])
 
     useEffect(() => {
-        setCurrentResultToPrint(allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.classGroup === academicRecordsFilterOptions.classGroup && obj.classname === academicRecordsFilterOptions.classname))
-    }, [academicRecordsFilterOptions.academicTerm, academicRecordsFilterOptions.classGroup, academicRecordsFilterOptions.classname])
+        setTimeout(() => { }, 2000)
+        const newdata = allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.classGroup === academicRecordsFilterOptions.classGroup && obj.className === academicRecordsFilterOptions.className)
+        setCurrentResultToPrint(newdata)
+        const single = newdata.at(0)
+        if (!single) return
+        if (ClassGroupListOptions.includes(single.classGroup)) {
+            setFinalRecordExportDataOptions(newdata)
+        } else {
+            setFinalRecordExportDataOptions(newdata)
+        }
+        console.log("CURRENT RESULTS TO PRINT", newdata)
+    }, [academicRecordsFilterOptions.academicTerm, academicRecordsFilterOptions.classGroup, academicRecordsFilterOptions.className])
 
 
     if (!userData || !schoolData) return <Spinner label="Loading please wait" />
@@ -241,6 +270,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         if (!studentConductInfo.rollNo || !studentConductInfo.attendance || !studentConductInfo.attitude || !studentConductInfo.interest || !studentConductInfo.conduct || !studentConductInfo.teacherRemarks) return toast.info("Please complete all fields in the `Conducts` Tab before saving.")
 
         const studentId = studentInfo.id
+        const classname = studentInfo.currentClass.name?.toLowerCase()
         const academicTerm = schoolData.schoolSettings.currentTerm
         const subjectScores = studentScores.map((item) => ({ subject: item.field, score_val: item.value }))
         let payload = {}
@@ -249,9 +279,9 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
         if (ClassGroupListNumber.includes(studentInfo.currentClass.classGroup)) {
             studentScores.map((item) => item.field.startsWith("class") ? class_scores.push({ subject: item.field.split("__")[1], score_val: item.value }) : exam_scores.push({ subject: item.field.split("__")[1], score_val: item.value }))
-            payload = { academicTerm, studentId, class_scores, exam_scores, studentConductInfo }
+            payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo }
         } else {
-            payload = { academicTerm, studentId, subjectScores, studentConductInfo }
+            payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo }
         }
         const submitApiUrl = ClassGroupListOptions.includes(studentInfo.currentClass.classGroup) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
 
@@ -285,6 +315,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }
 
     const handlePrintCurrentResults = () => {
+        setTimeout(() => { }, 3000)
+
         if (currentResultsToPrint.length < 1) {
             setIsCurrentResultToPrintReady(false)
             return toast.info("Current filter has no records. Please re-filter.")
@@ -296,20 +328,22 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         const type = single.type
         const academicTerm = single?.academicTerm
         const classGroup = single?.classGroup
+        const classname = single?.className
         const student = single?.recordObj.student
         const conductObj = single?.conductObj
 
-        if (academicTerm && classGroup && student) {
+        console.log(currentResultsToPrint)
+
+        if (academicTerm && classGroup && student && currentResultsToPrint.length > 5) {
             if (type === "option") {
                 const out = (currentResultsToPrint as RecordOptionSchema[]).map(({ recordObj: { classSubject, scoreValue } }) => ({ classSubject, scoreValue }))
-                const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, records: out }
+                const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
                 setFinalRecordExportDataOptions(data)
                 setIsCurrentResultToPrintReady(true)
-                console.log(data)
             } else {
-                const out = (currentResultsToPrint as RecordNumberSchema[]).map(({ recordObj: { classSubject, classScoreValue, examScoreValue } }) => ({ classSubject, classScoreValue, examScoreValue }))
-                const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, records: out }
-                setFinalRecordExportDataOptions(data)
+                const out = (currentResultsToPrint as RecordNumberSchema[]).map(({ recordObj: { classSubject, classScoreValue, examScoreValue, grade, totalScore } }) => ({ classSubject, classScoreValue, examScoreValue, grade, totalScore }))
+                const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
+                setFinalRecordExportDataNumber(data)
                 setIsCurrentResultToPrintReady(true)
             }
         } else {
@@ -347,23 +381,40 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                     <div className="rounded-xl bg-background p-4 ring-1 ring-border">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center justify-center w-full mb-4">
-                                {currentResultsToPrint.length > 1 ?
+                                {currentResultsToPrint.length > 5 ?
                                     <Alert
                                         color="default"
                                         description="Click the download icon to print or export the currently filtered result"
                                         endContent={
-                                            <PDFDownloadLink
-                                                document={<AcademicReportOption data={finalRecordExportDataOptions} />}
-                                                fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${studentInfo.currentClass.name}_${new Date().getFullYear()}`}>
-                                                {({ blob, url, loading, error }) =>
-                                                    loading ? <Spinner size="sm" /> :
-                                                        <div className="flex flex-row justify-center items-center">
-                                                            <Button onPress={() => handlePrintCurrentResults()} color="primary" isIconOnly={true}>
-                                                                <DownloadIcon />
-                                                            </Button>
-                                                        </div>
-                                                }
-                                            </PDFDownloadLink>
+                                            currentResultsToPrint.at(0)?.type === "option" ?
+                                                <PDFDownloadLink
+                                                    document={<AcademicReportOption data={finalRecordExportDataOptions} />}
+                                                    fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${studentInfo.currentClass.name}_${new Date().getFullYear()}`}>
+                                                    {({ blob, url, loading, error }) =>
+                                                        loading ? <Spinner size="sm" /> :
+                                                            <div className="flex flex-row justify-center items-center">
+                                                                <Button onPress={() => handlePrintCurrentResults()} color="primary" isIconOnly={true}>
+                                                                    <DownloadIcon />
+                                                                </Button>
+                                                            </div>
+                                                    }
+                                                </PDFDownloadLink>
+                                                :
+                                                finalRecordExportDataNumber.records.length > 5 ?
+                                                    <PDFDownloadLink
+                                                        document={<AcademicReportNumber data={finalRecordExportDataNumber} />}
+                                                        fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${studentInfo.currentClass.name}_${new Date().getFullYear()}`}>
+                                                        {({ blob, url, loading, error }) =>
+                                                            loading ? <Spinner size="sm" /> :
+                                                                <div className="flex flex-row justify-center items-center">
+                                                                    <Button onPress={() => { }} color="primary" isIconOnly={true}>
+                                                                        {/* <Button onPress={() => handlePrintCurrentResults()} color="primary" isIconOnly={true}> */}
+                                                                        <DownloadIcon />
+                                                                    </Button>
+                                                                </div>
+                                                        }
+                                                    </PDFDownloadLink>
+                                                    : null
                                             // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
                                             //     <DownloadIcon />
                                             // </Button>
@@ -385,7 +436,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
                 <div className="p-4 bg-primary-100 rounded-lg">
                     <p className="mt-2 text-muted-foreground">Filter using the select options below</p>
-                    <div className="grid grid-cols-2 flex flex-row gap-4">
+                    <div className="grid grid-cols-3 flex flex-row gap-4">
                         <Select
                             label="Term"
                             className="flex"
@@ -409,6 +460,17 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                 <SelectItem key={item.key}>{item.value}</SelectItem>
                             ))}
                         </Select>
+                        <Select
+                            label="Class"
+                            labelPlacement="inside"
+                            placeholder="Select class"
+                            selectedKeys={new Set([academicRecordsFilterOptions.className.toLowerCase()])}
+                            onChange={(e) => setAcademicRecordFilterOptions({ ...academicRecordsFilterOptions, className: e.target.value })}
+                        >
+                            {allClassrooms.map((item) => (
+                                <SelectItem key={item.name.toLowerCase()} textValue={`${item.name.replace(" ", "")}`}>{item.name}</SelectItem>
+                            ))}
+                        </Select>
                     </div>
                 </div>
 
@@ -419,7 +481,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                             <p className="mx-4">Fetching academic records...</p>
                         </div>
                         :
-                        currentResultsToPrint.length < 1 ? <p className="mx-4">No records found</p> :
+                        currentResultsToPrint.length < 1 ? <p className="mx-4">Use the filter button to select a record</p> :
                             currentResultsToPrint.map((item: RecordOptionSchema | RecordNumberSchema, index: number) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">
@@ -432,7 +494,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                         </div>
                                         {item.type === "option" ?
                                             <p className="truncate text-sm text-muted-foreground">Score: {capitalize(item.recordObj.scoreValue).replace("_", " ")}</p> :
-                                            <p className="truncate text-sm text-muted-foreground">Class Score: {capitalize(item.recordObj.classScoreValue)} | ExamScore: {item.recordObj.examScoreValue}</p>
+                                            <p className="truncate text-sm text-muted-foreground">Class Score: {item.recordObj.classScoreValue} | ExamScore: {item.recordObj.examScoreValue}</p>
                                         }
                                     </div>
                                     {/* <div className="flex flex-row justify-center items-center"> */}

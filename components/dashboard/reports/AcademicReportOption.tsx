@@ -471,7 +471,7 @@ const ActivityTableRow = ({
     );
 };
 
-export const AcademicReportOption = ({ data }: { data: RecordOptionPackage | RecordNumberPackage }) => (
+export const AcademicReportOption = ({ data }: { data: RecordOptionPackage}) => (
     <Document
         title={`${data.records} — ${data.academicTerm} Report`}
         author="Idea International School"

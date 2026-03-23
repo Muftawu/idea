@@ -2,6 +2,7 @@ import { StudentConductSchemaT } from "@/lib/schemas";
 
 export type RecordOptionSchema = {
     classGroup: string,
+    className: string,
     academicTerm: string,
     type: "option",
     conductObj?: StudentConductSchemaT,
@@ -17,7 +18,9 @@ export type RecordOptionSchema = {
 export type RecordOptionPackage = {
     academicTerm: string,
     conduct?: StudentConductSchemaT,
+    type: "option",
     classGroup: string,
+    className: string,
     student: string,
     records: {
         classSubject: string,
@@ -27,14 +30,17 @@ export type RecordOptionPackage = {
 
 export type RecordNumberSchema = {
     classGroup: string,
+    className: string,
     academicTerm: string,
     type: "number",
     conductObj?: StudentConductSchemaT,
     recordObj: {
         id: string,
         academicTerm: string,
-        classScoreValue: string,
-        examScoreValue: string,
+        classScoreValue: number,
+        examScoreValue: number,
+        grade: string,
+        totalScore: number,
         classSubject: string,
         student: string
     }
@@ -43,12 +49,16 @@ export type RecordNumberSchema = {
 export type RecordNumberPackage = {
     academicTerm: string,
     conduct?: StudentConductSchemaT,
+    type: "number",
     classGroup: string,
+    className: string,
     student: string,
     records: {
+        grade: string,
+        totalScore: number,
         classSubject: string,
-        classScoreValue: string
-        examScoreValue: string
+        classScoreValue: number, 
+        examScoreValue: number 
     }[]
 }
 

@@ -41,6 +41,7 @@ const SchoolSettingsSchema = z.object({
     currentTerm: z.string(),
     termStarts: z.date(),
     termEnds: z.date(),
+    nextReopeningDate: z.date()
 })
 
 const StaffCredentialSchema = z.object({
