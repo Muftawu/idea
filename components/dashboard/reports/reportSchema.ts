@@ -39,6 +39,8 @@ export type RecordNumberSchema = {
         academicTerm: string,
         classScoreValue: number,
         examScoreValue: number,
+        facilitator?: string, 
+        position?: string,
         grade: string,
         totalScore: number,
         classSubject: string,
@@ -56,9 +58,11 @@ export type RecordNumberPackage = {
     records: {
         grade: string,
         totalScore: number,
+        faciliator?: string,
+        position?: string,
         classSubject: string,
-        classScoreValue: number, 
-        examScoreValue: number 
+        classScoreValue: number,
+        examScoreValue: number
     }[]
 }
 

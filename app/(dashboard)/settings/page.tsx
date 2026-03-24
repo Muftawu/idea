@@ -34,6 +34,7 @@ export default function Settings() {
     const [schoolSettings, setSchoolSettings] = useState<SchoolSettingsSchemaT>({
         name: "",
         currentTerm: "",
+        nextReopeningDate: new Date(),
         termStarts: new Date(),
         termEnds: new Date(),
     })
@@ -70,7 +71,12 @@ export default function Settings() {
 
     const handleUpdateSchoolSettings = async () => {
         if (!userData.userInfo.id) return null
-        const payload = { currentTerm: schoolSettings.currentTerm, termStarts: new Date(schoolSettings.termStarts).toISOString().split("T")[0], termEnds: new Date(schoolSettings.termEnds).toISOString().split("T")[0] }
+        const payload = {
+            currentTerm: schoolSettings.currentTerm,
+            termStarts: new Date(schoolSettings.termStarts).toISOString().split("T")[0],
+            termEnds: new Date(schoolSettings.termEnds).toISOString().split("T")[0],
+            nextReopeningDate: new Date(schoolSettings.nextReopeningDate).toISOString().split("T")[0]
+        }
         const fn = async () => {
             try {
                 const response = await fetch(`/api/stats?query=main&admin_id=${userData?.userInfo.id}`, {
@@ -112,7 +118,7 @@ export default function Settings() {
                 </div>
                 <p className="mt-2 text-muted-foreground">Make school changes and setting here.</p>
                 {!fetchedSchoolSettings ? <div className="flex flex-row justify-center items-center"><Spinner /> </div> :
-                    <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <div className="rounded-xl bg-background p-4 ring-1 ring-border">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -120,7 +126,7 @@ export default function Settings() {
                                         <BadgeInfoIcon />
                                     </Button>
                                     <div>
-                                        <h1 className="text-lg font-bold">{schoolSettings.currentTerm}</h1>
+                                        <h1 className="text-lg font-bold">{schoolSettings.currentTerm} Term</h1>
                                         <p className="font-normal text-foreground">Term</p>
                                     </div>
                                 </div>
@@ -148,6 +154,19 @@ export default function Settings() {
                                     <div>
                                         <h1 className="text-lg font-bold">{new Date(schoolSettings.termEnds).toDateString()}</h1>
                                         <p className="font-normal text-foreground">Term Start</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="rounded-xl bg-background p-4 ring-1 ring-border">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Button isIconOnly={true} color="primary">
+                                        <BadgeInfoIcon />
+                                    </Button>
+                                    <div>
+                                        <h1 className="text-lg font-bold">{new Date(schoolSettings.nextReopeningDate).toDateString()}</h1>
+                                        <p className="font-normal text-foreground">Next Reopening Date</p>
                                     </div>
                                 </div>
                             </div>
@@ -182,7 +201,7 @@ export default function Settings() {
                                             <SelectItem key="3rd">3rd Term</SelectItem>
                                         </Select>
                                         <DatePicker
-                                            label="Term start date"
+                                            label="Term start date (month/day/year)"
                                             labelPlacement="outside"
                                             showMonthAndYearPickers
                                             className=""
@@ -202,7 +221,7 @@ export default function Settings() {
                                             })}
                                         />
                                         <DatePicker
-                                            label="Term Ends"
+                                            label="Term Ends / Vacation Date (month/day/year)"
                                             labelPlacement="outside"
                                             showMonthAndYearPickers
                                             className=""
@@ -221,6 +240,27 @@ export default function Settings() {
                                                 termEnds: value ? value.toDate(getLocalTimeZone()) : new Date()
                                             })}
                                         />
+                                        <DatePicker
+                                            label="Next Reopening date (month/day/year)"
+                                            labelPlacement="outside"
+                                            showMonthAndYearPickers
+                                            className=""
+                                            value={
+                                                schoolSettings.nextReopeningDate
+                                                    ? new CalendarDate(
+                                                        new Date(schoolSettings.nextReopeningDate).getFullYear(),
+                                                        new Date(schoolSettings.nextReopeningDate).getMonth() + 1,
+                                                        new Date(schoolSettings.nextReopeningDate).getDate()
+                                                    ) as unknown as DateValue
+                                                    : new CalendarDate(2026, 3, 17) as unknown as DateValue
+                                            }
+                                            placeholderValue={new CalendarDate(2026, 3, 17) as unknown as DateValue}
+                                            onChange={(value) => setSchoolSettings({
+                                                ...schoolSettings,
+                                                nextReopeningDate: value ? value.toDate(getLocalTimeZone()) : new Date()
+                                            })}
+                                        />
+
                                     </div>
                                 </>
                             </ModalBody>

@@ -9,7 +9,6 @@ import {
     StyleSheet,
 } from "@react-pdf/renderer";
 import { RecordNumberPackage, RecordOptionPackage } from "./reportSchema";
-import { useSchoolContext } from "@/context/schoolContext";
 import { toast } from "react-toastify";
 
 export type Grade = "A" | "P" | "AP" | "D" | "B" | string;
@@ -23,22 +22,6 @@ export type SubjectRow = {
     grade: string;
     position?: string;
     facilitator?: string;
-};
-
-export type TerminalReportData = {
-    studentName: string;
-    className: string;
-    term: string;
-    year: string;
-    rollNumber?: string | number;
-    attendance?: string;
-    vacationDate: string;
-    reopeningDate: string;
-    conduct?: string;
-    attitude?: string;
-    interest?: string;
-    teacherRemarks?: string;
-    subjects: SubjectRow[];
 };
 
 const C = {
@@ -331,10 +314,16 @@ const s = StyleSheet.create({
     cClassScore: { width: "11%", alignItems: "center" },
     cExamScore: { width: "11%", alignItems: "center" },
     cTotal: { width: "13%", alignItems: "center" },
-    cBar: { width: "18%", paddingHorizontal: 6 },
     cGrade: { width: "8%", alignItems: "center" },
     cPosition: { width: "8%", alignItems: "center" },
     cFacilitator: { width: "13%", paddingLeft: 4 },
+
+    cSubjectIdle: { width: "28%", paddingLeft: 10 },
+    cClassScoreIdle: { width: "18%", alignItems: "center" },
+    cExamScoreIdle: { width: "18%", alignItems: "center" },
+    cTotalIdle: { width: "18%", alignItems: "center" },
+    cGradeIdle: { width: "18%", alignItems: "center" },
+
 
     thText: {
         fontSize: 6,
@@ -528,13 +517,13 @@ const s = StyleSheet.create({
         marginRight: 0,
     },
     signBoxBody: {
-        padding: 10,
-        maxHeight: 10,
+        padding: 5,
+        maxHeight: 7,
     },
     signLine: {
         borderBottomWidth: 1.5,
         borderBottomColor: C.borderStrong,
-        marginTop: 32,
+        marginTop: 7,
         marginBottom: 0,
     },
     signLabel: {
@@ -568,60 +557,94 @@ const InfoCell = ({
     </View>
 );
 
-const SubjectTableRow = ({ row, index }: { row: SubjectRow; index: number }) => {
+const SubjectTableRow = ({ row, index, isJHS }: { row: SubjectRow; index: number, isJHS: boolean }) => {
     const gc = gradeColor(row.grade);
-    // const bar = gradeBar(row.totalScore);
     const hasClassScore = row.classScoreValue > 0;
     const hasExamScore = row.examScoreValue > 0;
     const hasTotal = row.totalScore > 0;
 
     return (
-        <View style={[s.tableRow, index % 2 === 1 ? s.tableRowAlt : {}]}>
-            {/* Subject */}
-            <View style={s.cSubject}>
-                <Text style={s.tdSubject}>{row.classSubject}</Text>
-            </View>
+        isJHS ?
+            < View style={[s.tableRow, index % 2 === 1 ? s.tableRowAlt : {}]} >
+                {/* Subject */}
+                < View style={s.cSubject} >
+                    <Text style={s.tdSubject}>{row.classSubject}</Text>
+                </View >
 
-            {/* Class Score */}
-            <View style={s.cClassScore}>
-                <Text style={hasClassScore ? s.tdScore : s.tdScoreMuted}>
-                    {hasClassScore ? row.classScoreValue : "—"}
-                </Text>
-            </View>
+                {/* Class Score */}
+                < View style={s.cClassScore} >
+                    <Text style={hasClassScore ? s.tdScore : s.tdScoreMuted}>
+                        {hasClassScore ? row.classScoreValue : "—"}
+                    </Text>
+                </View >
 
-            {/* Exam Score */}
-            <View style={s.cExamScore}>
-                <Text style={hasExamScore ? s.tdScore : s.tdScoreMuted}>
-                    {hasExamScore ? row.examScoreValue : "—"}
-                </Text>
-            </View>
+                {/* Exam Score */}
+                < View style={s.cExamScore} >
+                    <Text style={hasExamScore ? s.tdScore : s.tdScoreMuted}>
+                        {hasExamScore ? row.examScoreValue : "—"}
+                    </Text>
+                </View >
 
-            {/* Total */}
-            <View style={s.cTotal}>
-                <Text style={hasTotal ? s.tdScore : s.tdScoreMuted}>
-                    {hasTotal ? row.totalScore : "—"}
-                </Text>
-            </View>
+                {/* Total */}
+                < View style={s.cTotal} >
+                    <Text style={hasTotal ? s.tdScore : s.tdScoreMuted}>
+                        {hasTotal ? row.totalScore : "—"}
+                    </Text>
+                </View >
 
-            {/* Grade */}
-            <View style={s.cGrade}>
-                <View style={[s.gradePill, { backgroundColor: gc.bg }]}>
-                    <Text style={[s.gradeText, { color: gc.text }]}>{row.grade || "—"}</Text>
+                {/* Grade */}
+                < View style={s.cGrade} >
+                    <View style={[s.gradePill, { backgroundColor: gc.bg }]}>
+                        <Text style={[s.gradeText, { color: gc.text }]}>{row.grade || "—"}</Text>
+                    </View>
+                </View >
+
+                {/* Position */}
+                < View style={s.cPosition} >
+                    <Text style={val(row.position) !== "—" ? s.tdPosition : s.tdScoreMuted}>
+                        {val(row.position)}
+                    </Text>
+                </View >
+
+                <View style={s.cFacilitator}>
+                    <Text style={s.tdFacilitator}>{val(row.facilitator)}</Text>
+                </View>
+            </View >
+            :
+            <View style={[s.tableRow, index % 2 === 1 ? s.tableRowAlt : {}]}>
+                {/* Subject */}
+                <View style={s.cSubjectIdle}>
+                    <Text style={s.tdSubject}>{row.classSubject}</Text>
+                </View>
+
+                {/* Class Score */}
+                <View style={s.cClassScoreIdle}>
+                    <Text style={hasClassScore ? s.tdScore : s.tdScoreMuted}>
+                        {hasClassScore ? row.classScoreValue : "—"}
+                    </Text>
+                </View>
+
+                {/* Exam Score */}
+                <View style={s.cExamScoreIdle}>
+                    <Text style={hasExamScore ? s.tdScore : s.tdScoreMuted}>
+                        {hasExamScore ? row.examScoreValue : "—"}
+                    </Text>
+                </View>
+
+                {/* Total */}
+                <View style={s.cTotalIdle}>
+                    <Text style={hasTotal ? s.tdScore : s.tdScoreMuted}>
+                        {hasTotal ? row.totalScore : "—"}
+                    </Text>
+                </View>
+
+                {/* Grade */}
+                <View style={s.cGradeIdle}>
+                    <View style={[s.gradePill, { backgroundColor: gc.bg }]}>
+                        <Text style={[s.gradeText, { color: gc.text }]}>{row.grade || "—"}</Text>
+                    </View>
                 </View>
             </View>
-
-            {/* Position */}
-            <View style={s.cPosition}>
-                <Text style={val(row.position) !== "—" ? s.tdPosition : s.tdScoreMuted}>
-                    {val(row.position)}
-                </Text>
-            </View>
-
-            {/* Facilitator */}
-            <View style={s.cFacilitator}>
-                <Text style={s.tdFacilitator}>{val(row.facilitator)}</Text>
-            </View>
-        </View>
     );
 };
 
@@ -653,19 +676,9 @@ const GradingKey = () => {
 };
 
 
-export const AcademicReportNumber = ({ data }: { data: RecordNumberPackage }) => {
-    console.log("main data from print results page", data)
-    const schoolData = useSchoolContext()
-    const total = 0
-    const subjectCount = data.records.length;
-
-    // const average = subjectCount > 0 ? (totalScore / subjectCount).toFixed(1) : "—";
-    // const overallGrade = gradeColor(
-    //     Number(average) >= 85 ? "A" :
-    //         Number(average) >= 75 ? "P" :
-    //             Number(average) >= 65 ? "AP" :
-    //                 Number(average) >= 55 ? "D" : "B"
-    // );
+export const AcademicReportNumber = ({ vacationDate, reopeningDate, data }: { vacationDate: string, reopeningDate: string, data: RecordNumberPackage }) => {
+    if (!data) return
+    const isJHS = data.classGroup === "jhs" ? true : false
 
     return (
         <Document
@@ -706,13 +719,14 @@ export const AcademicReportNumber = ({ data }: { data: RecordNumberPackage }) =>
                                 </View>
                                 <View style={s.infoGrid}>
                                     <InfoCell label="Full Name" value={val(data.student)} half />
-                                    <InfoCell label="Class" value={val(data.className)} half />
+                                    <InfoCell label="Class" value={val(data.className.toUpperCase().replace("_", " "))} half />
                                     <InfoCell label="Term" value={val(data.academicTerm)} />
                                     <InfoCell label="Academic Year" value={val(new Date().getFullYear())} />
                                     <InfoCell label="No. on Roll" value={val(data.conduct?.rollNo)} />
                                     <InfoCell label="Attendance" value={val(data.conduct?.attendance)} half />
-                                    <InfoCell label="Vacation Date" value={val(schoolData?.schoolSettings.termEnds)} half />
-                                    <InfoCell label="Reopening Date" value={val(schoolData?.schoolSettings.nextReopeningDate)} half />
+                                    <InfoCell label="Vacation Date" value={vacationDate ?? "---"} half />
+                                    <InfoCell label="Reopening Date" value={reopeningDate ?? "---"} half />
+                                    <InfoCell label="Promotion Status" value="N/A" half />
                                 </View>
                             </View>
                         </View>
@@ -726,33 +740,54 @@ export const AcademicReportNumber = ({ data }: { data: RecordNumberPackage }) =>
 
                     <View style={s.table}>
                         {/* Table Header */}
-                        <View style={s.tableHeaderRow}>
-                            <View style={s.cSubject}>
-                                <Text style={[s.thTextLeft, { paddingLeft: 10 }]}>SUBJECT</Text>
+                        {isJHS ?
+
+                            <View style={s.tableHeaderRow}>
+                                <View style={s.cSubject}>
+                                    <Text style={[s.thTextLeft, { paddingLeft: 10 }]}>SUBJECT</Text>
+                                </View>
+                                <View style={s.cClassScore}>
+                                    <Text style={s.thText}>CLASS{"\n"}(50%)</Text>
+                                </View>
+                                <View style={s.cExamScore}>
+                                    <Text style={s.thText}>EXAM{"\n"}(50%)</Text>
+                                </View>
+                                <View style={s.cTotal}>
+                                    <Text style={s.thText}>TOTAL{"\n"}(100%)</Text>
+                                </View>
+                                <View style={s.cGrade}>
+                                    <Text style={s.thText}>GRADE</Text>
+                                </View>
+                                <View style={s.cPosition}>
+                                    <Text style={s.thText}>POSITION</Text>
+                                </View>
+                                <View style={s.cFacilitator}>
+                                    <Text style={[s.thTextLeft, { paddingLeft: 4 }]}>FACILITATOR</Text>
+                                </View>
                             </View>
-                            <View style={s.cClassScore}>
-                                <Text style={s.thText}>CLASS{"\n"}(50%)</Text>
+                            :
+                            <View style={s.tableHeaderRow}>
+                                <View style={s.cSubjectIdle}>
+                                    <Text style={[s.thTextLeft, { paddingLeft: 10 }]}>SUBJECT</Text>
+                                </View>
+                                <View style={s.cClassScoreIdle}>
+                                    <Text style={s.thText}>CLASS{"\n"}(50%)</Text>
+                                </View>
+                                <View style={s.cExamScoreIdle}>
+                                    <Text style={s.thText}>EXAM{"\n"}(50%)</Text>
+                                </View>
+                                <View style={s.cTotalIdle}>
+                                    <Text style={s.thText}>TOTAL{"\n"}(100%)</Text>
+                                </View>
+                                <View style={s.cGradeIdle}>
+                                    <Text style={s.thText}>GRADE</Text>
+                                </View>
                             </View>
-                            <View style={s.cExamScore}>
-                                <Text style={s.thText}>EXAM{"\n"}(50%)</Text>
-                            </View>
-                            <View style={s.cTotal}>
-                                <Text style={s.thText}>TOTAL{"\n"}(100%)</Text>
-                            </View>
-                            <View style={s.cGrade}>
-                                <Text style={s.thText}>GRADE</Text>
-                            </View>
-                            <View style={s.cPosition}>
-                                <Text style={s.thText}>POSITION</Text>
-                            </View>
-                            <View style={s.cFacilitator}>
-                                <Text style={[s.thTextLeft, { paddingLeft: 4 }]}>FACILITATOR</Text>
-                            </View>
-                        </View>
+                        }
 
                         {/* Rows */}
                         {data.records.map((row, i) => (
-                            <SubjectTableRow key={i} row={row} index={i} />
+                            <SubjectTableRow key={i} row={row} index={i} isJHS={isJHS} />
                         ))}
                     </View>
 
@@ -808,41 +843,12 @@ export const AcademicReportNumber = ({ data }: { data: RecordNumberPackage }) =>
                 </View>
 
                 {/* ── Footer ── */}
-                <View style={s.footer}>
-                    <Text style={s.footerText}>IDEA International School · Accra, Ghana</Text>
-                    <Text style={s.footerText}>Confidential — For Parent / Guardian Use Only</Text>
-                    <Text style={s.footerText}>{val(data.academicTerm)} · {val(new Date().getFullYear())}</Text>
-                </View>
+                {/* <View style={s.footer}> */}
+                {/*     <Text style={s.footerText}>IDEA International School · Accra, Ghana</Text> */}
+                {/*     <Text style={s.footerText}>Confidential — For Parent / Guardian Use Only</Text> */}
+                {/*     <Text style={s.footerText}>{val(data.academicTerm)} · {val(new Date().getFullYear())}</Text> */}
+                {/* </View> */}
             </Page>
         </Document>
     );
 };
-
-// ─── Sample Data (mirrors uploaded report) ────────────────────────────────────
-
-// export const sampleTerminalData: TerminalReportData = {
-//     studentName: "Tom Emmanuella Ama",
-//     className: "Basic 9",
-//     term: "3rd Term",
-//     year: "2024 / 2025",
-//     rollNumber: "—",
-//     attendance: "— out of 54",
-//     vacationDate: "20th Dec, 2024",
-//     reopeningDate: "5th Jan, 2025",
-//     conduct: "Good",
-//     attitude: "Positive",
-//     interest: "Active",
-//     teacherRemarks: "Emmanuella has shown commendable dedication this term. With continued effort and support at home, we are confident she will achieve even greater results next term.",
-//     subjects: [
-//         { subject: "English Language", classScore: 0, examScore: 0, totalScore: 0, grade: "B", position: "—", facilitator: "—" },
-//         { subject: "Mathematics", classScore: 0, examScore: 0, totalScore: 0, grade: "B", position: "—", facilitator: "Autny Rose" },
-//         { subject: "Science", classScore: 0, examScore: 0, totalScore: 0, grade: "B", position: "—", facilitator: "Keelson" },
-//         { subject: "Religious & Moral Edu.", classScore: 10, examScore: 4, totalScore: 14, grade: "B", position: "15th", facilitator: "—" },
-//         { subject: "Computing", classScore: 10, examScore: 5, totalScore: 15, grade: "B", position: "—", facilitator: "—" },
-//         { subject: "French", classScore: 10, examScore: 5, totalScore: 15, grade: "B", position: "—", facilitator: "—" },
-//         { subject: "Ghanaian Language", classScore: 10, examScore: 5, totalScore: 15, grade: "B", position: "—", facilitator: "—" },
-//         { subject: "Social Studies", classScore: 8, examScore: 6, totalScore: 14, grade: "B", position: "—", facilitator: "—" },
-//         { subject: "Creative Arts & Design", classScore: 9, examScore: 2, totalScore: 11, grade: "B", position: "—", facilitator: "Vicentia" },
-//         { subject: "Career Technology", classScore: 7, examScore: 4, totalScore: 11, grade: "B", position: "—", facilitator: "Joyce" },
-//     ],
-// };

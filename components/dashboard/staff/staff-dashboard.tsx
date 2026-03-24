@@ -24,7 +24,7 @@ export const StaffDashboard = () => {
                             <div className="mb-3 flex items-center justify-between">
                                 <h2 className="text-sm font-semibold text-foreground">Statistics</h2>
                             </div>
-                            <StaffHomeStatistics />
+                            <StaffHomeStatistics userInfo={userData.userInfo} />
                         </div>
                     </section>
                 </div>

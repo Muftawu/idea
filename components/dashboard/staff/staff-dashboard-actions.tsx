@@ -21,7 +21,6 @@ import { toast } from "react-toastify";
 
 export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) => {
 
-    console.log("userinfo", userInfo)
     const router = useRouter()
 
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
@@ -69,7 +68,6 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                 const response = await fetch(`/api/staff?query=${userInfo.userTypeId}`, {
                     headers: { ...BaseRequestHeaders },
                 })
-                console.log("response====================", response)
                 const result = await response.json()
                 if (!response.ok) {
                     return null
