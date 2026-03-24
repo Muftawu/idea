@@ -8,7 +8,6 @@ import { PDFDownloadLink } from "@react-pdf/renderer"
 import { Alert, Button, Spinner } from "@heroui/react"
 import { DownloadIcon } from "lucide-react"
 import { StudentPDFList } from "../reports/student_pdf_list"
-import { sampleReportData } from "../reports/IdeaSchoolReport"
 
 function Gauge({ value }: { value: number }) {
     const radius = 85
