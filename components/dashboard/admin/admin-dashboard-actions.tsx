@@ -7,6 +7,7 @@ import { Sunrise, DownloadIcon } from "lucide-react"
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import { StudentSchemaT } from "@/lib/schemas"
 import { StudentPDFList } from "../reports/student_pdf_list"
+import { toast } from "react-toastify"
 // import { ReportCard, sampleReportData } from "../reports/Adm"
 
 
@@ -37,7 +38,7 @@ export function AdminDashboardActions({ data }: { data: StudentSchemaT[] }) {
                             color="default"
                             description="Download PDF list of all Students"
                             endContent={
-                                <Button isIconOnly={false} color="warning" size="sm" variant="flat">
+                                    <Button onPress={() => toast.info("Preparing print data. Please wait...")} isIconOnly={false} color="warning" size="sm" variant="flat">
                                     <DownloadIcon />
                                 </Button>
                             }

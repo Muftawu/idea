@@ -29,7 +29,6 @@ export const SchoolProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
-                console.log("results", result.data)
                 if (!response.ok) {
                     return null
                 } else {

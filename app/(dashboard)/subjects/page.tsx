@@ -238,7 +238,6 @@ export default function Subjects() {
 
     const handleOnSelectClassGroupSubjectsToRemove = (subjectId?: string) => {
         if (!subjectId) {
-            console.log("subject id not found")
             return
         }
         setSubjectsToRemove(prev => prev.includes(subjectId) ? prev.filter(obj => obj !== subjectId) : [...prev, subjectId])

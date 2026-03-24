@@ -72,7 +72,6 @@ const deleteFn = async (payload: string) => {
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const query = searchParams.get("query") ?? ""
-    console.log("query", query)
 
     let out = await getFn(query)
     if (!out?.response.ok) {

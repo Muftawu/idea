@@ -56,6 +56,7 @@ export type RecordNumberPackage = {
     className: string,
     student: string,
     records: {
+        id: string,
         grade: string,
         totalScore: number,
         faciliator?: string,

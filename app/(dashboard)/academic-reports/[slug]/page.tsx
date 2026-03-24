@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { AuthContext } from "@/context/authContext"
 import { ClassRoomSchemaT, StaffT, StudentConductSchemaT, StudentSchemaT } from "@/lib/schemas"
 import { BaseRequestHeaders, capitalize, ClassGroupListNumber, ClassGroupListOptions, ClassGroups, getSubjectGroupScoreOptions, Positions } from "@/lib/utils"
-import { DownloadIcon, PlusCircle } from "lucide-react"
+import { DownloadIcon, Edit, PlusCircle } from "lucide-react"
 import { useContext, useState, useEffect, use } from "react"
 import { Alert, Input, Select, SelectItem, Button, Spinner, Tabs, Tab, NumberInput, Divider } from "@heroui/react";
 import {
@@ -20,7 +20,7 @@ import { Card, CardBody } from "@heroui/react";
 import { toast } from "react-toastify";
 import { dynamicFormUpdates } from "@/lib/utils";
 import { useSchoolContext } from "@/context/schoolContext"
-import { PDFDownloadLink, usePDF } from "@react-pdf/renderer"
+import { PDFDownloadLink } from "@react-pdf/renderer"
 import { AcademicReportOption } from "@/components/dashboard/reports/AcademicReportOption"
 import { RecordOptionSchema, RecordOptionPackage, RecordNumberSchema, RecordNumberPackage } from "@/components/dashboard/reports/reportSchema"
 import { AcademicReportNumber } from "@/components/dashboard/reports/AcademicRecordNumber"
@@ -107,6 +107,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             attitude: "",
             conduct: "",
             interest: "",
+            promotedTo: "",
             teacherRemarks: ""
         },
         records: []
@@ -227,12 +228,19 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }, [studentInfo.id])
 
     useEffect(() => {
-        const newdata = allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.classGroup === academicRecordsFilterOptions.classGroup && obj.className === academicRecordsFilterOptions.className)
-        const single = newdata.at(0)
-        if (!single || newdata.length < 1) return
-        setCurrentResultToPrint(newdata)
-        setIsCurrentResultToPrintReady(true)
-    }, [academicRecordsFilterOptions.academicTerm, academicRecordsFilterOptions.classGroup, academicRecordsFilterOptions.className])
+        const fn = () => {
+            const newdata = allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.className === academicRecordsFilterOptions.className)
+            if (newdata.length < 1) {
+                setCurrentResultToPrint([])
+                setIsCurrentResultToPrintReady(false)
+            }
+            else {
+                setCurrentResultToPrint(newdata)
+                setIsCurrentResultToPrintReady(true)
+            }
+        }
+        fn()
+    }, [academicRecordsFilterOptions.academicTerm, academicRecordsFilterOptions.className])
 
     useEffect(() => {
         const fn = () => {
@@ -247,16 +255,15 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                 const single = currentResultsToPrint.at(0)
                 if (!single) return false
 
-                const type = single.type
                 const academicTerm = single?.academicTerm
                 const classGroup = single?.classGroup
                 const classname = single?.className
                 const student = single?.recordObj.student
                 const conductObj = single?.conductObj
+                const type = single.type
 
-                // console.log("IN FUNCTION OF CURRENT RESULTS TO PRINT", currentResultsToPrint)
 
-                if (academicTerm && classGroup && student && currentResultsToPrint.length > 5) {
+                if (academicTerm && classGroup && student && currentResultsToPrint.length > 0) {
                     if (type === "option") {
                         const out = (currentResultsToPrint as RecordOptionSchema[]).map(({ recordObj: { classSubject, scoreValue } }) => ({ classSubject, scoreValue }))
                         const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
@@ -265,9 +272,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                         // setIsCurrentResultToPrintReady(true)
                         return true
                     } else {
-                        const out = (currentResultsToPrint as RecordNumberSchema[]).map(({ recordObj: { classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position } }) => ({ classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position }))
+                        const out = (currentResultsToPrint as RecordNumberSchema[]).map(({ recordObj: { classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position, id } }) => ({ classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position, id }))
                         const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
-                        console.log("data", data)
                         setFinalRecordExportDataNumber(data)
                         // setIsCurrentResultToPrintReady(true)
                         setShowDownloadButton(true)
@@ -282,7 +288,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
     if (!userData || !schoolData) return <Spinner label="Loading please wait" />
 
-    const handleOpenModal = (action: typeof modalAction, item?: any) => {
+    const handleOpenModal = (action: typeof modalAction, results?: (RecordOptionSchema | RecordNumberSchema)[]) => {
         if (!action) return
         setModalAction(action)
         onOpen()
@@ -311,6 +317,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             interest: "",
             teacherRemarks: ""
         })
+        setStudentScores([])
         onClose()
     }
 
@@ -342,13 +349,13 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
         if (ClassGroupListNumber.includes(studentInfo.currentClass.classGroup)) {
             studentScores.map((item) => item.field.startsWith("class") ? class_scores.push({ subject: item.field.split("__")[1], score_val: item.value }) : exam_scores.push({ subject: item.field.split("__")[1], score_val: item.value }))
-            payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions}
-            console.log("payload", payload)
+            payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions }
         } else {
             payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo }
+            // return 
         }
         const submitApiUrl = ClassGroupListOptions.includes(studentInfo.currentClass.classGroup) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
-
+        8
         const fn = async () => {
             try {
                 const response = await fetch(submitApiUrl, {
@@ -378,42 +385,55 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         setLoading(false)
     }
 
-    const handlePrintCurrentResults = (): boolean => {
-        if (currentResultsToPrint.length < 1) {
-            setIsCurrentResultToPrintReady(false)
-            toast.info("Current filter has no records. Please re-filter.")
-            return false
+    const handleUpdateStudentScores = async () => {
+        if (!studentInfo.currentClass.classGroup) return
+
+        const studentId = studentInfo.id
+        const classname = studentInfo.currentClass.name?.toLowerCase()
+        const academicTerm = schoolData.schoolSettings.currentTerm
+        const subjectScores = studentScores.map((item) => ({ subject: item.field, score_val: item.value }))
+        let payload = {}
+        const class_scores: { subject: string, score_val: string }[] = []
+        const exam_scores: { subject: string, score_val: string }[] = []
+
+        if (ClassGroupListNumber.includes(studentInfo.currentClass.classGroup)) {
+            studentScores.map((item) => item.field.startsWith("class") ? class_scores.push({ subject: item.field.split("__")[1], score_val: item.value }) : exam_scores.push({ subject: item.field.split("__")[1], score_val: item.value }))
+            payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions }
+        } else {
+            payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo}
+            console.log(studentConductInfo)
+            // return
         }
+        const submitApiUrl = ClassGroupListOptions.includes(studentInfo.currentClass.classGroup) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
 
-        const single = currentResultsToPrint.at(0)
-        if (!single) return false
-
-        const type = single.type
-        const academicTerm = single?.academicTerm
-        const classGroup = single?.classGroup
-        const classname = single?.className
-        const student = single?.recordObj.student
-        const conductObj = single?.conductObj
-
-        // console.log("IN FUNCTION OF CURRENT RESULTS TO PRINT", currentResultsToPrint)
-
-        if (academicTerm && classGroup && student && currentResultsToPrint.length > 5) {
-            if (type === "option") {
-                const out = (currentResultsToPrint as RecordOptionSchema[]).map(({ recordObj: { classSubject, scoreValue } }) => ({ classSubject, scoreValue }))
-                const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
-                setFinalRecordExportDataOptions(data)
-                setIsCurrentResultToPrintReady(true)
-                return true
-            } else {
-                const out = (currentResultsToPrint as RecordNumberSchema[]).map(({ recordObj: { classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position } }) => ({ classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position }))
-                const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
-                console.log("data", data)
-                setFinalRecordExportDataNumber(data)
-                setIsCurrentResultToPrintReady(true)
-                return true
+        const fn = async () => {
+            try {
+                const response = await fetch(submitApiUrl, {
+                    method: "PATCH",
+                    headers: { ...BaseRequestHeaders },
+                    body: JSON.stringify(payload)
+                })
+                const result = await response.json()
+                if (!response.ok) {
+                    return Promise.reject(result.message)
+                } else {
+                    return Promise.resolve(result.message)
+                }
+            } catch (err: any) {
             }
         }
-        return false
+
+        handleOnCloseModal()
+        setLoading(true)
+        await toast.promise(
+            fn,
+            {
+                pending: "Updating student record",
+                success: "Student record successfully updated",
+                error: BaseErrMsg,
+            })
+        setLoading(false)
+        window.location.reload()
     }
 
     return (
@@ -445,19 +465,21 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                     <div className="rounded-xl bg-background p-4 ring-1 ring-border">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center justify-center w-full mb-4">
-                                {showDownloadButton ?
+                                {showDownloadButton && currentResultsToPrint.length > 0 ?
                                     <Alert
                                         color="default"
                                         description="Click the download icon to print or export the currently filtered result"
                                         endContent={
-                                            currentResultsToPrint.at(0)?.type === "option" ?
+                                            ClassGroupListOptions.includes(currentResultsToPrint.at(0)?.classGroup ?? "") ?
                                                 <PDFDownloadLink
-                                                    document={<AcademicReportOption data={finalRecordExportDataOptions} />}
+                                                    document={<AcademicReportOption vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} data={finalRecordExportDataOptions} />}
                                                     fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${studentInfo.currentClass.name}_${new Date().getFullYear()}`}>
                                                     {({ blob, url, loading, error }) =>
                                                         loading ? <Spinner size="sm" /> :
                                                             <div className="flex flex-row justify-center items-center">
-                                                                <DownloadIcon />
+                                                                <Button isIconOnly color="primary">
+                                                                    <DownloadIcon />
+                                                                </Button>
                                                             </div>
                                                     }
                                                 </PDFDownloadLink>
@@ -478,7 +500,6 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                         title="Download Result"
                                         variant="faded"
                                     />
-
                                     :
                                     <Alert title="A downlaod button will appear here to download results once you set a filter" color="primary" />
                                 }
@@ -504,17 +525,6 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                         >
                             {["1st", "2nd", "3rd"].map((item) => (
                                 <SelectItem key={item}>{item}</SelectItem>
-                            ))}
-                        </Select>
-                        <Select
-                            label="Class Group"
-                            labelPlacement="inside"
-                            placeholder="Select class group"
-                            selectedKeys={new Set([academicRecordsFilterOptions.classGroup])}
-                            onChange={(e) => setAcademicRecordFilterOptions({ ...academicRecordsFilterOptions, classGroup: e.target.value })}
-                        >
-                            {ClassGroups.map((item) => (
-                                <SelectItem key={item.key}>{item.value}</SelectItem>
                             ))}
                         </Select>
                         <Select
@@ -554,18 +564,11 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                             <p className="truncate text-sm text-muted-foreground">Class Score: {item.recordObj.classScoreValue} | ExamScore: {item.recordObj.examScoreValue}</p>
                                         }
                                     </div>
-                                    {/* <div className="flex flex-row justify-center items-center"> */}
-                                    {/*     <Button size="sm" isIconOnly={true} className="color-brand-100 max-w-sm" color="primary" onPress={() => handleOpenModal("update", item)}> */}
-                                    {/*         <Edit /> */}
-                                    {/*     </Button> */}
-                                    {/*     <Button isIconOnly={true} size="sm" className="color-brand-100 mx-2" color="primary" onPress={() => handleOpenModal("delete", item)}> */}
-                                    {/*         <TrashIcon /> */}
-                                    {/*     </Button> */}
-                                    {/*     <Button isIconOnly={true} size="sm" className="color-brand-100" color="primary" onPress={() => handleOpenModal("view", item)}> */}
-                                    {/*         <EyeIcon /> */}
-                                    {/*     </Button> */}
-                                    {/**/}
-                                    {/* </div> */}
+                                    <div className="flex flex-row justify-center items-center">
+                                        <Button size="sm" isIconOnly={true} className="color-brand-100 max-w-sm" color="primary" onPress={() => handleOpenModal("update", currentResultsToPrint)}>
+                                            <Edit />
+                                        </Button>
+                                    </div>
                                 </li>
                             ))}
                 </ul>
@@ -582,10 +585,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                             <ModalBody className="gap-y-4 space-y-2">
                                 <Alert className="mt-2" color="default" variant="faded" title={`${studentInfo.surname} ${studentInfo.otherNames}`} description={`${studentInfo.currentClass.name} | ${studentInfo.gender === "m" ? "Male" : "Female"}`} />
 
-                                {/* <p className="mx-4">Please complete the fields below</p> */}
-                                {/* <Divider /> */}
-
-                                {modalAction === "add" || modalAction === "update" ?
+                                {modalAction === "add" ?
                                     <>
                                         {!classSubjectList ? <Spinner label="Loading subjects. Please wait..." /> :
                                             <Tabs size="lg" radius="md" color="primary" disabledKeys={["promotions"]}>
@@ -616,10 +616,6 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                 </div>
                                                                 :
                                                                 <div className="">
-                                                                    {/* <div className="flex flex-row justify-evenly items-center"> */}
-                                                                    {/*     <p>Class Score</p> */}
-                                                                    {/*     <p>Exam Score</p> */}
-                                                                    {/* </div> */}
                                                                     {classSubjectList?.subjects.map((item) => (
                                                                         <div key={`class_exam_score_${item.id}`} className="bg-gray-200 pt-4 rounded-lg">
                                                                             <p className="flex mx-4">{item.subjectName}</p>
@@ -628,11 +624,12 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                     <NumberInput
                                                                                         isRequired
                                                                                         label="Class Score"
-                                                                                        placeholder="5"
+                                                                                        placeholder="0"
                                                                                         isWheelDisabled
                                                                                         color={studentScores.find(obj => obj.field === `class__${item.id}`) ? "success" : "default"}
                                                                                         minValue={0}
                                                                                         maxValue={50}
+                                                                                        defaultValue={(currentResultsToPrint as RecordNumberSchema[]).find(obj => obj.recordObj.id === item.id)?.recordObj.classScoreValue}
                                                                                         labelPlacement="inside"
                                                                                         validate={(value) => {
                                                                                             if (value < 0) {
@@ -650,7 +647,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                     <NumberInput
                                                                                         isRequired
                                                                                         label="Exam Score"
-                                                                                        placeholder="5"
+                                                                                        placeholder="0"
                                                                                         isWheelDisabled
                                                                                         minValue={0}
                                                                                         maxValue={50}
@@ -665,7 +662,6 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                             }
                                                                                         }}
                                                                                         className="w-full"
-                                                                                        // formatOptions={{ style: "percent", }}
                                                                                         onValueChange={(e) => handleOnChangeScoreType(`exam__${item.id}`, e.toString())}
                                                                                     />
                                                                                 </div>
@@ -677,10 +673,9 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                         <Select
                                                                                             isRequired={true}
                                                                                             color={facilitators.find(obj => obj.field === item.id) ? "success" : "default"}
-                                                                                            defaultSelectedKeys={["good"]}
                                                                                             label="Facilitator"
                                                                                             labelPlacement="inside"
-                                                                                            selectedKeys={new Set(facilitators.filter(obj => obj.field === item.id).map(({ value }) => value))}
+                                                                                            selectedKeys={new Set(facilitators.find(obj => obj.field === item.id)?.value)}
                                                                                             placeholder="Select facilitator"
                                                                                             onChange={(e) => handleOnChangeFacilitatorValue(item.id, e.target.value)}
                                                                                         >
@@ -728,15 +723,11 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                         if (value < 0) {
                                                                             return "Number must be greater than 0";
                                                                         }
-                                                                        if (value > 54) {
+                                                                        if (value > 100) {
                                                                             return "Number must be less than 54";
                                                                         }
                                                                     }}
                                                                     className="w-full"
-                                                                    // formatOptions={{
-                                                                    //     style: "percent",
-                                                                    // }}
-
                                                                     onValueChange={(e) => setStudentConductInfo({ ...studentConductInfo, rollNo: e })}
                                                                 />
                                                                 <NumberInput
@@ -748,7 +739,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                         if (value < 0) {
                                                                             return "Number must be greater than 0";
                                                                         }
-                                                                        if (value > 54) {
+                                                                        if (value > 100) {
                                                                             return "Number must be less than 54";
                                                                         }
                                                                     }}
@@ -822,123 +813,242 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
                                             </Tabs>
                                         }
-
                                         <Separator />
-                                        {/* <p className="font-semibold">Academic Info</p> */}
-                                        {/* <div className="mx-4 gap-8 space-y-12"> */}
-                                        {/*     <Input */}
-                                        {/*         name="placeOfBirth" */}
-                                        {/*         label="Place of Birth" */}
-                                        {/*         labelPlacement="outside" */}
-                                        {/*         placeholder="Accra" */}
-                                        {/*         className="w-full" */}
-                                        {/*         value={staffInfo.placeOfBirth ?? ""} */}
-                                        {/*         onChange={handleStaffInfoChange} */}
-                                        {/*     /> */}
-                                        {/*     <Select */}
-                                        {/*         name="academicQualification" */}
-                                        {/*         isRequired */}
-                                        {/*         label="Academic Qualification" */}
-                                        {/*         labelPlacement="outside" */}
-                                        {/*         placeholder="Select qualification" */}
-                                        {/*         selectedKeys={new Set(["wassce"])} */}
-                                        {/*         value={staffInfo.academicQualification ?? ""} */}
-                                        {/*         onChange={handleStaffInfoChange} */}
-                                        {/*     > */}
-                                        {/*         <SelectItem key="bachelor">Bachelor</SelectItem> */}
-                                        {/*         <SelectItem key="hnd">Diploma</SelectItem> */}
-                                        {/*         <SelectItem key="wassce">Wassce</SelectItem> */}
-                                        {/*     </Select> */}
-                                        {/* </div> */}
                                     </>
                                     :
-                                    modalAction === "view" ?
-                                        <Card className="w-full">
-                                            {/* <CardHeader className="flex gap-3"> */}
-                                            {/*     <UserRound className="border border rounded-lg" size={40} /> */}
-                                            {/*     <div className="flex flex-col"> */}
-                                            {/*         <p className="text-md">{staffInfo.personalInfo.first_name} {staffInfo.personalInfo.last_name}</p> */}
-                                            {/*         <p className="text-small text-default-500">{staffInfo.personalInfo.email} | {staffInfo.personalInfo.phone}</p> */}
-                                            {/*     </div> */}
-                                            {/* </CardHeader> */}
-                                            {/* <Divider /> */}
-                                            {/* <CardBody className="gap-4"> */}
-                                            {/*     {/* <p >Staff Id: {staffInfo.staffId}</p> */}
-                                            {/**/}
-                                            {/*     <h1 className="font-bold">Login Credentials</h1> */}
-                                            {/*     <div className="mx-4"> */}
-                                            {/*         <div className="flex flex-row justify-between"> */}
-                                            {/*             <p className="text-small text-default-500">Username: <b>{staffInfo.staffCredentials.username}</b> </p> */}
-                                            {/*             <Copy onClick={() => handleOnCopyStaffCredential("Username", staffInfo.staffCredentials.username)} className="w-5 mx-4 cursor-pointer hover:color-primary" size="sm" /> */}
-                                            {/*         </div> */}
-                                            {/*         <div className="flex flex-row justify-between"> */}
-                                            {/*             <p className="text-small text-default-500">Password: <b>{staffInfo.staffCredentials.password}</b> </p> */}
-                                            {/*             <Copy onClick={() => handleOnCopyStaffCredential("Password", staffInfo.staffCredentials.password)} className="w-5 mx-4 cursor-pointer hover:color-primary" size="sm" /> */}
-                                            {/*         </div> */}
-                                            {/*     </div> */}
-                                            {/**/}
-                                            {/*     <Divider /> */}
-                                            {/**/}
-                                            {/*     <h1 className="font-bold">Personal</h1> */}
-                                            {/*     <div className="mx-4"> */}
-                                            {/*         <p className="text-default-500">UserType: <b>{capitalize(staffInfo.personalInfo.userType) || "N/A"}</b></p> */}
-                                            {/*         <p className="text-default-500">Gender: <b>{staffInfo.personalInfo.gender === "m" ? "Male" : "Female"}</b></p> */}
-                                            {/*         <p className="text-default-500">Birth Place: <b>{staffInfo.placeOfBirth || "N/A"}</b></p> */}
-                                            {/*         <p className="text-default-500">Residence: <b>{staffInfo.placeOfResidence || "N/A"}</b></p> */}
-                                            {/*         <p className="text-default-500">Hometown: <b>{staffInfo.hometown || "N/A"}</b></p> */}
-                                            {/*     </div> */}
-                                            {/**/}
-                                            {/*     <Divider /> */}
-                                            {/**/}
-                                            {/*     <h1 className="font-bold">Assigned Classes ({staffInfo.assignedClasses?.length})</h1> */}
-                                            {/*     <div className="mx-4"> */}
-                                            {/*         {staffInfo.assignedClasses?.map((item, index) => ( */}
-                                            {/*             <p className="text-default-500" key={index}>Name: <b>{item.name ?? "N/A"}</b></p> */}
-                                            {/*         ))} */}
-                                            {/*     </div> */}
-                                            {/**/}
-                                            {/*     <Divider /> */}
-                                            {/*     <h1 className="font-bold">Qualification</h1> */}
-                                            {/*     <div className="mx-4"> */}
-                                            {/*         <p className="text-default-500">Academic: <b>{staffInfo.academicQualification || "N/A"}</b></p> */}
-                                            {/*         <p className="text-default-500">Professional: <b>{staffInfo.professionalQualification || "N/A"}</b></p> */}
-                                            {/*     </div> */}
-                                            {/**/}
-                                            {/*     <Divider /> */}
-                                            {/**/}
-                                            {/*     <h1 className="font-bold">Accounts</h1> */}
-                                            {/*     <div className="mx-4"> */}
-                                            {/*         <p className="text-default-500">Bank Acc No: <b>{staffInfo.bankAccNo || "N/A"}</b></p> */}
-                                            {/*         <p className="text-default-500">Social Sec No: <b>{staffInfo.socialSecNo || "N/A"}</b></p> */}
-                                            {/**/}
-                                            {/*     </div> */}
-                                            {/* </CardBody> */}
-                                            {/* <Divider /> */}
-                                            {/* {/* <CardFooter> */}
-                                            {/* {/*     <Link isExternal showAnchorIcon href="https://github.com/heroui-inc/heroui"> */}
-                                            {/* {/*         Visit source code on GitHub. */}
-                                            {/* {/*     </Link> */}
-                                            {/* </CardFooter> */}
-                                        </Card>
+                                    modalAction === "update" ?
+                                        !classSubjectList ? <Spinner label="Loading subjects. Please wait..." /> :
+                                            <Tabs size="lg" radius="md" color="primary" disabledKeys={["promotions"]}>
+                                                <Tab key="scores" title="Scores">
+                                                    <Card className="flex flex-col gap-y-4">
+                                                        <CardBody>
+                                                            {(currentResultsToPrint as RecordOptionSchema[]).at(0)?.type === "option" ?
+                                                                <div className="grid grid-cols-2 gap-y-8 m-2">
+                                                                    {(currentResultsToPrint as RecordOptionSchema[])?.map((item) => (
+                                                                        <div key={item.recordObj.id} className="mx-1 gap-8">
+                                                                            <Select
+                                                                                isRequired={true}
+                                                                                name={item.recordObj.id}
+                                                                                color={studentScores.find(obj => obj.field === item.recordObj.id) ? "success" : "default"}
+                                                                                defaultSelectedKeys={[item.recordObj.scoreValue.toLowerCase().replace(" ", "_")]}
+                                                                                label={item.recordObj.classSubject}
+                                                                                labelPlacement="inside"
+                                                                                // selectedKeys={new Set(studentScores.filter(obj => obj.field === item.recordObj.id).map(({ value }) => value))}
+                                                                                placeholder="Select grade"
+                                                                                onChange={(e) => handleOnChangeScoreType(item.recordObj.id, e.target.value)}
+                                                                            >
+                                                                                {getSubjectGroupScoreOptions(studentInfo.currentClass.classGroup).map((scoreoption) => (
+                                                                                    <SelectItem key={scoreoption.key}>{scoreoption.label}</SelectItem>
+                                                                                ))}
+                                                                            </Select>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                :
+                                                                <div className="">
+                                                                    {(currentResultsToPrint as RecordNumberSchema[]).map((item) => (
+                                                                        <div key={`class_exam_score_${item.recordObj.id}`} className="bg-gray-200 pt-4 rounded-lg">
+                                                                            <p className="flex mx-4">{item.recordObj.classSubject}</p>
+                                                                            <div key={item.recordObj.id} className="grid grid-cols-2 gap-y-8 m-2">
+                                                                                <div key={`class__${item.recordObj.id}`} className="mx-2 gap-8">
+                                                                                    <NumberInput
+                                                                                        isRequired
+                                                                                        label="Class Score"
+                                                                                        placeholder="0"
+                                                                                        isWheelDisabled
+                                                                                        color={studentScores.find(obj => obj.field === `class__${item.recordObj.id}`) ? "success" : "default"}
+                                                                                        minValue={0}
+                                                                                        maxValue={50}
+                                                                                        defaultValue={item.recordObj.classScoreValue}
+                                                                                        labelPlacement="inside"
+                                                                                        validate={(value) => {
+                                                                                            if (value < 0) {
+                                                                                                return "Minimum value is 50";
+                                                                                            }
+                                                                                            if (value > 50) {
+                                                                                                return "Maximum value is 50";
+                                                                                            }
+                                                                                        }}
+                                                                                        className="w-full"
+                                                                                        onValueChange={(e) => handleOnChangeScoreType(`class__${item.recordObj.id}`, e.toString())}
+                                                                                    />
+                                                                                </div>
+                                                                                <div key={`exam__${item.recordObj.id}`} className="mx-2 gap-8">
+                                                                                    <NumberInput
+                                                                                        isRequired
+                                                                                        label="Exam Score"
+                                                                                        placeholder="0"
+                                                                                        isWheelDisabled
+                                                                                        minValue={0}
+                                                                                        maxValue={50}
+                                                                                        defaultValue={item.recordObj.examScoreValue}
+                                                                                        color={studentScores.find(obj => obj.field === `exam__${item.recordObj.id}`) ? "success" : "default"}
+                                                                                        labelPlacement="inside"
+                                                                                        validate={(value) => {
+                                                                                            if (value < 0) {
+                                                                                                return "Minimum value is 0";
+                                                                                            }
+                                                                                            if (value > 50) {
+                                                                                                return "Number must be less than 50";
+                                                                                            }
+                                                                                        }}
+                                                                                        className="w-full"
+                                                                                        onValueChange={(e) => handleOnChangeScoreType(`exam__${item.recordObj.id}`, e.toString())}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {item.classGroup === "jhs" ?
+                                                                                <div key={`facil_pos_${item.recordObj.id}`} className="grid grid-cols-3 gap-y-8 m-4 gap-x-4 mx-4">
+                                                                                    <div key={`facil_${item.recordObj.id}`} className="flex flex-row gap-4 col-span-2">
+                                                                                        <Select
+                                                                                            isRequired={true}
+                                                                                            color={facilitators.find(obj => obj.field === item.recordObj.id) ? "success" : "default"}
+                                                                                            label="Facilitator"
+                                                                                            labelPlacement="inside"
+                                                                                            defaultSelectedKeys={[item.recordObj.facilitator ?? ""]}
+                                                                                            // selectedKeys={new Set([item.recordObj.facilitator ?? ""])}
+                                                                                            placeholder="Select facilitator"
+                                                                                            onChange={(e) => handleOnChangeFacilitatorValue(item.recordObj.id, e.target.value)}
+                                                                                        >
+                                                                                            {allStaff.map((item: StaffT) => (
+                                                                                                <SelectItem key={`${item.personalInfo.first_name} ${item.personalInfo.last_name}`} textValue={`${item.personalInfo.last_name} ${item.personalInfo.first_name}`}>{item.personalInfo.last_name} {item.personalInfo.first_name}</SelectItem>
+                                                                                            ))}
+                                                                                        </Select>
+                                                                                    </div>
+                                                                                    <div key={`pos_${item.recordObj.id}`}>
+                                                                                        <Select
+                                                                                            isRequired={true}
+                                                                                            color={positions.find(obj => obj.field === item.recordObj.id) ? "success" : "default"}
+                                                                                            label="Position"
+                                                                                            defaultSelectedKeys={[item.recordObj.position ?? ""]}
+                                                                                            labelPlacement="inside"
+                                                                                            // selectedKeys={item.recordObj.position}
+                                                                                            placeholder="Select position"
+                                                                                            onChange={(e) => handleOnChangePositionValue(item.recordObj.id, e.target.value)}
+                                                                                        >
+                                                                                            {Positions.map((item) => (
+                                                                                                <SelectItem key={item.label}>{item.label}</SelectItem>
+                                                                                            ))}
+                                                                                        </Select>
+                                                                                    </div>
+                                                                                    <Divider />
+                                                                                </div>
+                                                                                : null}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            }
+                                                        </CardBody>
+                                                    </Card>
+                                                </Tab>
+                                                <Tab key="conduct" title="Conduct">
+                                                    <Card className="flex flex-col gap-y-4">
+                                                        <div className="gap-y-8 m-4">
+                                                            <div className="grid grid-cols-2 mx-4 gap-8 space-y-12">
+                                                                <NumberInput
+                                                                    isRequired
+                                                                    label="Number on roll"
+                                                                    placeholder="5"
+                                                                    labelPlacement="inside"
+                                                                    validate={(value) => {
+                                                                        if (value < 0) {
+                                                                            return "Number must be greater than 0";
+                                                                        }
+                                                                        if (value > 54) {
+                                                                            return "Number must be less than 54";
+                                                                        }
+                                                                    }}
+                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.rollNo}
+                                                                    className="w-full"
+                                                                    onValueChange={(e) => setStudentConductInfo({ ...studentConductInfo, rollNo: e })}
+                                                                />
+                                                                <NumberInput
+                                                                    isRequired
+                                                                    label="Attendance"
+                                                                    placeholder="5"
+                                                                    labelPlacement="inside"
+                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.attendance}
+                                                                    validate={(value) => {
+                                                                        if (value < 0) {
+                                                                            return "Number must be greater than 0";
+                                                                        }
+                                                                        if (value > 54) {
+                                                                            return "Number must be less than 54";
+                                                                        }
+                                                                    }}
+                                                                    className="w-full"
+                                                                    onValueChange={(e) => setStudentConductInfo({ ...studentConductInfo, attendance: e })}
+                                                                />
+                                                            </div>
+                                                            <div className="mx-4 space-y-8 gap-y-4">
+                                                                <Input
+                                                                    label="Attitude"
+                                                                    labelPlacement="inside"
+                                                                    placeholder="Enter student attitude"
+                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.attitude}
+                                                                    className="w-full"
+                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, attitude: e.target.value })}
+                                                                />
+                                                                <Input
+                                                                    label="Conduct"
+                                                                    labelPlacement="inside"
+                                                                    placeholder="Enter student conduct"
+                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.conduct}
+                                                                    className="w-full"
+                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, conduct: e.target.value })}
+                                                                />
+                                                                <Input
+                                                                    label="Interest"
+                                                                    labelPlacement="inside"
+                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.interest}
+                                                                    placeholder="Enter student interest"
+                                                                    className="w-full"
+                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, interest: e.target.value })}
+                                                                />
+                                                                <Input
+                                                                    label="Teacher remarks"
+                                                                    labelPlacement="inside"
+                                                                    placeholder="Enter your remarks"
+                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.teacherRemarks}
+                                                                    className="w-full"
+                                                                    onChange={(e) => setStudentConductInfo({ ...studentConductInfo, teacherRemarks: e.target.value })}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                </Tab>
+                                                <Tab key="promotions" title="Promotions">
+                                                    <Card className="flex flex-col gap-y-4">
+                                                        <div className="grid grid-cols-2 gap-y-8 m-4">
+                                                            <div className="mx-4 gap-8 space-y-12">
+                                                                <NumberInput
+                                                                    isRequired
+                                                                    name="rollNo"
+                                                                    label="Number on roll"
+                                                                    labelPlacement="outside"
+                                                                    validate={(value) => {
+                                                                        if (value < 0) {
+                                                                            return "Number must be greater than 0";
+                                                                        }
+                                                                        if (value > 54) {
+                                                                            return "Number must be less than 54";
+                                                                        }
+                                                                    }}
+                                                                    className="w-full"
+                                                                    formatOptions={{
+                                                                        style: "percent",
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                </Tab>
+
+                                            </Tabs>
                                         : modalAction === "delete" ?
                                             <Card className="w-full">
-                                                {/* <CardHeader className="flex gap-3"> */}
-                                                {/*     <UserRound className="border border rounded-lg" size={40} /> */}
-                                                {/*     <div className="flex flex-col"> */}
-                                                {/*         <p className="text-md">{staffInfo.personalInfo.first_name} {staffInfo.personalInfo.last_name}</p> */}
-                                                {/*         <p className="text-small text-default-500">{staffInfo.personalInfo.email} | {staffInfo.personalInfo.phone}</p> */}
-                                                {/*     </div> */}
-                                                {/* </CardHeader> */}
-                                                {/* <Divider /> */}
-                                                {/* <CardBody className="gap-4"> */}
-                                                {/*     <h1 className="">Are you sure you want to delete this staff ?</h1> */}
-                                                {/**/}
-                                                {/*     <Button className="color-brand-100" color="primary" onPress={() => handleDeleteStaff()}> */}
-                                                {/*         Confirm Delete */}
-                                                {/*     </Button> */}
-                                                {/**/}
-                                                {/* </CardBody> */}
-                                                {/* <Divider /> */}
+                                                <p>Proceed to delete</p>
                                             </Card>
                                             :
                                             null
@@ -953,7 +1063,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                         Submit
                                     </Button>
                                     : modalAction === "update" ?
-                                        <Button type="submit" color="primary" onPress={() => { }}>
+                                        <Button type="submit" color="primary" onPress={handleUpdateStudentScores}>
                                             Save Changes
                                         </Button>
                                         : null

@@ -330,6 +330,7 @@ const s = StyleSheet.create({
     // Bottom — remarks + sign
     bottomRow: {
         flexDirection: "row",
+        marginTop: 15
     },
     remarksBox: {
         flex: 1,
@@ -348,11 +349,20 @@ const s = StyleSheet.create({
         borderColor: C.borderStrong,
         overflow: "hidden",
     },
-    boxHeader: {
+    CustomboxWrapper: {
         backgroundColor: C.brandLight,
         borderBottomWidth: 1.5,
         borderBottomColor: C.brandMid,
         paddingVertical: 7,
+        paddingHorizontal: 14,
+        borderRadius: 10,
+
+    },
+    boxHeader: {
+        backgroundColor: C.brandLight,
+        borderBottomWidth: 1.5,
+        borderBottomColor: C.brandMid,
+        paddingVertical: 2,
         paddingHorizontal: 14,
     },
     boxHeaderText: {
@@ -471,150 +481,166 @@ const ActivityTableRow = ({
     );
 };
 
-export const AcademicReportOption = ({ data }: { data: RecordOptionPackage}) => (
-    <Document
-        title={`${data.records} — ${data.academicTerm} Report`}
-        author="Idea International School"
-        subject="End of Term Achievement Report"
-    >
-        <Page size="A4" style={s.page}>
+export const AcademicReportOption = ({ vacationDate, reopeningDate, data }: { vacationDate: string, reopeningDate: string, data: RecordOptionPackage }) => {
 
-            {/* Header */}
-            <View style={s.headerBand}>
-                <View style={s.headerLeft}>
-                    <Text style={s.schoolName}>IDEA International School</Text>
-                    <Text style={s.schoolSub}>
-                        Creche · Nursery · Kindergarten · Primary · Basic 9
-                    </Text>
-                    <Text style={s.schoolContact}>
-                        6to6 Soldier Man St · P.O. Box 332 NM, Accra · Tel: 0302 435 836 / 0240 301 438 / 0264 138 878
-                    </Text>
-                </View>
-                <View style={s.headerRight}>
-                    <View style={s.reportBadge}>
-                        <Text style={s.reportBadgeTop}>END OF TERM EXAMINATION</Text>
-                        <Text style={s.reportBadgeMain}>Achievement Report</Text>
-                    </View>
-                </View>
-            </View>
-            <View style={s.accentStripe} />
+    return (
+        <Document
+            title={`${data.records} — ${data.academicTerm} Report`}
+            author="Idea International School"
+            subject="End of Term Achievement Report"
+        >
+            <Page size="A4" style={s.page}>
 
-            {/* Body */}
-            <View style={s.body}>
-
-                {/* Student Info */}
-                <View style={s.infoCard}>
-                    <View style={s.infoCardHeader}>
-                        <View style={s.infoCardDot} />
-                        <Text style={s.infoCardTitle}>STUDENT INFORMATION</Text>
-                    </View>
-                    <View style={s.infoGrid}>
-                        <InfoCell label="Full Name" value={val(data.student)} wide />
-                        <InfoCell label="Class" value={val(data.classGroup)} />
-                        <InfoCell label="Term" value={val(data.academicTerm)} />
-                        <InfoCell label="Academic Year" value={val(new Date().getFullYear())} />
-                        <InfoCell label="No. on Roll" value={val(data.conduct?.rollNo)} />
-                        <InfoCell label="Attendance" value={val(data.conduct?.attendance)} />
-                        <InfoCell label="Vacation Date" value={val(new Date().toLocaleDateString())} />
-                        <InfoCell label="Reopening Date" value={val(new Date().toLocaleDateString())} />
-                    </View>
-                </View>
-
-                {/* Activities Table */}
-                <View style={s.sectionHeading}>
-                    <View style={s.sectionLine} />
-                    <Text style={s.sectionTitle}>PERFORMANCE ASSESSMENT</Text>
-                </View>
-
-                <View style={s.table}>
-                    <View style={s.tableHeaderRow}>
-                        <Text style={s.tableHeaderNo}>#</Text>
-                        <Text style={s.tableHeaderActivity}>ACTIVITY / SKILL</Text>
-                        <Text style={s.tableHeaderResult}>RESULT</Text>
-                    </View>
-                    {data.records.map((item, index) => (
-                        <ActivityTableRow key={index} row={item} index={index} />
-                    ))}
-                </View>
-
-                {/* Promotion Banner */}
-                {/* {val(data.promotedTo) !== "—" && ( */}
-                {/*     <View style={s.promotionBanner}> */}
-                {/*         <View style={{ marginRight: 12 }}> */}
-                {/*             <Text style={s.promotionLabel}>PROMOTED TO</Text> */}
-                {/*             <Text style={s.promotionValue}>{val(data.promotedTo)}</Text> */}
-                {/*         </View> */}
-                {/*     </View> */}
-                {/* )} */}
-
-                <View>
-                    <View style={s.boxHeader}>
-                        <Text style={s.boxHeaderText}>ATTITUDE IN CLASS</Text>
-                        <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
-                            {val(data.conduct?.attitude, "---")}
+                {/* Header */}
+                <View style={s.headerBand}>
+                    <View style={s.headerLeft}>
+                        <Text style={s.schoolName}>IDEA International School</Text>
+                        <Text style={s.schoolSub}>
+                            Creche · Nursery · Kindergarten · Primary · Basic 9
+                        </Text>
+                        <Text style={s.schoolContact}>
+                            6to6 Soldier Man St · P.O. Box 332 NM, Accra · Tel: 0302 435 836 / 0240 301 438 / 0264 138 878
                         </Text>
                     </View>
-                    <View style={s.boxHeader}>
-                        <Text style={s.boxHeaderText}>CONDUCT IN CLASS</Text>
-                        <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
-                            {val(data.conduct?.attitude, "---")}
-                        </Text>
+                    <View style={s.headerRight}>
+                        <View style={s.reportBadge}>
+                            <Text style={s.reportBadgeTop}>END OF TERM EXAMINATION</Text>
+                            <Text style={s.reportBadgeMain}>Achievement Report</Text>
+                        </View>
                     </View>
                 </View>
+                <View style={s.accentStripe} />
 
-                <View>
-                    <View style={s.boxHeader}>
-                        <Text style={s.boxHeaderText}>INTERESTS</Text>
-                        <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
-                            {val(data.conduct?.attitude, "---")}
-                        </Text>
+                {/* Body */}
+                <View style={s.body}>
+
+                    {/* Student Info */}
+                    <View style={s.infoCard}>
+                        <View style={s.infoCardHeader}>
+                            <View style={s.infoCardDot} />
+                            <Text style={s.infoCardTitle}>STUDENT INFORMATION</Text>
+                        </View>
+                        <View style={s.infoGrid}>
+                            <InfoCell label="Full Name" value={val(data.student)} wide />
+                            <InfoCell label="Class" value={val(data.classGroup)} />
+                            <InfoCell label="Term" value={val(data.academicTerm)} />
+                            <InfoCell label="Academic Year" value={val(new Date().getFullYear())} />
+                            <InfoCell label="No. on Roll" value={val(data.conduct?.rollNo)} />
+                            <InfoCell label="Attendance" value={val(data.conduct?.attendance)} />
+                            <InfoCell label="Vacation Date" value={vacationDate ?? "---"} />
+                            <InfoCell label="Reopening Date" value={reopeningDate ?? "---"} />
+                        </View>
                     </View>
-                    <View style={s.boxHeader}>
-                        <Text style={s.boxHeaderText}>TEACHER REMARKS</Text>
-                        <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
-                            {val(data.conduct?.attitude, "---")}
-                        </Text>
+
+                    {/* Activities Table */}
+                    <View style={s.sectionHeading}>
+                        <View style={s.sectionLine} />
+                        <Text style={s.sectionTitle}>PERFORMANCE ASSESSMENT</Text>
                     </View>
+
+                    <View style={s.table}>
+                        <View style={s.tableHeaderRow}>
+                            <Text style={s.tableHeaderNo}>#</Text>
+                            <Text style={s.tableHeaderActivity}>ACTIVITY / SKILL</Text>
+                            <Text style={s.tableHeaderResult}>RESULT</Text>
+                        </View>
+                        {data.records.map((item, index) => (
+                            <ActivityTableRow key={index} row={item} index={index} />
+                        ))}
+                    </View>
+
+                    {/* Promotion Banner */}
+                    {/* {val(data.promotedTo) !== "—" && ( */}
+                    {/*     <View style={s.promotionBanner}> */}
+                    {/*         <View style={{ marginRight: 12 }}> */}
+                    {/*             <Text style={s.promotionLabel}>PROMOTED TO</Text> */}
+                    {/*             <Text style={s.promotionValue}>{val(data.promotedTo)}</Text> */}
+                    {/*         </View> */}
+                    {/*     </View> */}
+                    {/* )} */}
+
+                    <View style={s.CustomboxWrapper}>
+                        <View style={s.boxHeader}>
+                            <Text style={s.boxHeaderText}>ATTITUDE IN CLASS</Text>
+                            <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
+                                {val(data.conduct?.attitude, "---")}
+                            </Text>
+                        </View>
+                        <View style={s.boxHeader}>
+                            <Text style={s.boxHeaderText}>CONDUCT IN CLASS</Text>
+                            <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
+                                {val(data.conduct?.conduct, "---")}
+                            </Text>
+                        </View>
+
+                        <View style={s.boxHeader}>
+                            <Text style={s.boxHeaderText}>INTERESTS</Text>
+                            <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
+                                {val(data.conduct?.interest, "---")}
+                            </Text>
+                        </View>
+                        <View style={s.boxHeader}>
+                            <Text style={s.boxHeaderText}>TEACHER REMARKS</Text>
+                            <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
+                                {val(data.conduct?.teacherRemarks, "---")}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={s.bottomRow}>
+                        <View
+                            style={[s.signBox,]}
+                        >
+                            <View style={s.boxHeader}>
+                                <Text style={s.boxHeaderText}>Signature/Stamp</Text>
+                            </View>
+                            <View style={{padding: 5, maxHeight: 11}}>
+                                <View style={s.signLine} />
+                                {/* <Text style={s.signLabel}>{label.split("'")[0]}</Text> */}
+                            </View>
+                        </View>
+                    </View>
+
+
+                    {/* Attitude and Conduct*/}
+                    {/* <View style={[s.bottomRow, { marginBottom: 2 }]}> */}
+                    {/*     <View style={s.remarksBox}> */}
+                    {/*         <View style={s.boxHeader}> */}
+                    {/*             <Text style={s.boxHeaderText}>ATTITUDE IN CLASS</Text> */}
+                    {/*         </View> */}
+                    {/*         <View style={s.boxBody}> */}
+                    {/*             <Text style={s.remarksText}> */}
+                    {/*                 {val(data.conduct?.attitude, "No remarks provided.")} */}
+                    {/*             </Text> */}
+                    {/*         </View> */}
+                    {/*     </View> */}
+                    {/**/}
+                    {/* <View style={s.remarksBox}> */}
+                    {/*     <View style={s.boxHeader}> */}
+                    {/*         <Text style={s.boxHeaderText}>CONDUCT IN CLASS</Text> */}
+                    {/*     </View> */}
+                    {/*     <View style={s.boxBody}> */}
+                    {/*         <Text style={s.remarksText}> */}
+                    {/*             {val(data.conduct?.conduct, "No conduct provided.")} */}
+                    {/*         </Text> */}
+                    {/*     </View> */}
+                    {/* </View> */}
+
+                    {/* </View> */}
+
+
+                    {/* Footer */}
+                    {/* <View style={s.footer}> */}
+                    {/*     <Text style={s.footerLeft}>IDEA International School · Accra, Ghana</Text> */}
+                    {/*     <Text style={s.footerCenter}> */}
+                    {/*         Confidential — For Parent / Guardian Use Only */}
+                    {/*     </Text> */}
+                    {/*     <Text style={s.footerRight}>{val(data.academicTerm)} · {val(new Date().getFullYear())}</Text> */}
+                    {/* </View> */}
+
                 </View>
+            </Page>
+        </Document>
+    );
 
-                {/* Attitude and Conduct*/}
-                {/* <View style={[s.bottomRow, { marginBottom: 2 }]}> */}
-                {/*     <View style={s.remarksBox}> */}
-                {/*         <View style={s.boxHeader}> */}
-                {/*             <Text style={s.boxHeaderText}>ATTITUDE IN CLASS</Text> */}
-                {/*         </View> */}
-                {/*         <View style={s.boxBody}> */}
-                {/*             <Text style={s.remarksText}> */}
-                {/*                 {val(data.conduct?.attitude, "No remarks provided.")} */}
-                {/*             </Text> */}
-                {/*         </View> */}
-                {/*     </View> */}
-                {/**/}
-                {/* <View style={s.remarksBox}> */}
-                {/*     <View style={s.boxHeader}> */}
-                {/*         <Text style={s.boxHeaderText}>CONDUCT IN CLASS</Text> */}
-                {/*     </View> */}
-                {/*     <View style={s.boxBody}> */}
-                {/*         <Text style={s.remarksText}> */}
-                {/*             {val(data.conduct?.conduct, "No conduct provided.")} */}
-                {/*         </Text> */}
-                {/*     </View> */}
-                {/* </View> */}
-
-                {/* </View> */}
-
-
-                {/* Footer */}
-                <View style={s.footer}>
-                    <Text style={s.footerLeft}>IDEA International School · Accra, Ghana</Text>
-                    <Text style={s.footerCenter}>
-                        Confidential — For Parent / Guardian Use Only
-                    </Text>
-                    <Text style={s.footerRight}>{val(data.academicTerm)} · {val(new Date().getFullYear())}</Text>
-                </View>
-
-            </View>
-        </Page>
-    </Document>
-);
-
+}
