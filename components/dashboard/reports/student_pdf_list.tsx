@@ -1,5 +1,5 @@
 "use client"
-import { StudentSchemaT } from '@/lib/schemas';
+import { StaffT, StudentSchemaT } from '@/lib/schemas';
 import { Font, Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 import { LetterHead } from './letter_head';
 import { pageStyles } from './sytles';
@@ -132,7 +132,7 @@ import { pageStyles } from './sytles';
 // );
 //
 
-export const StudentPDFList = ({data}: { data: StudentSchemaT[]}) => (
+export const StudentPDFList = ({ data }: { data: (StudentSchemaT | StaffT)[] }) => (
     <Document title="All Student List" author="IdeaInternationalSchool">
         <Page style={pageStyles.body}>
 

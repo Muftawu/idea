@@ -400,7 +400,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             studentScores.map((item) => item.field.startsWith("class") ? class_scores.push({ subject: item.field.split("__")[1], score_val: item.value }) : exam_scores.push({ subject: item.field.split("__")[1], score_val: item.value }))
             payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions }
         } else {
-            payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo}
+            payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo }
             console.log(studentConductInfo)
             // return
         }

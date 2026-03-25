@@ -93,7 +93,7 @@ export default function Staff() {
     useEffect(() => {
         const fetchStaffStats = async () => {
             try {
-                const response = await fetch(`/api/stats?query=staff`, {
+                const response = await fetch(`/api/stats?query=teaching-staff`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
@@ -111,7 +111,7 @@ export default function Staff() {
     useEffect(() => {
         const fetchAllStaff = async () => {
             try {
-                const response = await fetch(`/api/staff?query=all`, {
+                const response = await fetch(`/api/teaching-staff?query=all`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
@@ -205,7 +205,7 @@ export default function Staff() {
     const handleCreateNewStaff = async () => {
         const fn = async () => {
             try {
-                const response = await fetch("/api/staff", {
+                const response = await fetch("/api/teaching-staff", {
                     method: "POST",
                     headers: { ...BaseRequestHeaders },
                     body: JSON.stringify({ staffInfo, staffAssignedClasses })
@@ -238,7 +238,7 @@ export default function Staff() {
         onClose()
         const fn = async () => {
             try {
-                const response = await fetch(`/api/staff?query=${staffInfo.id}`, {
+                const response = await fetch(`/api/teaching-staff?query=${staffInfo.id}`, {
                     method: "DELETE",
                     headers: { ...BaseRequestHeaders },
                 })
@@ -285,7 +285,7 @@ export default function Staff() {
 
         const fn = async () => {
             try {
-                const response = await fetch("/api/staff", {
+                const response = await fetch("/api/teaching-staff", {
                     method: "PATCH",
                     headers: { ...BaseRequestHeaders },
                     body: JSON.stringify(jsonData)
@@ -327,17 +327,17 @@ export default function Staff() {
         <div className="min-h-dvh h-auto overflow-auto">
             <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border mb-4">
                 <div className="flex flex-row justify-between items-center mb-4">
-                    <h1 className="text-balance text-2xl font-semibold text-foreground">Staff ({allStaff.length})</h1>
+                    <h1 className="text-balance text-2xl font-semibold text-foreground">Teaching Staff ({allStaff.length})</h1>
                     <Button className="bg-brand cursor-pointer text-white" onPress={() => handleOpenModal("add")}>
                         <PlusCircle />
                         Add Staff
                     </Button>
                 </div>
 
-                <StaffStatistics data={staffStats} className="" />
+                <StaffStatistics datatype="teaching-staff" printdata={allStaff} statdata={staffStats} className="" />
 
                 <div className="mt-8">
-                    <p className="mt-2 text-muted-foreground">All Staff ({allStaff.length})</p>
+                    <p className="mt-2 text-muted-foreground">All Teaching Staff ({allStaff.length})</p>
                 </div>
 
 
@@ -348,7 +348,7 @@ export default function Staff() {
                             <p className="mx-4">Fetching staff data...</p>
                         </div>
                         :
-                        allStaff.length < 1 ? <p className="mx-4">No staff available</p> :
+                        allStaff.length < 1 ? <p className="mx-4">No teaching staff available</p> :
                             allStaff.map((item, index) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">

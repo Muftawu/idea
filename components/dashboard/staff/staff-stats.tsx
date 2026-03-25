@@ -3,11 +3,14 @@
 import { useMemo, useState } from "react"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell } from "recharts"
 import { cn } from "@/lib/utils"
-import { StaffStatSchemaT } from "@/lib/schemas"
+import { NonTeachingStaffSchemaT, StaffStatSchemaT, StaffT } from "@/lib/schemas"
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import { Alert, Button, Spinner } from "@heroui/react"
 import { DownloadIcon } from "lucide-react"
 import { StudentPDFList } from "../reports/student_pdf_list"
+import { AllNonTeachingStaffPDFList } from "../reports/AllNonTeachingStaffPDFList"
+import { useSchoolContext } from "@/context/schoolContext"
+import { AllTeachingStaffPDFList } from "../reports/AllTeachingStaffPDFList"
 
 function Gauge({ value }: { value: number }) {
     const radius = 85
@@ -60,7 +63,10 @@ const lastDays = [
     { d: "25", v: 18 },
 ]
 
-export default function StaffStatistics({ className, data }: { className?: string, data: StaffStatSchemaT }) {
+export default function StaffStatistics({ className, datatype, statdata, printdata }: { className?: string, datatype?: string, statdata: StaffStatSchemaT, printdata?: (NonTeachingStaffSchemaT | StaffT)[] }) {
+    const schoolData = useSchoolContext()
+    if (!schoolData?.schoolSettings) return
+
     const [value, setValue] = useState(65)
 
     const bars = useMemo(
@@ -84,9 +90,9 @@ export default function StaffStatistics({ className, data }: { className?: strin
         >
             <div className="flex flex-col items-center justify-center">
                 <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 rounded-full bg-muted text-lg text-foreground">{data.maleCount}</span>
+                    <span className="px-3 py-1 rounded-full bg-muted text-lg text-foreground">{statdata.maleCount}</span>
                 </div>
-                <Gauge value={data.malePercentage} />
+                <Gauge value={statdata.malePercentage} />
                 <div className="mt-4 w-full">
                     <p className="mt-1 text-center text-lg text-muted-foreground">Male Staff</p>
                 </div>
@@ -94,45 +100,59 @@ export default function StaffStatistics({ className, data }: { className?: strin
 
             <div className="flex flex-col items-center justify-center">
                 <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 rounded-full bg-muted text-lg text-foreground">{data.femaleCount}</span>
+                    <span className="px-3 py-1 rounded-full bg-muted text-lg text-foreground">{statdata.femaleCount}</span>
                 </div>
-                <Gauge value={data.femalePercentage} />
+                <Gauge value={statdata.femalePercentage} />
                 <div className="mt-4 w-full">
                     <p className="mt-1 text-center text-lg text-muted-foreground">Female Staff</p>
                 </div>
             </div>
 
 
-            {/* <div className="flex flex-col"> */}
-            {/*     <h3 className="text-sm font-semibold text-muted-foreground mb-2">Last days</h3> */}
-            {/*     <div className="h-40"> */}
-            {/*         <div className="flex items-center justify-center w-full mb-4"> */}
-            {/*             <Alert */}
-            {/*                 color="default" */}
-            {/*                 description="Download PDF list of all Staff" */}
-            {/*                 endContent={ */}
-            {/*                     <PDFDownloadLink */}
-            {/*                         document={<StudentPDFList data={sampleReportData} />} */}
-            {/*                         fileName={`Student List_${new Date().toDateString()}`}> */}
-            {/*                         {({ blob, url, loading, error }) => */}
-            {/*                             loading ? <Spinner size="sm" /> : */}
-            {/*                                 <div className="flex flex-row justify-center items-center"> */}
-            {/*                                     <Button color="primary" isIconOnly={true}> */}
-            {/*                                         <DownloadIcon /> */}
-            {/*                                     </Button> */}
-            {/*                                 </div> */}
-            {/*                         } */}
-            {/*                     </PDFDownloadLink> */}
-            {/*                     // <Button isIconOnly={false} color="warning" size="sm" variant="flat"> */}
-            {/*                     //     <DownloadIcon /> */}
-            {/*                     // </Button> */}
-            {/*                 } */}
-            {/*                 title="Staff PDF List" */}
-            {/*                 variant="faded" */}
-            {/*             /> */}
-            {/*         </div> */}
-            {/*     </div> */}
-            {/* </div> */}
+            <div className="flex flex-col">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-2">Last days</h3>
+                <div className="h-40">
+                    <div className="flex items-center justify-center w-full mb-4">
+                        <Alert
+                            color="default"
+                            description={`Download PDF List`}
+                            endContent={
+                                datatype === "teaching-staff" ?
+                                    <PDFDownloadLink
+                                        document={<AllTeachingStaffPDFList academicTerm={schoolData.schoolSettings.currentTerm} academicYear={schoolData.schoolSettings.currentTerm} data={(printdata as StaffT[])} />}
+                                        fileName={`All_Teaching_Staff_${new Date().toDateString()}`}>
+                                        {({ blob, url, loading, error }) =>
+                                            loading ? <Spinner size="sm" /> :
+                                                <div className="flex flex-row justify-center items-center">
+                                                    <Button color="primary" isIconOnly={true}>
+                                                        <DownloadIcon />
+                                                    </Button>
+                                                </div>
+                                        }
+                                    </PDFDownloadLink>
+                                    :
+                                    <PDFDownloadLink
+                                        document={<AllNonTeachingStaffPDFList academicTerm={schoolData.schoolSettings.currentTerm} academicYear={schoolData.schoolSettings.currentTerm} data={(printdata as NonTeachingStaffSchemaT[])} />}
+                                        fileName={`All_NonTeaching_Staff_${new Date().toDateString()}`}>
+                                        {({ blob, url, loading, error }) =>
+                                            loading ? <Spinner size="sm" /> :
+                                                <div className="flex flex-row justify-center items-center">
+                                                    <Button color="primary" isIconOnly={true}>
+                                                        <DownloadIcon />
+                                                    </Button>
+                                                </div>
+                                        }
+                                    </PDFDownloadLink>
+                                // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
+                                //     <DownloadIcon />
+                                // </Button>
+                            }
+                            title={`Export ${datatype} data`}
+                            variant="faded"
+                        />
+                    </div>
+                </div>
+            </div>
 
         </section>
     )

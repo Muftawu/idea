@@ -4,8 +4,8 @@ import { cookies } from "next/headers";
 import { StaffT } from '@/lib/schemas';
 import { refetchTokens, removeAuthTokens } from '@/lib/actions';
 
-const baseUrlList = `${process.env.BASE_API_URL}/staff/`
-const baseUrlDetail = `${process.env.BASE_API_URL}/staff/detail/`
+const baseUrlList = `${process.env.BASE_API_URL}/staff/teaching/`
+const baseUrlDetail = `${process.env.BASE_API_URL}/staff/teaching/detail/`
 
 const getFn = async (query: string) => {
     const cookieStore = await cookies()

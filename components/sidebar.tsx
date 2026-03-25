@@ -12,7 +12,10 @@ import {
     Theater,
     BookOpen,
     SettingsIcon,
-    UserRoundPlusIcon
+    UserRoundPlusIcon,
+    Clipboard,
+    UsersRound
+
 } from "lucide-react"
 import Image from "next/image"
 import ideaLogo from "../public/images/idea.jpg"
@@ -28,10 +31,12 @@ type Item = {
 
 const items: Item[] = [
     { href: "/", label: "Home", icon: Home },
-    { href: "/staff", label: "Staff", icon: Users },
+    { href: "/teaching-staff", label: "Teaching Staff", icon: Users },
+    { href: "/non-teaching-staff", label: "Non-teaching Staff", icon: UsersRound },
     { href: "/classrooms", label: "Classes", icon: Theater },
     { href: "/students", label: "Students", icon: UserRoundPlusIcon },
     { href: "/subjects", label: "Subjects", icon: BookOpen },
+    { href: "/admin-academic-records", label: "Academic Records", icon: Clipboard },
     { href: "/settings", label: "Settings", icon: SettingsIcon },
     { href: "/profile", label: "Profile", icon: UserRound },
 ]

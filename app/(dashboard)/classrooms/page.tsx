@@ -352,7 +352,7 @@ export default function Classrooms() {
                                         <Alert color="primary">
                                             <div className="flex flex-col">
                                                 <p className="text-md">{classRoomInfo.name}</p>
-                                                <p className="text-small text-default-500">{classRoomInfo.classGroup} | Class size: {classRoomInfo.studentCount}</p>
+                                                <p className="text-small text-default-500">{classRoomInfo.classGroup?.toUpperCase()} | Class size: {classRoomInfo.studentCount}</p>
                                             </div>
                                         </Alert>
 
@@ -361,11 +361,10 @@ export default function Classrooms() {
                                         {!classRoomInfo?.studentList ? null :
                                             classRoomInfo.studentList?.length < 1 ? <p>No students available</p> :
                                                 classRoomInfo?.studentList?.map((item, index) => (
-                                                    <Card className="w-full">
+                                                    <Card key={index} className="w-full">
                                                         <CardHeader className="flex gap-3">
                                                             <CircleUser className="border border rounded-lg" size={40} />
                                                             <p>{index + 1}. {item.student__surname} {item.student__otherNames}</p>
-                                                            <p>{item.student__gender === "m" ? "Male" : "Female"}</p>
                                                         </CardHeader>
                                                         <Divider />
                                                     </Card>

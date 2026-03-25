@@ -111,7 +111,7 @@ export default function Settings() {
         <div className="h-dvh">
             <section className="rounded-2xl bg-card p-6 md:p-8 shadow-sm ring-1 ring-border">
                 <div className="flex flex-row justify-between items-center mb-4">
-                    <h1 className="text-balance text-2xl font-semibold text-foreground">Taught Subjects</h1>
+                    <h1 className="text-balance text-2xl font-semibold text-foreground">School Settings</h1>
                     <Button className="bg-brand cursor-pointer text-white" onPress={onOpen}>
                         <Settings2 /> Update Settings
                     </Button>
@@ -176,7 +176,7 @@ export default function Settings() {
             </section>
 
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[80%] mx-4`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
@@ -187,10 +187,11 @@ export default function Settings() {
                             <ModalBody className="">
                                 <>
                                     <p className="font-semibold">School Info</p>
-                                    <div className="mx-4 gap-4 space-y-8 mb-4">
+                                    <div className="mx-4 gap-4 space-y-12 mb-4">
                                         <Select
                                             name="currentTerm"
                                             label="Current Term"
+                                            className="mb-4"
                                             labelPlacement="outside"
                                             placeholder="Select current term"
                                             selectedKeys={new Set([schoolSettings.currentTerm])}
@@ -200,6 +201,16 @@ export default function Settings() {
                                             <SelectItem key="2nd">2nd Term</SelectItem>
                                             <SelectItem key="3rd">3rd Term</SelectItem>
                                         </Select>
+                                        <Input
+                                            isRequired={true}
+                                            label="Academic Year (i.e 2025/2026)"
+                                            name="academicYear"
+                                            labelPlacement="outside"
+                                            placeholder="Class name"
+                                            className="w-full"
+                                            value={schoolSettings.academicYear}
+                                            onChange={handleOnSchoolSettingsFormChange}
+                                        />
                                         <DatePicker
                                             label="Term start date (month/day/year)"
                                             labelPlacement="outside"

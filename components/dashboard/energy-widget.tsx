@@ -3,13 +3,14 @@
 import { useMemo, useState } from "react"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell } from "recharts"
 import { cn } from "@/lib/utils"
+import { useSchoolContext } from "@/context/schoolContext"
 
 function Gauge({ value }: { value: string }) {
     const radius = 85
     const stroke = 16
     const circumference = 2 * Math.PI * radius
     const arc = (270 / 360) * circumference
-    const offset = arc - (85/ 100) * arc
+    const offset = arc - (85 / 100) * arc
 
     return (
         <svg viewBox="0 0 220 220" className="h-56 w-56">
@@ -44,32 +45,33 @@ function Gauge({ value }: { value: string }) {
     )
 }
 
-const lastDays = [
-    { d: "18", v: 18 },
-    { d: "19", v: 15 },
-    { d: "20", v: 28 },
-    { d: "21", v: 12 },
-    { d: "22", v: 40 }, // accent bar
-    { d: "23", v: 20 },
-    { d: "24", v: 30 },
-    { d: "25", v: 18 },
-]
-
 export default function EnergyWidget({ className }: { className?: string }) {
+    const schoolData = useSchoolContext()
+    const term_starts = String(schoolData?.schoolSettings.termStarts).split("-")
+    const term_ends = String(schoolData?.schoolSettings.termEnds).split("-")
+
+    console.log("starts", term_starts)
+    console.log("ends", term_ends)
     const [value, setValue] = useState(65)
+
+    const lastDays = [
+        { d: "Starts", v: `${term_starts[1]}` },
+        { d: "-", v: 1 },
+        { d: "-", v: 1 },
+        { d: "-", v: 1 },
+        { d: "-", v: 1 },
+        { d: "-", v: 1 },
+        { d: "-", v: 1 },
+        { d: "Ends", v: `${term_ends[1]}` },
+    ]
 
     const bars = useMemo(
         () =>
             lastDays.map((x, i) => ({
                 ...x,
-                fill: i === 4 ? "var(--brand)" : "var(--muted-foreground)",
+                fill: i === 0 || i === 7 ? "var(--brand)" : "var(--muted-foreground)",
             })),
         [],
-    )
-
-    const trackBg = useMemo(
-        () => `linear-gradient(var(--brand), var(--brand)) 0/ ${value}% 100% no-repeat, var(--muted)`,
-        [value],
     )
 
     return (
@@ -81,14 +83,20 @@ export default function EnergyWidget({ className }: { className?: string }) {
                 <div className="flex items-center gap-3 mb-4">
                     <span className="px-3 py-1 rounded-full bg-muted text-sm text-foreground">Current Academic Term</span>
                 </div>
-                <Gauge value="3rd" />
+                <Gauge value={schoolData?.schoolSettings.currentTerm ?? "1st"} />
 
             </div>
 
             <div className="flex flex-col">
                 <div className="flex flex-row justify-between items-center">
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Term Starts</h3>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-2">Term Ends</h3>
+                    <div>
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-2">Term Starts</h3>
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-2">({schoolData?.schoolSettings.termStarts.toString()})</h3>
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-2">Term Ends</h3>
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-2">({schoolData?.schoolSettings.termEnds.toString()})</h3>
+                    </div>
                 </div>
 
                 <div className="h-40">

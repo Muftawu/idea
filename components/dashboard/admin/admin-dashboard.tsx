@@ -73,7 +73,7 @@ export function AdminDashboard() {
                 </div>
 
                 <div className="space-y-5">
-                    <AdminDashboardActions data={students} />
+                    <AdminDashboardActions />
                 </div>
             </div>
 

@@ -1,29 +1,71 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { ToggleSwitch } from "@/components/ui/toggle-switch"
+import { useEffect, useRef, useState } from "react"
 import { Alert, Button, Spinner } from "@heroui/react"
-import { Sunrise, DownloadIcon } from "lucide-react"
-import { PDFDownloadLink } from "@react-pdf/renderer"
-import { StudentSchemaT } from "@/lib/schemas"
-import { StudentPDFList } from "../reports/student_pdf_list"
+import { DownloadIcon } from "lucide-react"
+import { ClassRoomSchemaT, StaffT, StudentSchemaT } from "@/lib/schemas"
 import { toast } from "react-toastify"
-// import { ReportCard, sampleReportData } from "../reports/Adm"
+import { BaseErrMsg } from "@/lib/utils"
+import { AllStudentsPDFList } from "../reports/AllStudentsPDFList"
+import { useSchoolContext } from "@/context/schoolContext"
+import { usePDF } from "@react-pdf/renderer"
 
 
-export function AdminDashboardActions({ data }: { data: StudentSchemaT[] }) {
+export function AdminDashboardActions() {
+
+    const schoolData = useSchoolContext()
+    if (!schoolData?.schoolSettings) return null
+
+    const [readyToDownload, setReadyToDownload] = useState<boolean>(false)
+    const [downloadData, setDownloadData] = useState<(ClassRoomSchemaT | StudentSchemaT | StaffT)[]>([])
+
+    const [instance, instanceUpdate] = usePDF({
+        document: <AllStudentsPDFList
+            academicTerm={schoolData.schoolSettings.currentTerm}
+            academicYear={schoolData.schoolSettings.currentTerm}
+            data={(downloadData as ClassRoomSchemaT[])}
+        />
+    })
+
+    useEffect(() => {
+        if (!readyToDownload) return
+        if (instance.loading) return
+        if (!instance.url || instance.error) {
+            toast.error(BaseErrMsg)
+            setReadyToDownload(false)
+            return
+        }
+
+        const link = document.createElement("a")
+        link.download = "All Enrolled Students.pdf"
+        link.href = instance.url
+        link.click()
+        setReadyToDownload(false)
+    }, [readyToDownload, instance.loading, instance.url, instance.error])
+
+    const handlePrintAction = async () => {
+        try {
+            const response = await fetch(`/api/classes?query=all`, {
+                method: "GET"
+            })
+            const result = await response.json()
+            if (!response.ok) return toast.info(BaseErrMsg)
+            else {
+                console.log("result data", result.data)
+                setDownloadData(result.data)
+                setReadyToDownload(true)
+            }
+        } catch (err: any) {
+            toast.error(BaseErrMsg)
+        }
+    }
 
     const quickActions = [
         {
-            "title": "Students list download",
+            "slug": "classes",
+            "title": "Export Students",
             "description": "Download PDF list of all students",
-            "component": StudentPDFList,
         },
-        {
-            "title": "Staff list download",
-            "description": "Download PDF list of all staff",
-            "component": StudentPDFList,
-        }
     ]
 
     return (
@@ -36,13 +78,18 @@ export function AdminDashboardActions({ data }: { data: StudentSchemaT[] }) {
                     <div className="flex items-center justify-center w-full mb-4">
                         <Alert
                             color="default"
-                            description="Download PDF list of all Students"
+                            description="Download PDF list of all students"
                             endContent={
-                                    <Button onPress={() => toast.info("Preparing print data. Please wait...")} isIconOnly={false} color="warning" size="sm" variant="flat">
+                                <Button
+                                    isIconOnly
+                                    color="primary"
+                                    onPress={() => handlePrintAction()}
+                                    // isLoading={readyToDownload && instance.loading}
+                                >
                                     <DownloadIcon />
                                 </Button>
                             }
-                            title="PDF Student List"
+                            title={item.title}
                             variant="faded"
                         />
                     </div>
@@ -52,18 +99,4 @@ export function AdminDashboardActions({ data }: { data: StudentSchemaT[] }) {
         </section>
     )
 }
-
-
-{/* <PDFDownloadLink */ }
-{/*     document={<item.component data={sampleReportData} />} */ }
-{/*     fileName={`Student List_${new Date().toDateString()}`}> */ }
-{/*     {({ blob, url, loading, error }) => */ }
-{/*         loading ? <Spinner size="sm" /> : */ }
-{/*             <div className="flex flex-row justify-center items-center"> */ }
-{/*                 <Button disabled={true} color="primary" isIconOnly={true}> */ }
-{/*                     <DownloadIcon /> */ }
-{/*                 </Button> */ }
-{/*             </div> */ }
-{/*     } */ }
-{/* </PDFDownloadLink> */ }
 
