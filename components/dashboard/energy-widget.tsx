@@ -50,19 +50,15 @@ export default function EnergyWidget({ className }: { className?: string }) {
     const term_starts = String(schoolData?.schoolSettings.termStarts).split("-")
     const term_ends = String(schoolData?.schoolSettings.termEnds).split("-")
 
-    console.log("starts", term_starts)
-    console.log("ends", term_ends)
-    const [value, setValue] = useState(65)
-
     const lastDays = [
-        { d: "Starts", v: `${term_starts[1]}` },
+        { d: "Starts", v: 10 },
         { d: "-", v: 1 },
         { d: "-", v: 1 },
         { d: "-", v: 1 },
         { d: "-", v: 1 },
         { d: "-", v: 1 },
         { d: "-", v: 1 },
-        { d: "Ends", v: `${term_ends[1]}` },
+        { d: "Ends", v: 10 },
     ]
 
     const bars = useMemo(

@@ -35,7 +35,6 @@ type classListProps = {
 
 type recordFilterSchema = {
     academicTerm: string,
-    classGroup: string,
     className: string,
 }
 
@@ -90,7 +89,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     // student records options 
     const [isStudentAcademicRecordsFetched, setIsStudentAcademicRecordsFetched] = useState<boolean>(false)
     const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<(RecordOptionSchema | RecordNumberSchema)[]>([])
-    const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", classGroup: "kg_1", className: "creche" })
+    const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", className: "Basic 1" })
 
     // export
     const [currentResultsToPrint, setCurrentResultToPrint] = useState<(RecordOptionSchema | RecordNumberSchema)[]>([])
@@ -131,10 +130,13 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     const [showDownloadButton, setShowDownloadButton] = useState<boolean>(false)
     const [allStaff, setAllStaff] = useState<StaffT[]>([])
 
+    const [reportGroupType, setReportGroupType] = useState<string>("")
+    const [reportClassType, setReportClassType] = useState<string>("")
+
     useEffect(() => {
         const fetchAllStaff = async () => {
             try {
-                const response = await fetch(`/api/staff?query=all`, {
+                const response = await fetch(`/api/teaching-staff?query=all`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
@@ -159,6 +161,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                     return
                 } else {
                     setStudentInfo(result.data)
+                    setReportClassType(result.data.currentClass.name)
+                    setReportGroupType(result.data.currentClass.classGroup)
                 }
             } catch (err: any) {
             }
@@ -186,11 +190,10 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }, [loading])
 
     useEffect(() => {
-        if (!studentInfo.currentClass.classGroup) return
-        const group_name = studentInfo.currentClass.classGroup
+        if (!reportGroupType) return
         const fetchStudentCurrentClassSubjects = async () => {
             try {
-                const response = await fetch(`/api/api-utils?query=${group_name}`, {
+                const response = await fetch(`/api/api-utils?query=${reportGroupType}`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
@@ -204,7 +207,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             }
         }
         fetchStudentCurrentClassSubjects()
-    }, [studentInfo.currentClass.classGroup])
+    }, [reportGroupType])
 
     useEffect(() => {
         if (!studentInfo.id) return
@@ -269,13 +272,11 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                         const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
                         setFinalRecordExportDataOptions(data)
                         setShowDownloadButton(true)
-                        // setIsCurrentResultToPrintReady(true)
                         return true
                     } else {
                         const out = (currentResultsToPrint as RecordNumberSchema[]).map(({ recordObj: { classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position, id } }) => ({ classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position, id }))
                         const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
                         setFinalRecordExportDataNumber(data)
-                        // setIsCurrentResultToPrintReady(true)
                         setShowDownloadButton(true)
                         return true
                     }
@@ -335,27 +336,26 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
     const handleSubmitStudentScores = async () => {
         if (!studentInfo.currentClass.classGroup) return
-        const subjectLen = ClassGroupListNumber.includes(studentInfo.currentClass.classGroup) ? studentScores.length / 2 : studentScores.length
+        const subjectLen = ClassGroupListNumber.includes(reportGroupType) ? studentScores.length / 2 : studentScores.length
         if (subjectLen !== classSubjectList.subjects.length) return toast.info("All score fields are required. Please check the `Scores` tab.")
         if (!studentConductInfo.rollNo || !studentConductInfo.attendance || !studentConductInfo.attitude || !studentConductInfo.interest || !studentConductInfo.conduct || !studentConductInfo.teacherRemarks) return toast.info("Please complete all fields in the `Conducts` Tab before saving.")
 
         const studentId = studentInfo.id
-        const classname = studentInfo.currentClass.name?.toLowerCase()
+        const classname = reportClassType ?? studentInfo.currentClass.name
         const academicTerm = schoolData.schoolSettings.currentTerm
         const subjectScores = studentScores.map((item) => ({ subject: item.field, score_val: item.value }))
         let payload = {}
         const class_scores: { subject: string, score_val: string }[] = []
         const exam_scores: { subject: string, score_val: string }[] = []
 
-        if (ClassGroupListNumber.includes(studentInfo.currentClass.classGroup)) {
+        if (ClassGroupListNumber.includes(reportGroupType)) {
             studentScores.map((item) => item.field.startsWith("class") ? class_scores.push({ subject: item.field.split("__")[1], score_val: item.value }) : exam_scores.push({ subject: item.field.split("__")[1], score_val: item.value }))
             payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions }
         } else {
             payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo }
             // return 
         }
-        const submitApiUrl = ClassGroupListOptions.includes(studentInfo.currentClass.classGroup) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
-        8
+        const submitApiUrl = ClassGroupListOptions.includes(reportGroupType) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
         const fn = async () => {
             try {
                 const response = await fetch(submitApiUrl, {
@@ -389,7 +389,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         if (!studentInfo.currentClass.classGroup) return
 
         const studentId = studentInfo.id
-        const classname = studentInfo.currentClass.name?.toLowerCase()
+        const classname = reportClassType.toLowerCase()
         const academicTerm = schoolData.schoolSettings.currentTerm
         const subjectScores = studentScores.map((item) => ({ subject: item.field, score_val: item.value }))
         let payload = {}
@@ -401,7 +401,6 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions }
         } else {
             payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo }
-            console.log(studentConductInfo)
             // return
         }
         const submitApiUrl = ClassGroupListOptions.includes(studentInfo.currentClass.classGroup) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
@@ -434,6 +433,13 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             })
         setLoading(false)
         window.location.reload()
+    }
+
+    const handleOnChangeReportType = (val: string) => {
+        if (!val) return
+        const val_split = val.split("__")
+        setReportGroupType(val_split[1])
+        setReportClassType(val_split[0])
     }
 
     return (
@@ -514,7 +520,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
                 <div className="p-4 bg-primary-100 rounded-lg">
                     <p className="mt-2 text-muted-foreground">Filter using the select options below</p>
-                    <div className="grid grid-cols-3 flex flex-row gap-4">
+                    <div className="grid grid-cols-2 flex flex-row gap-4">
                         <Select
                             label="Term"
                             className="flex"
@@ -531,11 +537,11 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                             label="Class"
                             labelPlacement="inside"
                             placeholder="Select class"
-                            selectedKeys={new Set([academicRecordsFilterOptions.className.toLowerCase()])}
+                            selectedKeys={new Set([academicRecordsFilterOptions.className])}
                             onChange={(e) => setAcademicRecordFilterOptions({ ...academicRecordsFilterOptions, className: e.target.value })}
                         >
                             {allClassrooms.map((item) => (
-                                <SelectItem key={item.name.toLowerCase()} textValue={`${item.name.replace(" ", "")}`}>{item.name}</SelectItem>
+                                <SelectItem key={item.name}>{item.name}</SelectItem>
                             ))}
                         </Select>
                     </div>
@@ -574,12 +580,12 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                 </ul>
             </section >
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[50rem] mx-4 scrollbar-hide`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[90%] mx-4 scrollbar-hide`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
                             <ModalHeader className="flex flex-col bg-primary text-white">
-                                {modalAction === "add" ? "New Academic Record" : modalAction === "view" || modalAction === "update" ? "Staff Info" : "Delete Staff"} ({studentInfo.currentClass.name})
+                                {modalAction === "add" ? "New Academic Record" : modalAction === "view" || modalAction === "update" ? "Staff Info" : "Delete Staff"}
                             </ModalHeader>
 
                             <ModalBody className="gap-y-4 space-y-2">
@@ -587,6 +593,25 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
                                 {modalAction === "add" ?
                                     <>
+                                        <div className="mx-4">
+                                            <Select
+                                                isRequired={true}
+                                                defaultSelectedKeys={[`${studentInfo.currentClass.name}__${studentInfo.currentClass.classGroup}`]}
+                                                label="Change report class type"
+                                                labelPlacement="inside"
+                                                // selectedKeys={new Set(positions.filter(obj => obj.field === item.id).map(({ value }) => value))}
+                                                placeholder="Select report class type"
+                                                onChange={(e) => handleOnChangeReportType(e.target.value)}
+                                            >
+                                                {allClassrooms.map((item) => (
+                                                    <>
+                                                        <SelectItem key={`${item.name}__${item.classGroup}`}>{item.name}</SelectItem>
+                                                    </>
+                                                ))}
+                                            </Select>
+                                        </div>
+
+
                                         {!classSubjectList ? <Spinner label="Loading subjects. Please wait..." /> :
                                             <Tabs size="lg" radius="md" color="primary" disabledKeys={["promotions"]}>
                                                 <Tab key="scores" title="Scores">
@@ -629,7 +654,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                         color={studentScores.find(obj => obj.field === `class__${item.id}`) ? "success" : "default"}
                                                                                         minValue={0}
                                                                                         maxValue={50}
-                                                                                        defaultValue={(currentResultsToPrint as RecordNumberSchema[]).find(obj => obj.recordObj.id === item.id)?.recordObj.classScoreValue}
+                                                                                        value={Number(studentScores.find(obj => obj.field === `class__${item.id}`)?.value)}
                                                                                         labelPlacement="inside"
                                                                                         validate={(value) => {
                                                                                             if (value < 0) {
@@ -643,7 +668,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                         onValueChange={(e) => handleOnChangeScoreType(`class__${item.id}`, e.toString())}
                                                                                     />
                                                                                 </div>
-                                                                                <div key={`exam__${item.id}`} className="mx-2 gap-8">
+                                                                                <div key={`exam__${item.id}`} className="mx-2 gap-8 mb-4">
                                                                                     <NumberInput
                                                                                         isRequired
                                                                                         label="Exam Score"
@@ -651,6 +676,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                         isWheelDisabled
                                                                                         minValue={0}
                                                                                         maxValue={50}
+                                                                                        value={Number(studentScores.find(obj => obj.field === `exam__${item.id}`)?.value)}
                                                                                         color={studentScores.find(obj => obj.field === `exam__${item.id}`) ? "success" : "default"}
                                                                                         labelPlacement="inside"
                                                                                         validate={(value) => {
@@ -667,7 +693,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                 </div>
                                                                             </div>
 
-                                                                            {studentInfo.currentClass.classGroup === "jhs" ?
+                                                                            {reportGroupType === "jhs" ?
                                                                                 <div key={`facil_pos_${item.id}`} className="grid grid-cols-3 gap-y-8 m-4 gap-x-4 mx-4">
                                                                                     <div key={`facil_${item.id}`} className="flex flex-row gap-4 col-span-2">
                                                                                         <Select
@@ -675,7 +701,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                             color={facilitators.find(obj => obj.field === item.id) ? "success" : "default"}
                                                                                             label="Facilitator"
                                                                                             labelPlacement="inside"
-                                                                                            selectedKeys={new Set(facilitators.find(obj => obj.field === item.id)?.value)}
+                                                                                            selectedKeys={new Set([facilitators.find(obj => obj.field === item.id)?.value ?? ""])}
                                                                                             placeholder="Select facilitator"
                                                                                             onChange={(e) => handleOnChangeFacilitatorValue(item.id, e.target.value)}
                                                                                         >
@@ -684,7 +710,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                             ))}
                                                                                         </Select>
                                                                                     </div>
-                                                                                    <div key={`pos_${item.id}`}>
+                                                                                    <div key={`pos_${item.id}`} className="mb-4">
                                                                                         <Select
                                                                                             isRequired={true}
                                                                                             color={positions.find(obj => obj.field === item.id) ? "success" : "default"}
@@ -700,7 +726,6 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                             ))}
                                                                                         </Select>
                                                                                     </div>
-                                                                                    <Divider />
                                                                                 </div>
                                                                                 : null}
                                                                         </div>
@@ -718,6 +743,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     isRequired
                                                                     label="Number on roll"
                                                                     placeholder="5"
+                                                                    value={studentConductInfo.rollNo}
                                                                     labelPlacement="inside"
                                                                     validate={(value) => {
                                                                         if (value < 0) {
@@ -735,6 +761,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     label="Attendance"
                                                                     placeholder="5"
                                                                     labelPlacement="inside"
+                                                                    value={studentConductInfo.attendance}
                                                                     validate={(value) => {
                                                                         if (value < 0) {
                                                                             return "Number must be greater than 0";
