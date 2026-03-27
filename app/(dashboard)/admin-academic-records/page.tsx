@@ -70,6 +70,9 @@ export default function AdminAcademicRecords() {
 
                 <div className="mt-8">
                     <p className="mt-2 text-muted-foreground">Enrolled Students ({allStudents.length})</p>
+                    <div className="text-primary text-md mx-4">
+                        <p>Use the search bar to filter students</p>
+                    </div>
                 </div>
 
                 <ul className="mt-6 divide-y divide-border">
@@ -80,7 +83,7 @@ export default function AdminAcademicRecords() {
                         </div>
                         :
                         allStudents.length < 1 ? <p>No available students</p> :
-                            allStudents.slice(0, 5).map((item, index) => (
+                            allStudents.slice(0, 100).map((item, index) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">
                                         {item.surname.at(0)?.toUpperCase()}{item.otherNames.at(0)?.toUpperCase()}
@@ -99,9 +102,6 @@ export default function AdminAcademicRecords() {
                                     </div>
                                 </li>
                             ))}
-                    <div className="flex flex-row justify-end items-center mt-4 text-primary">
-                        <p>Use the search bar to filter students</p>
-                    </div>
                 </ul>
             </section>
         </div >

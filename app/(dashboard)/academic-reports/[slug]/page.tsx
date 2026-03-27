@@ -290,8 +290,22 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     if (!userData || !schoolData) return <Spinner label="Loading please wait" />
 
     const handleOpenModal = (action: typeof modalAction, results?: (RecordOptionSchema | RecordNumberSchema)[]) => {
+
         if (!action) return
         setModalAction(action)
+        if (action === "update") {
+            const single = results?.at(0)
+            if (!single) return
+            setReportGroupType(single.classGroup)
+            setReportClassType(single.className)
+            setStudentConductInfo(currentResultsToPrint.at(0)?.conductObj ?? studentConductInfo)
+
+            if (ClassGroupListOptions.includes(single.classGroup)) {
+                setStudentScores((currentResultsToPrint as RecordOptionSchema[]).map((item) => ({ field: item.recordObj.classSubject, value: item.recordObj.scoreValue })))
+            } else {
+            }
+        } else {
+        }
         onOpen()
     }
 
@@ -326,6 +340,21 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         setStudentScores(prev => prev.find(obj => obj.field === subject) ? prev.map(obj => obj.field === subject ? { ...obj, value: score } : obj) : [...prev, { field: subject, value: score }])
     }
 
+    const handleOnUpdateStudentScores = (record_item: (RecordOptionSchema | RecordNumberSchema), score: string) => {
+        const exists = currentResultsToPrint.find(obj => obj.recordObj.id === record_item.recordObj.id)
+
+        if (record_item.type === "option") {
+            setCurrentResultToPrint((prev) => {
+                const typedPrev = prev as RecordOptionSchema[]
+                return typedPrev.find(obj => obj.recordObj.id === record_item.recordObj.id) ?
+                    typedPrev.map(obj2 => obj2.recordObj.id === record_item.recordObj.id ?
+                        { ...obj2, recordObj: { ...obj2.recordObj, scoreValue: score } } :
+                        obj2) :
+                    typedPrev;
+            });
+        }
+    }
+
     const handleOnChangeFacilitatorValue = (subject: string, dataVal: string) => {
         setFacilitators(prev => prev.find(obj => obj.field === subject) ? prev.map(obj => obj.field === subject ? { ...obj, value: dataVal } : obj) : [...prev, { field: subject, value: dataVal }])
     }
@@ -353,8 +382,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions }
         } else {
             payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo }
-            // return 
         }
+
         const submitApiUrl = ClassGroupListOptions.includes(reportGroupType) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
         const fn = async () => {
             try {
@@ -386,24 +415,23 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }
 
     const handleUpdateStudentScores = async () => {
-        if (!studentInfo.currentClass.classGroup) return
+        if (!reportGroupType || !reportClassType) return
 
         const studentId = studentInfo.id
-        const classname = reportClassType.toLowerCase()
+        const classname = reportClassType
         const academicTerm = schoolData.schoolSettings.currentTerm
-        const subjectScores = studentScores.map((item) => ({ subject: item.field, score_val: item.value }))
         let payload = {}
         const class_scores: { subject: string, score_val: string }[] = []
         const exam_scores: { subject: string, score_val: string }[] = []
 
-        if (ClassGroupListNumber.includes(studentInfo.currentClass.classGroup)) {
+        if (ClassGroupListNumber.includes(reportGroupType)) {
             studentScores.map((item) => item.field.startsWith("class") ? class_scores.push({ subject: item.field.split("__")[1], score_val: item.value }) : exam_scores.push({ subject: item.field.split("__")[1], score_val: item.value }))
             payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions }
         } else {
+            const subjectScores = (currentResultsToPrint as RecordOptionSchema[]).map(obj => ({ subject: obj.recordObj.id, score_val: obj.recordObj.scoreValue }))
             payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo }
-            // return
         }
-        const submitApiUrl = ClassGroupListOptions.includes(studentInfo.currentClass.classGroup) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
+        const submitApiUrl = ClassGroupListOptions.includes(reportGroupType) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
 
         const fn = async () => {
             try {
@@ -428,11 +456,17 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             fn,
             {
                 pending: "Updating student record",
-                success: "Student record successfully updated",
+                success: {
+                    render({ data }: { data: string }) {
+                        window.location.reload()
+                        return `Student record successfully updated`
+                    }
+                },
+                // success: "Student record successfully updated",
                 error: BaseErrMsg,
             })
         setLoading(false)
-        window.location.reload()
+        // setTwindow.location.reload()
     }
 
     const handleOnChangeReportType = (val: string) => {
@@ -440,6 +474,11 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         const val_split = val.split("__")
         setReportGroupType(val_split[1])
         setReportClassType(val_split[0])
+        if (allStudentAcademicRecords.find(obj => obj.className === val_split[0] && obj.recordObj.academicTerm)) {
+            toast.info(`${studentInfo.surname} ${studentInfo.otherNames} already has records for ${val_split[0]} ${schoolData.schoolSettings.currentTerm} Term. Please select a different class or notify Admin to update current academic term`)
+            onClose()
+            return
+        }
     }
 
     return (
@@ -478,8 +517,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                         endContent={
                                             ClassGroupListOptions.includes(currentResultsToPrint.at(0)?.classGroup ?? "") ?
                                                 <PDFDownloadLink
-                                                    document={<AcademicReportOption vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} data={finalRecordExportDataOptions} />}
-                                                    fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${studentInfo.currentClass.name}_${new Date().getFullYear()}`}>
+                                                    document={<AcademicReportOption academicYear={schoolData.schoolSettings.academicYear} vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} data={finalRecordExportDataOptions} />}
+                                                    fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${reportClassType}_${new Date().getFullYear()}`}>
                                                     {({ blob, url, loading, error }) =>
                                                         loading ? <Spinner size="sm" /> :
                                                             <div className="flex flex-row justify-center items-center">
@@ -491,8 +530,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                 </PDFDownloadLink>
                                                 :
                                                 <PDFDownloadLink
-                                                    document={<AcademicReportNumber vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} data={finalRecordExportDataNumber} />}
-                                                    fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${studentInfo.currentClass.name}_${new Date().getFullYear()}`}>
+                                                    document={<AcademicReportNumber academicYear={schoolData.schoolSettings.academicYear} vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} data={finalRecordExportDataNumber} />}
+                                                    fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${reportClassType}_${new Date().getFullYear()}`}>
                                                     {({ blob, url, loading, error }) =>
                                                         loading ? <Spinner size="sm" /> :
                                                             <div className="flex flex-row justify-center items-center">
@@ -585,7 +624,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                     {(onClose) => (
                         <>
                             <ModalHeader className="flex flex-col bg-primary text-white">
-                                {modalAction === "add" ? "New Academic Record" : modalAction === "view" || modalAction === "update" ? "Staff Info" : "Delete Staff"}
+                                {modalAction === "add" ? "New Academic Record" : modalAction === "view" || modalAction === "update" ? "Academic Record Update" : "Delete Academic Record"}
                             </ModalHeader>
 
                             <ModalBody className="gap-y-4 space-y-2">
@@ -632,7 +671,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                 placeholder="Select grade"
                                                                                 onChange={(e) => handleOnChangeScoreType(item.id, e.target.value)}
                                                                             >
-                                                                                {getSubjectGroupScoreOptions(studentInfo.currentClass.classGroup).map((scoreoption) => (
+                                                                                {getSubjectGroupScoreOptions(reportGroupType.toLowerCase()).map((scoreoption) => (
                                                                                     <SelectItem key={scoreoption.key}>{scoreoption.label}</SelectItem>
                                                                                 ))}
                                                                             </Select>
@@ -856,15 +895,14 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                             <Select
                                                                                 isRequired={true}
                                                                                 name={item.recordObj.id}
-                                                                                color={studentScores.find(obj => obj.field === item.recordObj.id) ? "success" : "default"}
-                                                                                defaultSelectedKeys={[item.recordObj.scoreValue.toLowerCase().replace(" ", "_")]}
+                                                                                color={currentResultsToPrint.find(obj => obj.recordObj.id === item.recordObj.id) ? "success" : "default"}
                                                                                 label={item.recordObj.classSubject}
                                                                                 labelPlacement="inside"
-                                                                                // selectedKeys={new Set(studentScores.filter(obj => obj.field === item.recordObj.id).map(({ value }) => value))}
+                                                                                selectedKeys={new Set([(currentResultsToPrint as RecordOptionSchema[]).find(obj => obj.recordObj.id === item.recordObj.id)?.recordObj.scoreValue ?? ""])}
                                                                                 placeholder="Select grade"
-                                                                                onChange={(e) => handleOnChangeScoreType(item.recordObj.id, e.target.value)}
+                                                                                onChange={(e) => handleOnUpdateStudentScores(item, e.target.value)}
                                                                             >
-                                                                                {getSubjectGroupScoreOptions(studentInfo.currentClass.classGroup).map((scoreoption) => (
+                                                                                {getSubjectGroupScoreOptions(item.classGroup.toLowerCase()).map((scoreoption) => (
                                                                                     <SelectItem key={scoreoption.key}>{scoreoption.label}</SelectItem>
                                                                                 ))}
                                                                             </Select>
@@ -986,7 +1024,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                             return "Number must be less than 54";
                                                                         }
                                                                     }}
-                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.rollNo}
+                                                                    value={studentConductInfo.rollNo}
                                                                     className="w-full"
                                                                     onValueChange={(e) => setStudentConductInfo({ ...studentConductInfo, rollNo: e })}
                                                                 />
@@ -995,7 +1033,6 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     label="Attendance"
                                                                     placeholder="5"
                                                                     labelPlacement="inside"
-                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.attendance}
                                                                     validate={(value) => {
                                                                         if (value < 0) {
                                                                             return "Number must be greater than 0";
@@ -1005,6 +1042,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                         }
                                                                     }}
                                                                     className="w-full"
+                                                                    value={studentConductInfo.attendance}
                                                                     onValueChange={(e) => setStudentConductInfo({ ...studentConductInfo, attendance: e })}
                                                                 />
                                                             </div>
@@ -1013,7 +1051,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     label="Attitude"
                                                                     labelPlacement="inside"
                                                                     placeholder="Enter student attitude"
-                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.attitude}
+                                                                    value={studentConductInfo.attitude}
                                                                     className="w-full"
                                                                     onChange={(e) => setStudentConductInfo({ ...studentConductInfo, attitude: e.target.value })}
                                                                 />
@@ -1021,15 +1059,15 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     label="Conduct"
                                                                     labelPlacement="inside"
                                                                     placeholder="Enter student conduct"
-                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.conduct}
+                                                                    value={studentConductInfo.conduct}
                                                                     className="w-full"
                                                                     onChange={(e) => setStudentConductInfo({ ...studentConductInfo, conduct: e.target.value })}
                                                                 />
                                                                 <Input
                                                                     label="Interest"
                                                                     labelPlacement="inside"
-                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.interest}
                                                                     placeholder="Enter student interest"
+                                                                    value={studentConductInfo.interest}
                                                                     className="w-full"
                                                                     onChange={(e) => setStudentConductInfo({ ...studentConductInfo, interest: e.target.value })}
                                                                 />
@@ -1037,7 +1075,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                     label="Teacher remarks"
                                                                     labelPlacement="inside"
                                                                     placeholder="Enter your remarks"
-                                                                    defaultValue={currentResultsToPrint.at(0)?.conductObj?.teacherRemarks}
+                                                                    value={studentConductInfo.teacherRemarks}
                                                                     className="w-full"
                                                                     onChange={(e) => setStudentConductInfo({ ...studentConductInfo, teacherRemarks: e.target.value })}
                                                                 />

@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import {
     Document,
     Page,
@@ -206,7 +205,7 @@ const s = StyleSheet.create({
         marginRight: 8,
     },
     sectionTitle: {
-        fontSize: 8.5,
+        fontSize: 10,
         fontFamily: "Helvetica-Bold",
         color: C.brand,
         letterSpacing: 1.4,
@@ -230,11 +229,11 @@ const s = StyleSheet.create({
 
     // column widths
     colNo: { width: "10%", paddingLeft: 5 },
-    colPhoto: { width: "10%", alignItems: "center", paddingRight: 5 },
+    colPhoto: { width: "10%", alignItems: "flex-start" },
     colIndex: { width: "10%" },
-    colName: { width: "30%" },
+    colName: { width: "40%", },
     colGender: { width: "10%", alignItems: "center", paddingRight: 5 },
-    colDob: { width: "30%" },
+    colDob: { width: "10%", paddingLeft: 20 },
     colSection: { width: "10%", alignItems: "center" },
     colContact: { width: "10%" },
 
@@ -424,13 +423,13 @@ const GenderPill = ({ gender }: { gender: string }) => {
     return (
         <View style={[s.genderPill, { backgroundColor: male ? C.maleBg : C.femaleBg }]}>
             <Text style={[s.genderText, { color: male ? C.male : C.female }]}>
-                {male ? "M" : "F"}
+                {male ? "Male" : "Female"}
             </Text>
         </View>
     );
 };
 
-const PhotoCell = ({ item }: { item: MinimalStudentInfoSchemaT}) => (
+const PhotoCell = ({ item }: { item: MinimalStudentInfoSchemaT }) => (
     <View style={s.photoBox}>
         <Text style={s.photoPlaceholderText}>{initials(item)}</Text>
     </View>
@@ -447,10 +446,6 @@ const DataRow = ({ item, index }: { item: MinimalStudentInfoSchemaT; index: numb
             <PhotoCell item={item} />
         </View>
 
-        <View style={s.colIndex}>
-            <Text style={s.tdIndex}>IS{item.student_id.substring(5) || "IS---"}</Text>
-        </View>
-
         <View style={s.colName}>
             <Text style={s.tdNameSurname}>{item.student__surname} {item.student__otherNames}</Text>
         </View>
@@ -460,8 +455,13 @@ const DataRow = ({ item, index }: { item: MinimalStudentInfoSchemaT; index: numb
         </View>
 
         <View style={s.colDob}>
-            <Text style={s.tdDob}>{item.student__gender ?? "m"}</Text>
+            <Text style={s.tdDob}>{item.student__dateOfBirth?.toString() ?? "N/A"}</Text>
         </View>
+
+        {/* <View style={s.colDob}> */}
+        {/*     <Text style={s.tdDob}>{item.age ?? 0}</Text> */}
+        {/* </View> */}
+
 
         {/* Section */}
         {/* <View style={s.colSection}> */}
@@ -499,10 +499,18 @@ const PageFooter = ({ academicTerm, academicYear }: { academicTerm: string, acad
 // ─── Main Document ────────────────────────────────────────────────────────────
 
 export const AllStudentsPDFList = ({ academicTerm, academicYear, data }: { academicTerm: string, academicYear: string, data: ClassRoomSchemaT[] }) => {
-    console.log("data from main download page", data)
+    console.log("data", data)
 
-    const males = 5 // = data.filter((item) => isMale(item.studentList?.filter((sitem) => sitem.student__gender === "m" ?? "m")))
-    const females = 5 //data.length - males;
+    let studentTotal = 0
+    let malesArr: number[] = []
+    data.filter(obj => obj.studentList?.filter(obj2 => obj2.student__gender === "m" ? malesArr.push(1) : malesArr))
+    data.reduce((_, val: ClassRoomSchemaT) => {
+        studentTotal += val.studentCount ?? 0
+        return studentTotal
+    }, studentTotal)
+    const males = malesArr.length
+    const females = studentTotal - males
+    console.log("stu total", studentTotal)
 
     return (
         <Document
@@ -535,7 +543,7 @@ export const AllStudentsPDFList = ({ academicTerm, academicYear, data }: { acade
                         </View>
                         <View style={s.infoGrid}>
                             <View style={s.infoCell}>
-                                <Text style={s.infoLabel}>CLASSES</Text>
+                                <Text style={s.infoLabel}>TOTAL</Text>
                                 <Text style={{ fontSize: 16, fontFamily: "Helvetica-Bold", color: C.black }}>
                                     {data.length}
                                 </Text>
@@ -558,10 +566,10 @@ export const AllStudentsPDFList = ({ academicTerm, academicYear, data }: { acade
 
 
                     {data.map((item) => (
-                        <>
+                        <div key={item.id}>
                             <View style={s.sectionHeading}>
                                 <View style={s.sectionLine} />
-                                <Text style={s.sectionTitle}>{item.name.toUpperCase()} {item.classGroup?.replace("_", " ").toUpperCase()}</Text>
+                                <Text style={s.sectionTitle}>{item.name.toUpperCase()} ({item.studentCount})</Text>
                             </View>
 
                             <View style={s.table} >
@@ -570,23 +578,20 @@ export const AllStudentsPDFList = ({ academicTerm, academicYear, data }: { acade
                                     <View style={s.colNo}>
                                         <Text style={s.thText}>#</Text>
                                     </View>
-                                    <View style={s.colPhoto}>
+                                    <View style={s.colIndex}>
                                         <Text style={s.thText}>INITIALS</Text>
                                     </View>
-                                    <View style={s.colIndex}>
-                                        <Text style={s.thText}>STAFF ID</Text>
-                                    </View>
                                     <View style={s.colName}>
-                                        <Text style={s.thText}>FULL NAME</Text>
+                                        <Text style={s.thText}>STUDENT FULL NAME</Text>
                                     </View>
                                     <View style={s.colGender}>
                                         <Text style={[s.thText, { textAlign: "center" }]}>GENDER</Text>
                                     </View>
                                     <View style={s.colDob}>
-                                        <Text style={s.thText}>ASSIGNED CLASSES</Text>
+                                        <Text style={s.thText}>AGE</Text>
                                     </View>
                                     {/* <View style={s.colSection}> */}
-                                    {/*     <Text style={[s.thText, { textAlign: "center" }]}>SECTION</Text> */}
+                                    {/*     <Text style={[s.thText, { textAlign: "center" }]}>GUARDIAN CONTACT</Text> */}
                                     {/* </View> */}
                                     {/* <View style={s.colContact}> */}
                                     {/*     <Text style={s.thText}>PARENT CONTACT</Text> */}
@@ -597,7 +602,7 @@ export const AllStudentsPDFList = ({ academicTerm, academicYear, data }: { acade
                                     <DataRow key={index} item={ditem} index={index} />
                                 ))}
                             </View>
-                        </>
+                        </div>
                     ))}
 
                     {/* Signature + Note */}

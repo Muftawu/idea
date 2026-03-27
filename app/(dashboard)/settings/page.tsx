@@ -34,6 +34,7 @@ export default function Settings() {
     const [schoolSettings, setSchoolSettings] = useState<SchoolSettingsSchemaT>({
         name: "",
         currentTerm: "",
+        academicYear: "",
         nextReopeningDate: new Date(),
         termStarts: new Date(),
         termEnds: new Date(),
@@ -73,6 +74,7 @@ export default function Settings() {
         if (!userData.userInfo.id) return null
         const payload = {
             currentTerm: schoolSettings.currentTerm,
+            academicYear: schoolSettings.academicYear,
             termStarts: new Date(schoolSettings.termStarts).toISOString().split("T")[0],
             termEnds: new Date(schoolSettings.termEnds).toISOString().split("T")[0],
             nextReopeningDate: new Date(schoolSettings.nextReopeningDate).toISOString().split("T")[0]
@@ -171,12 +173,26 @@ export default function Settings() {
                                 </div>
                             </div>
                         </div>
+                        <div className="rounded-xl bg-background p-4 ring-1 ring-border">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Button isIconOnly={true} color="primary">
+                                        <BadgeInfoIcon />
+                                    </Button>
+                                    <div>
+                                        <h1 className="text-lg font-bold">{schoolSettings.academicYear}</h1>
+                                        <p className="font-normal text-foreground">Academic Year</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 }
             </section>
 
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[80%] mx-4`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[80%] mx-4 scrollbar-hide`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
@@ -187,11 +203,11 @@ export default function Settings() {
                             <ModalBody className="">
                                 <>
                                     <p className="font-semibold">School Info</p>
-                                    <div className="mx-4 gap-4 space-y-12 mb-4">
+                                    <div className="flex flex-col mx-4 gap-4 space-y-4 mb-4">
                                         <Select
                                             name="currentTerm"
                                             label="Current Term"
-                                            className="mb-4"
+                                            className=""
                                             labelPlacement="outside"
                                             placeholder="Select current term"
                                             selectedKeys={new Set([schoolSettings.currentTerm])}

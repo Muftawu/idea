@@ -380,6 +380,7 @@ const s = StyleSheet.create({
         color: C.mid,
         fontStyle: "italic",
         lineHeight: 1.6,
+        marginTop: 5
     },
     signLine: {
         borderBottomWidth: 1.5,
@@ -481,7 +482,7 @@ const ActivityTableRow = ({
     );
 };
 
-export const AcademicReportOption = ({ vacationDate, reopeningDate, data }: { vacationDate: string, reopeningDate: string, data: RecordOptionPackage }) => {
+export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate, data }: { academicYear: string, vacationDate: string, reopeningDate: string, data: RecordOptionPackage }) => {
 
     return (
         <Document
@@ -522,9 +523,9 @@ export const AcademicReportOption = ({ vacationDate, reopeningDate, data }: { va
                         </View>
                         <View style={s.infoGrid}>
                             <InfoCell label="Full Name" value={val(data.student)} wide />
-                            <InfoCell label="Class" value={val(data.classGroup)} />
+                            <InfoCell label="Class" value={val(data.className)} />
                             <InfoCell label="Term" value={val(data.academicTerm)} />
-                            <InfoCell label="Academic Year" value={val(new Date().getFullYear())} />
+                            <InfoCell label="Academic Year" value={academicYear ?? new Date().getFullYear()} />
                             <InfoCell label="No. on Roll" value={val(data.conduct?.rollNo)} />
                             <InfoCell label="Attendance" value={val(data.conduct?.attendance)} />
                             <InfoCell label="Vacation Date" value={vacationDate ?? "---"} />
@@ -561,25 +562,26 @@ export const AcademicReportOption = ({ vacationDate, reopeningDate, data }: { va
 
                     <View style={s.CustomboxWrapper}>
                         <View style={s.boxHeader}>
-                            <Text style={s.boxHeaderText}>ATTITUDE IN CLASS</Text>
+                            <Text style={s.boxHeaderText}>ATTITUDE</Text>
                             <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
                                 {val(data.conduct?.attitude, "---")}
                             </Text>
                         </View>
-                        <View style={s.boxHeader}>
-                            <Text style={s.boxHeaderText}>CONDUCT IN CLASS</Text>
+                        <View style={[s.boxHeader, { marginTop: 5 }]}>
+                            <Text style={s.boxHeaderText}>CONDUCT</Text>
                             <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
                                 {val(data.conduct?.conduct, "---")}
                             </Text>
                         </View>
 
-                        <View style={s.boxHeader}>
+                        <View style={[s.boxHeader, { marginTop: 5 }]}>
                             <Text style={s.boxHeaderText}>INTERESTS</Text>
                             <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
                                 {val(data.conduct?.interest, "---")}
                             </Text>
                         </View>
-                        <View style={s.boxHeader}>
+
+                        <View style={{ backgroundColor: C.brandLight, paddingVertical: 2, paddingHorizontal: 14 }}>
                             <Text style={s.boxHeaderText}>TEACHER REMARKS</Text>
                             <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
                                 {val(data.conduct?.teacherRemarks, "---")}
@@ -594,7 +596,7 @@ export const AcademicReportOption = ({ vacationDate, reopeningDate, data }: { va
                             <View style={s.boxHeader}>
                                 <Text style={s.boxHeaderText}>Signature/Stamp</Text>
                             </View>
-                            <View style={{padding: 5, maxHeight: 11}}>
+                            <View style={{ padding: 5, maxHeight: 30 }}>
                                 <View style={s.signLine} />
                                 {/* <Text style={s.signLabel}>{label.split("'")[0]}</Text> */}
                             </View>
@@ -630,13 +632,13 @@ export const AcademicReportOption = ({ vacationDate, reopeningDate, data }: { va
 
 
                     {/* Footer */}
-                    {/* <View style={s.footer}> */}
-                    {/*     <Text style={s.footerLeft}>IDEA International School · Accra, Ghana</Text> */}
-                    {/*     <Text style={s.footerCenter}> */}
-                    {/*         Confidential — For Parent / Guardian Use Only */}
-                    {/*     </Text> */}
-                    {/*     <Text style={s.footerRight}>{val(data.academicTerm)} · {val(new Date().getFullYear())}</Text> */}
-                    {/* </View> */}
+                    <View style={s.footer}>
+                        <Text style={s.footerLeft}>IDEA International School · Accra, Ghana</Text>
+                        <Text style={s.footerCenter}>
+                            Confidential — For Parent / Guardian Use Only
+                        </Text>
+                        <Text style={s.footerRight}>{val(data.academicTerm)} · {val(new Date().getFullYear())}</Text>
+                    </View>
 
                 </View>
             </Page>

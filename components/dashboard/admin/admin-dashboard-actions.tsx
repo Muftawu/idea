@@ -14,36 +14,44 @@ import { usePDF } from "@react-pdf/renderer"
 export function AdminDashboardActions() {
 
     const schoolData = useSchoolContext()
-    if (!schoolData?.schoolSettings) return null
 
+    const [loading, setLoading] = useState<boolean>(false)
     const [readyToDownload, setReadyToDownload] = useState<boolean>(false)
     const [downloadData, setDownloadData] = useState<(ClassRoomSchemaT | StudentSchemaT | StaffT)[]>([])
 
     const [instance, instanceUpdate] = usePDF({
         document: <AllStudentsPDFList
-            academicTerm={schoolData.schoolSettings.currentTerm}
-            academicYear={schoolData.schoolSettings.currentTerm}
+            academicTerm={schoolData?.schoolSettings.currentTerm ?? ""}
+            academicYear={schoolData?.schoolSettings.currentTerm ?? ""}
             data={(downloadData as ClassRoomSchemaT[])}
         />
     })
 
     useEffect(() => {
-        if (!readyToDownload) return
-        if (instance.loading) return
-        if (!instance.url || instance.error) {
-            toast.error(BaseErrMsg)
-            setReadyToDownload(false)
-            return
-        }
+        const fn = () => {
+            if (!readyToDownload) return
+            if (downloadData.length < 1) return toast.info("Preparing print data. Please wait")
 
-        const link = document.createElement("a")
-        link.download = "All Enrolled Students.pdf"
-        link.href = instance.url
-        link.click()
-        setReadyToDownload(false)
+            if (instance.loading) return
+            if (!instance.url || instance.error) {
+                toast.error(BaseErrMsg)
+                setReadyToDownload(false)
+                return
+            }
+            const link = document.createElement("a")
+            link.download = "All Enrolled Students.pdf"
+            link.href = instance.url
+            link.click()
+            setReadyToDownload(false)
+            setLoading(false)
+        }
+        fn()
     }, [readyToDownload, instance.loading, instance.url, instance.error])
 
+    if (!schoolData?.schoolSettings) return null
+
     const handlePrintAction = async () => {
+        setLoading(true)
         try {
             const response = await fetch(`/api/classes?query=all`, {
                 method: "GET"
@@ -51,9 +59,17 @@ export function AdminDashboardActions() {
             const result = await response.json()
             if (!response.ok) return toast.info(BaseErrMsg)
             else {
-                console.log("result data", result.data)
+                const data = result.data as ClassRoomSchemaT[]
+                instanceUpdate(
+                    <AllStudentsPDFList
+                        academicTerm={schoolData.schoolSettings.currentTerm}
+                        academicYear={schoolData.schoolSettings.academicYear}
+                        data={data}
+                    />
+                )
                 setDownloadData(result.data)
                 setReadyToDownload(true)
+                toast.success("Successfully downloaded PDF Data")
             }
         } catch (err: any) {
             toast.error(BaseErrMsg)
@@ -84,7 +100,7 @@ export function AdminDashboardActions() {
                                     isIconOnly
                                     color="primary"
                                     onPress={() => handlePrintAction()}
-                                    // isLoading={readyToDownload && instance.loading}
+                                    isLoading={loading}
                                 >
                                     <DownloadIcon />
                                 </Button>

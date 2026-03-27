@@ -8,9 +8,9 @@ import {
     ModalFooter,
     useDisclosure,
 } from "@heroui/react";
-import { Bell, Search, Settings, User, UserRound, SearchIcon, Menu, SunMoon } from "lucide-react"
+import { Bell, Search, Settings, User, UserRound, SearchIcon, Menu, SunMoon, EyeIcon } from "lucide-react"
 import { Card, CardHeader, CardBody, CardFooter, Divider, Button } from "@heroui/react";
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,11 +21,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { AuthContext, useAuthContext } from "@/context/authContext"
+import { useAuthContext } from "@/context/authContext"
 import { Input, Spinner } from "@heroui/react"
 import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils"
 import { toast } from "react-toastify"
-import { userInfo } from "os"
 import { NonTeachingStaffSchemaT, StaffT, StudentSchemaT } from "@/lib/schemas";
 
 interface TopbarProps {
@@ -36,21 +35,23 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
     const authInfo = useAuthContext()
     const [loading, setLoading] = useState<boolean>(false)
-    const [doneFiltering, setDoneFiltering] = useState<boolean>(false)
-    const [isSearchReady, setSearchReady] = useState<boolean>(false)
     const [q, setQ] = useState<string>("")
     const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
 
-    const [students, setStudents] = useState<StudentSchemaT[]>([])
+    // allrefs 
+    const studentsRef = useRef<StudentSchemaT[]>([])
+    const teachingStaffRef = useRef<StaffT[]>([])
+    const nonTeachingStaffRef = useRef<NonTeachingStaffSchemaT[]>([])
+
+    // filters
+    const [filteredStudents, setFilteredStudents] = useState<StudentSchemaT[]>([])
+    const [filteredTeachingStaff, setFilteredTeachingStaff] = useState<StaffT[]>([])
+    const [filteredNonTeachingStaff, setFilteredNonTeachingStaff] = useState<NonTeachingStaffSchemaT[]>([])
+
+    // const [students, setStudents] = useState<StudentSchemaT[]>([])
     const [teachingStaff, setTeachingStaff] = useState<StaffT[]>([])
     const [nonteachingStaff, setNonteachingStaff] = useState<NonTeachingStaffSchemaT[]>([])
     const [filter, setFilter] = useState<(StudentSchemaT | StaffT | NonTeachingStaffSchemaT)[]>([])
-
-    if (!authInfo || !authInfo.userInfo) return (
-        <div className="flex flex-row justify-end mb-2">
-            <Spinner color="warning" size="sm" />
-        </div>
-    )
 
     useEffect(() => {
         const fetchAllStudents = async () => {
@@ -62,7 +63,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                 if (!response.ok) {
                     return
                 } else {
-                    setStudents(result.data)
+                    studentsRef.current = result.data
                 }
             } catch (err: any) {
             }
@@ -73,14 +74,14 @@ export function Topbar({ onMenuClick }: TopbarProps) {
     useEffect(() => {
         const fetchTeachingStaff = async () => {
             try {
-                const response = await fetch(`/api/stats?query=teaching-staff`, {
+                const response = await fetch(`/api/teaching-staff?query=all`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
                 if (!response.ok) {
                     return
                 } else {
-                    setTeachingStaff(result.data)
+                    teachingStaffRef.current = result.data
                 }
             } catch (err: any) {
             }
@@ -91,14 +92,14 @@ export function Topbar({ onMenuClick }: TopbarProps) {
     useEffect(() => {
         const fetchNonTeachingStaff = async () => {
             try {
-                const response = await fetch(`/api/stats?query=teaching-staff`, {
+                const response = await fetch(`/api/non-teaching-staff?query=all`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
                 if (!response.ok) {
                     return
                 } else {
-                    setNonteachingStaff(result.data)
+                    nonTeachingStaffRef.current = result.data
                 }
             } catch (err: any) {
             }
@@ -107,39 +108,45 @@ export function Topbar({ onMenuClick }: TopbarProps) {
     }, [])
 
     useEffect(() => {
-        if (q.trim().length < 1) return
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                setSearchReady(true)
-                setLoading(true)
-            } else {
-                setSearchReady(false)
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Enter" && q.trim().length > 0) {
+                handleSearch()
             }
-        })
+        }
+        document.addEventListener("keydown", handler)
+        return () => document.removeEventListener("keydown", handler)
     }, [q])
 
-    useEffect(() => {
-        if (!isSearchReady) return
+    const handleSearch = () => {
+        if (q.trim().length < 1) return
+        setLoading(true)
+
+        const temp = q.trim().toLowerCase()
+
+        const matchedStudents = studentsRef.current.filter(obj =>
+            obj.surname.toLowerCase().startsWith(temp) ||
+            obj.otherNames.toLowerCase().startsWith(temp)
+        )
+        const matchedTeachingStaff = teachingStaffRef.current.filter(obj =>
+            obj.personalInfo.last_name.toLowerCase().startsWith(temp) ||
+            obj.personalInfo.first_name.toLowerCase().startsWith(temp)
+        )
+        const matchedNonteachingstaff = nonTeachingStaffRef.current.filter(obj =>
+            obj.surname.toLowerCase().startsWith(temp) ||
+            obj.otherNames.toLowerCase().startsWith(temp)
+        )
+        setFilteredStudents(matchedStudents)
+        setFilteredTeachingStaff(matchedTeachingStaff)
+        setFilteredNonTeachingStaff(matchedNonteachingstaff)
+        setLoading(false)
         onOpen()
-        console.log("q", q)
-        setStudents(prev => prev.filter((obj) => obj.surname.startsWith(q) || obj.otherNames.startsWith(q)))
-        setStudents(students.filter((obj) => obj.surname.startsWith(q)))
-        console.log("done filetering: res", students)
-        // setFilter(teachingStaff.filter((obj) => obj.personalInfo.last_name.startsWith(q) || obj.personalInfo.first_name.startsWith(q) ? [...filter, obj] : [...filter]))
-        // setFilter(nonteachingStaff.filter((obj) => obj.surname.startsWith(q) || obj.otherNames.startsWith(q) ? [...filter, obj] : [...filter]))
+    }
 
-        setLoading(false)
-        setDoneFiltering(true)
-        setSearchReady(false)
-    }, [isSearchReady])
-
-    useEffect(() => {
-        setLoading(false)
-        if (!doneFiltering) return
-        if (loading) return
-        setLoading(false)
-        setDoneFiltering(false)
-    }, [doneFiltering])
+    if (!authInfo || !authInfo.userInfo) return (
+        <div className="flex flex-row justify-end mb-2">
+            <Spinner color="warning" size="sm" />
+        </div>
+    )
 
     const handleLogout = async () => {
         const fn = async () => {
@@ -246,19 +253,74 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
                             {loading ? <Spinner /> :
                                 <ModalBody className="">
-                                    <p>Students Match (5)</p>
-                                    {students.map((item, index) => (
-                                        <Card key={index} className="w-full">
-                                            <CardHeader className="flex gap-3">
-                                                <UserRound className="border border rounded-lg" size={40} />
-                                                <div className="flex flex-col">
-                                                    <p className="text-md">{item.surname} {item.otherNames}</p>
-                                                    {/* <p className="text-small text-default-500">{studentInfo.gender === "m" ? "Male" : "Female"} | {studentInfo.currentClass.name}</p> */}
+
+                                    <h1 className="text-primary">Student Match ({filteredStudents.length})</h1>
+                                    {filteredStudents.map((item, index) => (
+                                        <Card key={index} className="flex w-96 mx-4">
+                                            <CardHeader className="flex flex-row justify-between gap-3">
+                                                <div className="flex flex-row items-center">
+                                                    <UserRound className="border border rounded-lg" size={40} />
+                                                    <div className="flex flex-col">
+                                                        <p className="text-md mt-1 mx-4 w">{index + 1}. {item.surname} {item.otherNames}</p>
+                                                        <p className="text-sm mt-1 mx-8 w">{item.currentClass.name} | {item.gender === "m" ? "Male" : "Female"}</p>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Button size="sm" isIconOnly color="primary" className="flex flex-end">
+                                                        <EyeIcon />
+                                                    </Button>
                                                 </div>
                                             </CardHeader>
                                             <Divider />
                                         </Card>
                                     ))}
+                                    <Divider />
+
+                                    <h1 className="text-primary">Teaching staff match ({filteredTeachingStaff.length})</h1>
+                                    {filteredTeachingStaff.map((item, index) => (
+                                        <Card key={index} className="flex w-96 mx-4">
+                                            <CardHeader className="flex flex-row justify-between gap-3">
+                                                <div className="flex flex-row items-center">
+                                                    <UserRound className="border border rounded-lg" size={40} />
+                                                    <div className="flex flex-col">
+                                                        <p className="text-md mt-1 mx-4 w">{index + 1}. {item.personalInfo.last_name} {item.personalInfo.first_name}</p>
+                                                        <p className="text-sm mt-1 mx-8 w">Phone: {item.personalInfo.phone ?? "N/A"} | {item.personalInfo.gender === "m" ? "Male" : "Female"}</p>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Button size="sm" isIconOnly color="primary" className="flex flex-end">
+                                                        <EyeIcon />
+                                                    </Button>
+                                                </div>
+                                            </CardHeader>
+                                            <Divider />
+                                        </Card>
+                                    ))}
+                                    <Divider />
+
+                                    <h1 className="text-primary">Non-teaching staff match ({filteredNonTeachingStaff.length})</h1>
+                                    {filteredNonTeachingStaff.map((item, index) => (
+                                        <Card key={index} className="flex w-96 mx-4">
+                                            <CardHeader className="flex flex-row justify-between gap-3">
+                                                <div className="flex flex-row items-center">
+                                                    <UserRound className="border border rounded-lg" size={40} />
+                                                    <div className="flex flex-col">
+                                                        <p className="text-md mt-1 mx-4 w">{index + 1}. {item.surname} {item.otherNames}</p>
+                                                        <p className="text-sm mt-1 mx-8 w">{item.jobDescription} | {item.gender === "m" ? "Male" : "Female"}</p>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <Button size="sm" isIconOnly color="primary" className="flex flex-end">
+                                                        <EyeIcon />
+                                                    </Button>
+                                                </div>
+                                            </CardHeader>
+                                            <Divider />
+                                        </Card>
+                                    ))}
+                                    <Divider />
+
+
                                 </ModalBody>
                             }
                             <ModalFooter>

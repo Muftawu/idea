@@ -62,6 +62,7 @@ const MinimalStudentInfoSchema = z.object({
     student__surname: z.string(),
     student__otherNames: z.string(),
     student__gender: z.string(),
+    student__dateOfBirth: z.date().optional(),
 })
 
 const ClassRoomSchema = z.object({

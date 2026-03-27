@@ -52,30 +52,8 @@ export default function Staff() {
     }
 
     const staffUpdates = useRef<dynamicFormUpdates[]>([])
-    const [availableClasses, setAvailableClasses] = useState<ClassRoomSchemaT[]>([])
-    const [availableClassItems, setAvailableClassItems] = useState<multiSelectFormFieldProp[]>([])
-    const [staffAssignedClasses, setStaffAssignedClasses] = useState<string>("")
-    const [defaultSelectedAssignedClasses, setDefaultSelectedAssignedClasses] = useState<string[]>([])
 
-    // useEffect(() => {
-    //     const fetchAvailableClasses = async () => {
-    //         try {
-    //             const response = await fetch(`/api/classes?query=all`, {
-    //                 headers: { ...BaseRequestHeaders },
-    //             })
-    //             const result = await response.json()
-    //             if (!response.ok) {
-    //                 return Promise.reject(response.status)
-    //             } else {
-    //                 setAvailableClasses(result.data)
-    //                 const items = result.data.map(({ id, name }: { id: string, name: string }) => ({ key: id, label: `${name}` }))
-    //                 setAvailableClassItems(items)
-    //             }
-    //         } catch (err: any) {
-    //         }
-    //     }
-    //     fetchAvailableClasses()
-    // }, [])
+    const [staffAssignedClasses, setStaffAssignedClasses] = useState<string>("")
 
     useEffect(() => {
         const fetchStaffStats = async () => {
@@ -130,7 +108,6 @@ export default function Staff() {
 
     function handleOnCloseModal() {
         setStaffAssignedClasses("")
-        setDefaultSelectedAssignedClasses([])
         setStaffInfo({
             surname: "",
             otherNames: "",
