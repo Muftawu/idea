@@ -1,16 +1,33 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import { useMemo, useState } from "react"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Cell } from "recharts"
 import { cn } from "@/lib/utils"
 import { NonTeachingStaffSchemaT, StaffStatSchemaT, StaffT } from "@/lib/schemas"
-import { PDFDownloadLink } from "@react-pdf/renderer"
 import { Alert, Button, Spinner } from "@heroui/react"
 import { DownloadIcon } from "lucide-react"
-import { StudentPDFList } from "../reports/student_pdf_list"
-import { AllNonTeachingStaffPDFList } from "../reports/AllNonTeachingStaffPDFList"
 import { useSchoolContext } from "@/context/schoolContext"
-import { AllTeachingStaffPDFList } from "../reports/AllTeachingStaffPDFList"
+
+const PDFDownloadLink = dynamic(
+    () => import("@react-pdf/renderer").then(mod => mod.PDFDownloadLink),
+    { ssr: false, loading: () => <Spinner size="sm" /> }
+)
+const AllNonTeachingStaffPDFList = dynamic(
+    () => import("../reports/AllNonTeachingStaffPDFList").then(mod => mod.AllNonTeachingStaffPDFList),
+    { ssr: false }
+)
+const AllTeachingStaffPDFList = dynamic(
+    () => import("../reports/AllTeachingStaffPDFList").then(mod => mod.AllTeachingStaffPDFList),
+    { ssr: false }
+)
+
+
+// const BarChart = dynamic(() => import("recharts").then(mod => mod.BarChart), { ssr: false })
+// const Bar = dynamic(() => import("recharts").then(mod => mod.Bar), { ssr: false })
+// const ResponsiveContainer = dynamic(() => import("recharts").then(mod => mod.ResponsiveContainer), { ssr: false })
+// const XAxis = dynamic(() => import("recharts").then(mod => mod.XAxis), { ssr: false })
+// const YAxis = dynamic(() => import("recharts").then(mod => mod.YAxis), { ssr: false })
+// const Cell = dynamic(() => import("recharts").then(mod => mod.Cell), { ssr: false })
 
 function Gauge({ value }: { value: number }) {
     const radius = 85

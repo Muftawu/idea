@@ -15,6 +15,7 @@ export const SchoolProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const userData = useAuthContext()
     const [schoolSettings, setSchoolSettings] = useState<SchoolSettingsSchemaT>({
         name: "",
+        academicYear: "",
         currentTerm: "",
         termStarts: new Date(),
         termEnds: new Date(),

@@ -48,10 +48,13 @@ export function Topbar({ onMenuClick }: TopbarProps) {
     const [filteredTeachingStaff, setFilteredTeachingStaff] = useState<StaffT[]>([])
     const [filteredNonTeachingStaff, setFilteredNonTeachingStaff] = useState<NonTeachingStaffSchemaT[]>([])
 
-    // const [students, setStudents] = useState<StudentSchemaT[]>([])
     const [teachingStaff, setTeachingStaff] = useState<StaffT[]>([])
     const [nonteachingStaff, setNonteachingStaff] = useState<NonTeachingStaffSchemaT[]>([])
     const [filter, setFilter] = useState<(StudentSchemaT | StaffT | NonTeachingStaffSchemaT)[]>([])
+
+    const [showDetailInfo, setShowDetailInfo] = useState<boolean>(false)
+    const [detailInfo, setDetailInfo] = useState<StaffT | StudentSchemaT | NonTeachingStaffSchemaT>()
+    const [detailType, setDetailType] = useState<"teaching" | "non-teaching">("teaching")
 
     useEffect(() => {
         const fetchAllStudents = async () => {
@@ -175,6 +178,20 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         window.location.reload()
     }
 
+    const handleShowDetailInfo = (itemType: typeof detailType, item: StaffT | NonTeachingStaffSchemaT) => {
+        if (!itemType) return
+        if (!item) return
+
+        setShowDetailInfo(true)
+        setDetailType(itemType)
+
+        if (itemType === "teaching") {
+            setDetailInfo(item as StaffT)
+        } else {
+            setDetailInfo(item as NonTeachingStaffSchemaT)
+        }
+    }
+
     return (
         <header className="lg:-mx-7 sticky top-0 z-30 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border mb-6 rounded-xl lg:rounded-none">
             <div className="h-16 px-4 md:px-7  flex items-center justify-between gap-3">
@@ -253,10 +270,9 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
                             {loading ? <Spinner /> :
                                 <ModalBody className="">
-
                                     <h1 className="text-primary">Student Match ({filteredStudents.length})</h1>
                                     {filteredStudents.map((item, index) => (
-                                        <Card key={index} className="flex w-96 mx-4">
+                                        <Card key={index} className="flex w-full px-4">
                                             <CardHeader className="flex flex-row justify-between gap-3">
                                                 <div className="flex flex-row items-center">
                                                     <UserRound className="border border rounded-lg" size={40} />
@@ -266,60 +282,59 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <Button size="sm" isIconOnly color="primary" className="flex flex-end">
+                                                    <Button size="sm" isIconOnly color="primary" className="flex flex-end" onPress={() => window.location.href = `/academic-reports/${item.id}`}>
                                                         <EyeIcon />
                                                     </Button>
                                                 </div>
                                             </CardHeader>
-                                            <Divider />
                                         </Card>
                                     ))}
                                     <Divider />
 
                                     <h1 className="text-primary">Teaching staff match ({filteredTeachingStaff.length})</h1>
                                     {filteredTeachingStaff.map((item, index) => (
-                                        <Card key={index} className="flex w-96 mx-4">
+                                        <Card key={index} className="flex w-full px-4">
                                             <CardHeader className="flex flex-row justify-between gap-3">
                                                 <div className="flex flex-row items-center">
                                                     <UserRound className="border border rounded-lg" size={40} />
                                                     <div className="flex flex-col">
                                                         <p className="text-md mt-1 mx-4 w">{index + 1}. {item.personalInfo.last_name} {item.personalInfo.first_name}</p>
-                                                        <p className="text-sm mt-1 mx-8 w">Phone: {item.personalInfo.phone ?? "N/A"} | {item.personalInfo.gender === "m" ? "Male" : "Female"}</p>
+                                                        <p className="text-sm mt-1 mx-8 w">Phone: {item.personalInfo.phone ?? "N/A"}</p>
+                                                        <p className="text-sm mt-1 mx-8 w">Gender: {item.personalInfo.gender === "m" ? "Male" : "Female"}</p>
+                                                        <p className="text-sm mt-1 mx-8 w">Classes: {item.assignedClasses?.map((item) => (<span>{item.name},</span>))}</p>
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <Button size="sm" isIconOnly color="primary" className="flex flex-end">
-                                                        <EyeIcon />
-                                                    </Button>
-                                                </div>
+                                                {/* <div> */}
+                                                {/*     <Button onPress={() => {}} size="sm" isIconOnly color="primary" className="flex flex-end"> */}
+                                                {/*         <EyeIcon /> */}
+                                                {/*     </Button> */}
+                                                {/* </div> */}
                                             </CardHeader>
-                                            <Divider />
                                         </Card>
                                     ))}
                                     <Divider />
 
                                     <h1 className="text-primary">Non-teaching staff match ({filteredNonTeachingStaff.length})</h1>
                                     {filteredNonTeachingStaff.map((item, index) => (
-                                        <Card key={index} className="flex w-96 mx-4">
+                                        <Card key={index} className="flex w-full px-4">
                                             <CardHeader className="flex flex-row justify-between gap-3">
                                                 <div className="flex flex-row items-center">
                                                     <UserRound className="border border rounded-lg" size={40} />
                                                     <div className="flex flex-col">
-                                                        <p className="text-md mt-1 mx-4 w">{index + 1}. {item.surname} {item.otherNames}</p>
-                                                        <p className="text-sm mt-1 mx-8 w">{item.jobDescription} | {item.gender === "m" ? "Male" : "Female"}</p>
+                                                        <p className="text-sm mt-1 mx-4 w">{index + 1}. {item.surname} {item.otherNames}</p>
+                                                        <p className="text-sm mt-1 mx-8 w">Gender: {item.gender === "m" ? "Male": "Female"}</p>
+                                                        <p className="text-sm mt-1 mx-8 w">Role: {item.jobDescription}</p>
                                                     </div>
                                                 </div>
-                                                <div>
-                                                    <Button size="sm" isIconOnly color="primary" className="flex flex-end">
-                                                        <EyeIcon />
-                                                    </Button>
-                                                </div>
+                                                {/* <div> */}
+                                                {/*     <Button onPress={() => {}} size="sm" isIconOnly color="primary" className="flex flex-end"> */}
+                                                {/*         <EyeIcon /> */}
+                                                {/*     </Button> */}
+                                                {/* </div> */}
                                             </CardHeader>
-                                            <Divider />
                                         </Card>
                                     ))}
                                     <Divider />
-
 
                                 </ModalBody>
                             }

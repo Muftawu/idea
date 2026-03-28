@@ -135,7 +135,6 @@ export default function Staff() {
     }
 
     const handleCreateNewStaff = async () => {
-        console.log("staff info", staffInfo)
         const data = { ...staffInfo, dateOfBirth: new Date(staffInfo.dateOfBirth).toISOString().split("T")[0] }
         const fn = async () => {
             try {
@@ -247,15 +246,7 @@ export default function Staff() {
         setLoading(false)
         staffUpdates.current = []
     }
-
-    const handleOnCopyStaffCredential = async (info: string, text: string) => {
-        if (!info || !text) return
-        try {
-            await navigator.clipboard.writeText(text)
-            toast.info(`${info} copied`)
-        } catch (err: any) {
-        }
-    }
+ 
 
     return (
         <div className="min-h-dvh h-auto overflow-auto">

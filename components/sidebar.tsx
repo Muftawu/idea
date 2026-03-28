@@ -14,7 +14,8 @@ import {
     SettingsIcon,
     UserRoundPlusIcon,
     Clipboard,
-    UsersRound
+    UsersRound,
+    ShieldPlus
 
 } from "lucide-react"
 import Image from "next/image"
@@ -37,6 +38,7 @@ const items: Item[] = [
     { href: "/students", label: "Students", icon: UserRoundPlusIcon },
     { href: "/subjects", label: "Subjects", icon: BookOpen },
     { href: "/admin-academic-records", label: "Academic Records", icon: Clipboard },
+    { href: "/promotions", label: "Promotions", icon: ShieldPlus},
     { href: "/settings", label: "Settings", icon: SettingsIcon },
     { href: "/profile", label: "Profile", icon: UserRound },
 ]

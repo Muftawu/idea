@@ -360,11 +360,18 @@ export default function Classrooms() {
                                         <Divider />
                                         {!classRoomInfo?.studentList ? null :
                                             classRoomInfo.studentList?.length < 1 ? <p>No students available</p> :
-                                                classRoomInfo?.studentList?.map((item, index) => (
+                                                classRoomInfo?.studentList?.map((item2, index) => (
                                                     <Card key={index} className="w-full">
-                                                        <CardHeader className="flex gap-3">
-                                                            <CircleUser className="border border rounded-lg" size={40} />
-                                                            <p>{index + 1}. {item.student__surname} {item.student__otherNames}</p>
+                                                        <CardHeader className="flex flex-row justify-between items-center gap-3">
+                                                            <div className="flex flex-row">
+                                                                <CircleUser className="border border rounded-lg" size={40} />
+                                                                <p className="mt-2 mx-2">{index + 1}. {item2.student__surname} {item2.student__otherNames}</p>
+                                                            </div>
+                                                            {/* <div> */}
+                                                            {/*     <Button color="primary" isIconOnly onPress={() => window.location.href = `/academic-reports/${item2.student_id}`}> */}
+                                                            {/*         <EyeIcon /> */}
+                                                            {/*     </Button> */}
+                                                            {/* </div> */}
                                                         </CardHeader>
                                                         <Divider />
                                                     </Card>

@@ -8,6 +8,7 @@ const nextConfig = {
         ignoreBuildErrors: false,
     },
     reactStrictMode: true,
+    transpilePackages: ['@react-pdf/renderer'],
 };
 
 export default nextConfig;
