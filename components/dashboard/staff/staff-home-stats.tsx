@@ -34,7 +34,7 @@ export function StaffHomeStatistics({ userInfo }: { userInfo: UserSchemaT }) {
         if (!userInfo.userTypeId || userInfo.userTypeId.trim().length < 1) return
         const fetchStaffDetails = async () => {
             try {
-                const response = await fetch(`/api/staff?query=${userInfo.userTypeId}`, {
+                const response = await fetch(`/api/teaching-staff?query=${userInfo.userTypeId}`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()

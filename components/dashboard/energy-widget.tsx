@@ -47,8 +47,6 @@ function Gauge({ value }: { value: string }) {
 
 export default function EnergyWidget({ className }: { className?: string }) {
     const schoolData = useSchoolContext()
-    const term_starts = String(schoolData?.schoolSettings.termStarts).split("-")
-    const term_ends = String(schoolData?.schoolSettings.termEnds).split("-")
 
     const lastDays = [
         { d: "Starts", v: 10 },

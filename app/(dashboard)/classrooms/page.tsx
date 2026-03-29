@@ -3,8 +3,8 @@ import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, CircleUser } from "luc
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { useState, useEffect, useRef } from "react"
 import { ClassRoomSchemaT } from "@/lib/schemas"
-import { Form, Input, Select, SelectItem, Checkbox, Button, Alert } from "@heroui/react";
-import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
+import { Input, Select, SelectItem, Button, Alert } from "@heroui/react";
+import { Card, CardHeader, CardBody, Divider } from "@heroui/react";
 import {
     Modal,
     ModalContent,
@@ -234,7 +234,7 @@ export default function Classrooms() {
                     {!classroomsFetched || allClassrooms.length < 1 ? <p>No class data available for chart display</p> :
                         <div className="mt-6 mb-4 h-80 w-full rounded-xl bg-background p-4 ring-1 ring-border">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={allClassrooms} barCategoryGap={18}>
+                                <BarChart data={allClassrooms ?? []} barCategoryGap={18}>
                                     <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
                                     <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
                                     <YAxis stroke="hsl(var(--muted-foreground))" />

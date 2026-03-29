@@ -1,11 +1,11 @@
 "use client"
 import { DateValue } from "@heroui/react";
 import { getLocalTimeZone, CalendarDate } from "@internationalized/date"
-import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, Copy } from "lucide-react"
+import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit } from "lucide-react"
 import React from "react"
 import { useState, useEffect, useRef } from "react"
-import { ClassRoomSchemaT, NonTeachingStaffSchemaT, NonTeachingStaffStatSchemaT } from "@/lib/schemas"
-import { Alert, Input, Select, SelectItem, Button, DatePicker, Spinner, Textarea } from "@heroui/react";
+import { NonTeachingStaffSchemaT, NonTeachingStaffStatSchemaT } from "@/lib/schemas"
+import { Input, Select, SelectItem, Button, DatePicker, Spinner, Textarea } from "@heroui/react";
 import {
     Modal,
     ModalContent,
@@ -14,9 +14,8 @@ import {
     ModalFooter,
     useDisclosure,
 } from "@heroui/react";
-import { Separator } from "@/components/ui/separator"
 import StaffStatistics from "@/components/dashboard/staff/staff-stats"
-import { BaseErrMsg, BaseRequestHeaders, capitalize } from "@/lib/utils";
+import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils";
 import { Card, CardHeader, CardBody, Divider } from "@heroui/react";
 import { toast } from "react-toastify";
 import { dynamicFormUpdates } from "@/lib/utils";
@@ -45,11 +44,6 @@ export default function Staff() {
         religion: "",
         gender: "",
     })
-
-    type multiSelectFormFieldProp = {
-        key?: string,
-        label?: string
-    }
 
     const staffUpdates = useRef<dynamicFormUpdates[]>([])
 
@@ -96,9 +90,6 @@ export default function Staff() {
         if (!action) return
         setModalAction(action)
         if (action !== "add" && item) {
-            // const assignedClasses: string[] = item.assignedClasses?.map(({ id }) => `${id}`) ?? []
-            // setDefaultSelectedAssignedClasses(assignedClasses)
-            // setStaffAssignedClasses(assignedClasses?.join())
             setStaffInfo(item)
         } else {
             handleOnCloseModal()
@@ -415,6 +406,7 @@ export default function Staff() {
                                                 className="w-full"
                                                 label="Description"
                                                 placeholder="Enter your description"
+                                                value={staffInfo.jobDescription ?? ""}
                                                 labelPlacement="outside"
                                                 onChange={handlePersonalInfoChange}
                                             />
@@ -427,7 +419,7 @@ export default function Staff() {
                                                 <UserRound className="border border rounded-lg" size={40} />
                                                 <div className="flex flex-col">
                                                     <p className="text-md">{staffInfo.surname} {staffInfo.otherNames}</p>
-                                                    <p className="text-small text-default-500">{staffInfo.gender === "m" ? "Male" : "Female"} | {staffInfo.phone}</p>
+                                                    <p className="text-small text-default-500">Gender: {staffInfo.gender === "m" ? "Male" : "Female"} | Tel: {staffInfo.phone ?? "N/A"}</p>
                                                 </div>
                                             </CardHeader>
                                             <Divider />
@@ -439,7 +431,7 @@ export default function Staff() {
 
                                                 <h1 className="font-bold">Personal</h1>
                                                 <div className="mx-4">
-                                                    <p className="text-default-500">Staff Id: <b>{staffInfo.staffId ?? "IS---"}</b></p>
+                                                    <p className="text-default-500">Staff Id: <b>{staffInfo.staffId?.toUpperCase() ?? "IS---"}</b></p>
                                                     <p className="text-default-500">Surname: <b>{staffInfo.surname}</b></p>
                                                     <p className="text-default-500">OtherNames: <b>{staffInfo.otherNames}</b></p>
                                                     <p className="text-default-500">Gender: <b>{staffInfo.gender === "m" ? "Male" : "Female"}</b></p>
@@ -465,7 +457,7 @@ export default function Staff() {
                                                     <UserRound className="border border rounded-lg" size={40} />
                                                     <div className="flex flex-col">
                                                         <p className="text-md">{staffInfo.surname} {staffInfo.otherNames}</p>
-                                                        <p className="text-small text-default-500">{staffInfo.gender} | {staffInfo.phone}</p>
+                                                        <p className="text-small text-default-500">Gender: {staffInfo.gender} | Tel: {staffInfo.phone ?? "N/A"}</p>
                                                     </div>
                                                 </CardHeader>
                                                 <Divider />

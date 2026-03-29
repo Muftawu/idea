@@ -10,9 +10,6 @@ import { useContext, useState } from "react"
 export default function ProfilePage() {
     const userData = useContext(AuthContext)
 
-    const [notifications, setNotifications] = useState(true)
-    const [energySaving, setEnergySaving] = useState(false)
-
     if (!userData?.userInfo) return <Spinner label="Fetching user info" color="primary" />
 
     return (
@@ -24,9 +21,9 @@ export default function ProfilePage() {
                 <div className="mt-6 grid gap-6 md:grid-cols-3">
 
                     <div className="rounded-xl bg-background p-4 ring-1 ring-border">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 color-primary">
                             <Avatar className="size-12">
-                                <AvatarFallback className="text-lg">{userData.userInfo.first_name.at(0)}{userData.userInfo.last_name.at(0)}</AvatarFallback>
+                                <AvatarFallback className="text-lg text-white bg-primary">{userData.userInfo.first_name.at(0) ?? ""}{userData.userInfo.last_name.at(0) ?? "--"}</AvatarFallback>
                             </Avatar>
                             <div>
                                 <p className="font-medium text-foreground">{userData.userInfo.first_name} {userData.userInfo.last_name}</p>
@@ -38,11 +35,11 @@ export default function ProfilePage() {
 
                     <div className="rounded-xl bg-background p-4 ring-1 ring-border">
                         <div className="flex items-center gap-3">
-                            <Avatar className="size-12">
-                                <AvatarFallback className="text-lg">{userData.userInfo.userType.toUpperCase().at(0)}</AvatarFallback>
+                            <Avatar className="size-12 bg-primary">
+                                <AvatarFallback className="text-lg text-white bg-primary">{userData.userInfo.userType.toUpperCase().at(0) ?? ""}</AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-medium text-foreground">{capitalize(userData.userInfo.userType)}</p>
+                                <p className="font-medium text-foreground">{capitalize(userData.userInfo.userType ?? "")}</p>
                                 <p className="text-sm text-muted-foreground">User Role</p>
                             </div>
                         </div>

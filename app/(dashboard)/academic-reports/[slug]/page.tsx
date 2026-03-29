@@ -412,6 +412,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                 error: BaseErrMsg,
             })
         setLoading(false)
+        window.location.reload()
     }
 
     const handleUpdateStudentScores = async () => {

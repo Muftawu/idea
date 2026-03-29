@@ -209,7 +209,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                             value={q}
                             onChange={(e) => setQ(e.target.value)}
                             startContent={<SearchIcon />}
-                            placeholder="Search students & staff..."
+                            placeholder="Search students, staff, academic records..."
                             className="w-full border rounded-lg"
                             aria-label="Search"
                         />
@@ -223,7 +223,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                             <Bell className="size-5" aria-hidden />
                             <span className="sr-only">Open notifications</span>
                             <span className="absolute right-1 top-1 inline-flex items-center justify-center text-[10px] bg-red-500 text-white rounded-full h-4 min-w-4 px-1">
-                                3
+                                1
                             </span>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-64">

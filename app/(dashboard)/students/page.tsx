@@ -3,7 +3,7 @@
 import { DateValue } from "@heroui/react";
 import { getLocalTimeZone, CalendarDate } from "@internationalized/date"
 import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
-import { PlusCircle, EyeIcon, Edit, TrashIcon, UserRound } from "lucide-react"
+import { PlusCircle, EyeIcon, Edit, TrashIcon, UserRound, SearchIcon } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { ClassRoomSchemaT, GuardianSchemaT, StudentSchemaT, StudentStatsSchemaT } from "@/lib/schemas"
 import { Input, Select, SelectItem, Button, DatePicker, Pagination } from "@heroui/react";
@@ -68,6 +68,8 @@ export default function Students() {
 
     const maxDisplay = 7
     const [currentPage, setCurrentPage] = useState<number>(1)
+    const [pageStudentSearch, setPageStudentSearch] = useState<string>("")
+    const allStudentsRef = useRef<StudentSchemaT[]>([])
 
     useEffect(() => {
         const fetchStudentStats = async () => {
@@ -100,6 +102,7 @@ export default function Students() {
                 } else {
                     setStudentFetched(true)
                     setAllStudents(result.data)
+                    allStudentsRef.current = result.data
                 }
             } catch (err: any) {
                 setStudentFetched(false)
@@ -129,8 +132,9 @@ export default function Students() {
 
 
     useEffect(() => {
+        if (!studentInfo.guardianId || !studentInfo.id) return
+
         const fetchGuardianInfo = async () => {
-            if (!studentInfo.guardianId) return
             try {
                 const response = await fetch(`api/guardian?query=${studentInfo.guardianId}`, {
                     headers: { ...BaseRequestHeaders }
@@ -147,6 +151,11 @@ export default function Students() {
         }
         { getGuardianInfo ? fetchGuardianInfo() : null }
     }, [getGuardianInfo])
+
+    useEffect(() => {
+        if (pageStudentSearch.trim().length < 1) return
+        setAllStudents(allStudentsRef.current.filter(obj => obj.surname.toLowerCase().startsWith(pageStudentSearch) || obj.otherNames.toLowerCase().startsWith(pageStudentSearch)))
+    }, [pageStudentSearch])
 
     const handleStudentInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         if (modalAction === "update") {
@@ -345,6 +354,7 @@ export default function Students() {
                 error: BaseErrMsg
             }
         )
+        setPageStudentSearch("")
         handleOnCloseModal()
         setLoading(false)
     }
@@ -362,8 +372,20 @@ export default function Students() {
 
                 <StudentStatistics data={studentStats} />
 
-                <div className="mt-8">
+                <div className="flex flex-row justify-between mt-8">
                     <p className="mt-2 text-muted-foreground">All Students({allStudents.length})</p>
+                    {!studentFetched ? null :
+                        <div>
+                            <Input
+                                value={pageStudentSearch}
+                                onChange={(e) => setPageStudentSearch(e.target.value.toLowerCase())}
+                                startContent={<SearchIcon />}
+                                placeholder="Filter students..."
+                                className="w-48 border rounded-lg"
+                                aria-label="Search"
+                            />
+                        </div>
+                    }
                 </div>
 
                 <ul className="mt-6 divide-y divide-border">
@@ -373,7 +395,7 @@ export default function Students() {
                             <p className="mx-4">Fetching students data...</p>
                         </div>
                         : allStudents.length < 1 ? <p className="mx-4">No students available</p> :
-                            allStudents.slice(currentPage, currentPage + maxDisplay).map((item, index) => (
+                            allStudents.map((item, index) => (
                                 <li key={index} className="flex items-center gap-4 py-4">
                                     <div className="size-10 shrink-0 rounded-full bg-primary/10 grid place-items-center text-primary font-medium">
                                         {item.surname[0]}{item.otherNames[0]}
@@ -425,7 +447,7 @@ export default function Students() {
                                                 labelPlacement="outside"
                                                 placeholder="John"
                                                 className="w-full"
-                                                value={studentInfo.surname}
+                                                value={studentInfo.surname ?? ""}
                                                 onChange={handleStudentInfoChange}
                                             />
                                             <Input
@@ -435,7 +457,7 @@ export default function Students() {
                                                 labelPlacement="outside"
                                                 placeholder="Doe"
                                                 className="w-full"
-                                                value={studentInfo.otherNames}
+                                                value={studentInfo.otherNames ?? ""}
                                                 onChange={handleStudentInfoChange}
                                             />
                                             <Input
@@ -444,7 +466,7 @@ export default function Students() {
                                                 labelPlacement="outside"
                                                 placeholder="Kumasi"
                                                 className="w-full"
-                                                value={studentInfo.placeOfBirth}
+                                                value={studentInfo.placeOfBirth ?? ""}
                                                 onChange={handleStudentInfoChange}
                                             />
                                             <DatePicker
@@ -555,7 +577,7 @@ export default function Students() {
                                                 labelPlacement="outside"
                                                 placeholder=""
                                                 className="w-full"
-                                                value={guardianInfo.fullname}
+                                                value={guardianInfo.fullname ?? ""}
                                                 onChange={handleGuardianInfoChange}
                                             />
                                             <Input
@@ -564,7 +586,7 @@ export default function Students() {
                                                 labelPlacement="outside"
                                                 placeholder="Trader"
                                                 className="w-full"
-                                                value={guardianInfo.occupation}
+                                                value={guardianInfo.occupation ?? ""}
                                                 onChange={handleGuardianInfoChange}
                                             />
                                             <Select
@@ -572,7 +594,7 @@ export default function Students() {
                                                 label="Educational Background"
                                                 labelPlacement="outside"
                                                 placeholder={modalAction === "update" ? guardianInfo.educationalBackground : "Select edu. background"}
-                                                value={guardianInfo.educationalBackground}
+                                                value={guardianInfo.educationalBackground ?? ""}
                                                 onChange={handleGuardianInfoChange}
                                             >
                                                 {EducationalBackgrounds.map((item) => (
@@ -620,7 +642,7 @@ export default function Students() {
                                             </CardHeader>
                                             <Divider />
                                             <CardBody className="gap-4">
-                                                <h1 className="font-bold">Personal</h1>
+                                                <h1 className="font-bold">Personal Info</h1>
                                                 <div className="mx-4">
                                                     <p><b>Surname</b>: {studentInfo.surname}</p>
                                                     <p><b>OtherNames</b>: {studentInfo.otherNames}</p>
@@ -634,17 +656,18 @@ export default function Students() {
 
                                                 <h1 className="font-bold">Guardian Info</h1>
                                                 <div className="mx-4">
-                                                    {!guardianInfo.id ?
-                                                        <div className="flex flex-row ju">
-                                                            <p className="mx-4">Guardian info not found</p>
+                                                    {!getGuardianInfo && !guardianInfo ?
+                                                        <div className="flex flex-row justify-center items-center">
+                                                            <Spinner size="sm" />
+                                                            <p className="mx-4">Loading guardian info...</p>
                                                         </div> :
                                                         <>
-                                                            <p>Guardian Name: {guardianInfo.fullname || "N/A"}</p>
-                                                            <p>Occupation: {guardianInfo.occupation || "N/A"}</p>
-                                                            <p>Edu. Backgroub: {guardianInfo.educationalBackground || "N/A"}</p>
-                                                            <p>Phone: {guardianInfo.phone || "N/A"}</p>
-                                                            <p>Postal Add: {guardianInfo.postalAddress || "N/A"}</p>
-                                                            <p>House No: {guardianInfo.houseNumber || "N/A"}</p>
+                                                            <p><b>Guardian Name</b>: {guardianInfo.fullname ?? "N/A"}</p>
+                                                            <p><b>Occupation</b>: {guardianInfo.occupation ?? "N/A"}</p>
+                                                            <p><b>Edu. Backgroub</b>: {guardianInfo.educationalBackground ?? "N/A"}</p>
+                                                            <p><b>Phone</b>: {guardianInfo.phone ?? "N/A"}</p>
+                                                            <p><b>Postal Add</b>: {guardianInfo.postalAddress ?? "N/A"}</p>
+                                                            <p><b>House No</b>: {guardianInfo.houseNumber ?? "N/A"}</p>
                                                         </>
                                                     }
                                                 </div>

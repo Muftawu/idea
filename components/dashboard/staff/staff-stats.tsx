@@ -1,25 +1,14 @@
 "use client"
-
 import dynamic from "next/dynamic"
-import { useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
 import { NonTeachingStaffSchemaT, StaffStatSchemaT, StaffT } from "@/lib/schemas"
-import { Alert, Button, Spinner } from "@heroui/react"
-import { DownloadIcon } from "lucide-react"
+import { Alert, Spinner } from "@heroui/react"
 import { useSchoolContext } from "@/context/schoolContext"
 
-const PDFDownloadLink = dynamic(
-    () => import("@react-pdf/renderer").then(mod => mod.PDFDownloadLink),
-    { ssr: false, loading: () => <Spinner size="sm" /> }
-)
-const AllNonTeachingStaffPDFList = dynamic(
-    () => import("../reports/AllNonTeachingStaffPDFList").then(mod => mod.AllNonTeachingStaffPDFList),
-    { ssr: false }
-)
-const AllTeachingStaffPDFList = dynamic(
-    () => import("../reports/AllTeachingStaffPDFList").then(mod => mod.AllTeachingStaffPDFList),
-    { ssr: false }
-)
+const StaffPDFDownloadWrapper = dynamic(() => import("../wrappers/StaffPDFDownloadWrapper"), {
+    ssr: false,
+    loading: () => <Spinner size="sm" />
+})
 
 
 // const BarChart = dynamic(() => import("recharts").then(mod => mod.BarChart), { ssr: false })
@@ -69,36 +58,10 @@ function Gauge({ value }: { value: number }) {
     )
 }
 
-const lastDays = [
-    { d: "18", v: 18 },
-    { d: "19", v: 15 },
-    { d: "20", v: 28 },
-    { d: "21", v: 12 },
-    { d: "22", v: 40 }, // accent bar
-    { d: "23", v: 20 },
-    { d: "24", v: 30 },
-    { d: "25", v: 18 },
-]
 
 export default function StaffStatistics({ className, datatype, statdata, printdata }: { className?: string, datatype?: string, statdata: StaffStatSchemaT, printdata?: (NonTeachingStaffSchemaT | StaffT)[] }) {
     const schoolData = useSchoolContext()
-    if (!schoolData?.schoolSettings) return
-
-    const [value, setValue] = useState(65)
-
-    const bars = useMemo(
-        () =>
-            lastDays.map((x, i) => ({
-                ...x,
-                fill: i === 4 ? "var(--brand)" : "var(--muted-foreground)",
-            })),
-        [],
-    )
-
-    const trackBg = useMemo(
-        () => `linear-gradient(var(--brand), var(--brand)) 0/ ${value}% 100% no-repeat, var(--muted)`,
-        [value],
-    )
+    if (!schoolData?.schoolSettings) return 
 
     return (
         <section
@@ -134,35 +97,12 @@ export default function StaffStatistics({ className, datatype, statdata, printda
                             color="default"
                             description={`Download PDF List`}
                             endContent={
-                                datatype === "teaching-staff" ?
-                                    <PDFDownloadLink
-                                        document={<AllTeachingStaffPDFList academicTerm={schoolData.schoolSettings.currentTerm} academicYear={schoolData.schoolSettings.currentTerm} data={(printdata as StaffT[])} />}
-                                        fileName={`All_Teaching_Staff_${new Date().toDateString()}`}>
-                                        {({ blob, url, loading, error }) =>
-                                            loading ? <Spinner size="sm" /> :
-                                                <div className="flex flex-row justify-center items-center">
-                                                    <Button color="primary" isIconOnly={true}>
-                                                        <DownloadIcon />
-                                                    </Button>
-                                                </div>
-                                        }
-                                    </PDFDownloadLink>
-                                    :
-                                    <PDFDownloadLink
-                                        document={<AllNonTeachingStaffPDFList academicTerm={schoolData.schoolSettings.currentTerm} academicYear={schoolData.schoolSettings.currentTerm} data={(printdata as NonTeachingStaffSchemaT[])} />}
-                                        fileName={`All_NonTeaching_Staff_${new Date().toDateString()}`}>
-                                        {({ blob, url, loading, error }) =>
-                                            loading ? <Spinner size="sm" /> :
-                                                <div className="flex flex-row justify-center items-center">
-                                                    <Button color="primary" isIconOnly={true}>
-                                                        <DownloadIcon />
-                                                    </Button>
-                                                </div>
-                                        }
-                                    </PDFDownloadLink>
-                                // <Button isIconOnly={false} color="warning" size="sm" variant="flat">
-                                //     <DownloadIcon />
-                                // </Button>
+                                <StaffPDFDownloadWrapper
+                                    datatype={datatype}
+                                    printdata={printdata}
+                                    currentTerm={schoolData.schoolSettings.currentTerm}
+                                    academicYear={schoolData.schoolSettings.academicYear}
+                                />
                             }
                             title={`Export ${datatype} data`}
                             variant="faded"

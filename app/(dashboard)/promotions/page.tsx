@@ -120,14 +120,9 @@ export default function StudentPromotions() {
     if (!userData) return null
     if (!schoolSettings?.schoolSettings) return null
 
-    const handleStudentSelectionChange = (studentId: string[]) => {
-        // setSelectedStudents(prev => prev.find(obj => obj) ? prev.filter(item => item !== studentId) : [...prev, studentId])
-    }
-
     const handleStudentPromotions = async () => {
 
         if (!userData.userInfo.id) return null
-        return toast.info("Promotions page under maintenance. Please try again later.")
 
         const payload = { promotionFrom, promotionTo, selectedStudents }
 
@@ -154,11 +149,19 @@ export default function StudentPromotions() {
             fn,
             {
                 pending: "Applying student promotions. Please wait...",
-                success: "Student promotions successfully applied.",
-                error: BaseErrMsg,
+                success: {
+                    render({ data }: { data: string }) {
+                        return `${data ?? "Promotions successfully applied"}`
+                    }
+                },
+                error: {
+                    render({ data }: { data: string }) {
+                        return `${data ?? BaseErrMsg}`
+                    }
+                }
             })
-        router.refresh()
         setLoading(false)
+        window.location.reload()
     }
 
     const handleBatchSelection = () => {

@@ -6,10 +6,8 @@ import {
     Text,
     View,
     StyleSheet,
-    PDFDownloadLink,
-    Image,
 } from "@react-pdf/renderer";
-import { ClassRoomSchemaT, MinimalStudentInfoSchemaT, NonTeachingStaffSchemaT, StaffT } from "@/lib/schemas";
+import { ClassRoomSchemaT, MinimalStudentInfoSchemaT, NonTeachingStaffSchemaT } from "@/lib/schemas";
 
 const C = {
     brand: "#ff6501",
@@ -499,8 +497,6 @@ const PageFooter = ({ academicTerm, academicYear }: { academicTerm: string, acad
 // ─── Main Document ────────────────────────────────────────────────────────────
 
 export const AllStudentsPDFList = ({ academicTerm, academicYear, data }: { academicTerm: string, academicYear: string, data: ClassRoomSchemaT[] }) => {
-    console.log("data", data)
-
     let studentTotal = 0
     let malesArr: number[] = []
     data.filter(obj => obj.studentList?.filter(obj2 => obj2.student__gender === "m" ? malesArr.push(1) : malesArr))
@@ -510,7 +506,6 @@ export const AllStudentsPDFList = ({ academicTerm, academicYear, data }: { acade
     }, studentTotal)
     const males = malesArr.length
     const females = studentTotal - males
-    console.log("stu total", studentTotal)
 
     return (
         <Document

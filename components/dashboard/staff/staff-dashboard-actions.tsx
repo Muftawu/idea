@@ -65,7 +65,7 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
         if (!userInfo.userTypeId || userInfo.userTypeId.trim().length < 1) return
         const fetchStaffDetails = async () => {
             try {
-                const response = await fetch(`/api/staff?query=${userInfo.userTypeId}`, {
+                const response = await fetch(`/api/teaching-staff?query=${userInfo.userTypeId}`, {
                     headers: { ...BaseRequestHeaders },
                 })
                 const result = await response.json()
@@ -144,6 +144,7 @@ export const StaffDashboardActions = ({ userInfo }: { userInfo: UserSchemaT }) =
                                 <Alert variant="faded">
                                     <p className="font-bold">Student List ({currentClassList.length})</p>
                                     <p>Male: {currentClassList.filter(obj => obj.student__gender === "m").length} | Females: {currentClassList.filter(obj => obj.student__gender === "f").length}</p>
+                                    <p className="text-primary">Click on a sinlge student icon button to view update or add their academic records</p>
                                 </Alert>
                                 <Divider />
                                 {

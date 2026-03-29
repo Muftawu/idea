@@ -1,7 +1,6 @@
 import { BaseRequestHeaders } from '@/lib/utils';
 import { NextResponse, NextRequest } from 'next/server';
 import { cookies } from "next/headers";
-import { StudentSchemaT } from '@/lib/schemas';
 import { refetchTokens, removeAuthTokens } from '@/lib/actions';
 
 const baseUrlDetail = `${process.env.BASE_API_URL}/api-utils/academic/student-promotions/`
@@ -12,7 +11,7 @@ type promotionSchema = {
     selectedStudents: string[]
 }
 
-const updateFn = async ({payload}: {payload: promotionSchema }) => {
+const updateFn = async (payload: promotionSchema) => {
     const cookieStore = await cookies()
     const access_token = cookieStore.get("access_token")?.value ?? ""
 
