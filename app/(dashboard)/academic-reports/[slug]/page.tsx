@@ -683,7 +683,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                 <div className="">
                                                                     {classSubjectList?.subjects.map((item) => (
                                                                         <div key={`class_exam_score_${item.id}`} className="bg-gray-200 pt-4 rounded-lg">
-                                                                            <p className="flex mx-4">{item.subjectName}</p>
+                                                                            <p className="flex text-primary font-bold mx-4">{item.subjectName}</p>
                                                                             <div key={item.id} className="grid grid-cols-2 gap-y-8 m-2">
                                                                                 <div key={`class__${item.id}`} className="mx-2 gap-8">
                                                                                     <NumberInput
@@ -914,9 +914,9 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                 <div className="">
                                                                     {(currentResultsToPrint as RecordNumberSchema[]).map((item) => (
                                                                         <div key={`class_exam_score_${item.recordObj.id}`} className="bg-gray-200 pt-4 rounded-lg">
-                                                                            <p className="flex mx-4">{item.recordObj.classSubject}</p>
+                                                                            <p className="flex font-bold text-primary mx-4">{item.recordObj.classSubject}</p>
                                                                             <div key={item.recordObj.id} className="grid grid-cols-2 gap-y-8 m-2">
-                                                                                <div key={`class__${item.recordObj.id}`} className="mx-2 gap-8">
+                                                                                <div key={`class__${item.recordObj.id}`} className="mx-2 gap-8 mb-4">
                                                                                     <NumberInput
                                                                                         isRequired
                                                                                         label="Class Score"
