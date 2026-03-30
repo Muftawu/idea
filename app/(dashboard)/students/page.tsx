@@ -442,6 +442,16 @@ export default function Students() {
                                         <div className="mx-4 gap-8 space-y-12 mb-4">
                                             <Input
                                                 isRequired
+                                                name="studentId"
+                                                label="Student Id"
+                                                labelPlacement="outside"
+                                                placeholder="IS000"
+                                                className="w-full"
+                                                value={studentInfo.studentId?.toUpperCase() ?? ""}
+                                                onChange={handleStudentInfoChange}
+                                            />
+                                            <Input
+                                                isRequired
                                                 name="surname"
                                                 label="Surname"
                                                 labelPlacement="outside"
@@ -644,11 +654,12 @@ export default function Students() {
                                             <CardBody className="gap-4">
                                                 <h1 className="font-bold">Personal Info</h1>
                                                 <div className="mx-4">
-                                                    <p><b>Surname</b>: {studentInfo.surname}</p>
+                                                    <p><b>Surname</b>: {studentInfo.surname ?? "N/A"}</p>
+                                                    <p><b>Student Id</b>: {studentInfo.studentId ?? "N/A"}</p>
                                                     <p><b>OtherNames</b>: {studentInfo.otherNames}</p>
                                                     <p><b>Gender</b>: {studentInfo.gender === "m" ? "Male" : "Female"}</p>
                                                     <p><b>Age</b>: {studentInfo.age ?? "N/A"}</p>
-                                                    <p><b>Current Class</b>: {studentInfo.currentClass?.name}</p>
+                                                    <p><b>Current Class</b>: {studentInfo.currentClass?.name ?? "N/A"}</p>
                                                     <p><b>Religion</b>: {studentInfo.religion}</p>
                                                     <p><b>DateOfBirth</b>: {new Date(studentInfo.dateOfBirth).toLocaleDateString()}</p>
                                                     <p><b>Place Of Birth</b>: {studentInfo.placeOfBirth ?? "N/A"}</p>

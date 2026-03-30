@@ -404,8 +404,8 @@ export default function Staff() {
                                             <Textarea
                                                 name="jobDescription"
                                                 className="w-full"
-                                                label="Description"
-                                                placeholder="Enter your description"
+                                                label="Job description"
+                                                placeholder="Enter job description"
                                                 value={staffInfo.jobDescription ?? ""}
                                                 labelPlacement="outside"
                                                 onChange={handlePersonalInfoChange}

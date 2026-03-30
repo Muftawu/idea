@@ -301,7 +301,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                                                         <p className="text-md mt-1 mx-4 w">{index + 1}. {item.personalInfo.last_name} {item.personalInfo.first_name}</p>
                                                         <p className="text-sm mt-1 mx-8 w">Phone: {item.personalInfo.phone ?? "N/A"}</p>
                                                         <p className="text-sm mt-1 mx-8 w">Gender: {item.personalInfo.gender === "m" ? "Male" : "Female"}</p>
-                                                        <p className="text-sm mt-1 mx-8 w">Classes: {item.assignedClasses?.map((item) => (<span>{item.name},</span>))}</p>
+                                                        <p className="text-sm mt-1 mx-8 w">Classes: {item.assignedClasses?.map((item, index) => (<span key={index}>{item.name},</span>))}</p>
                                                     </div>
                                                 </div>
                                                 {/* <div> */}

@@ -49,6 +49,8 @@ const SchoolSettingsSchema = z.object({
     currentTerm: z.string(),
     termStarts: z.date(),
     termEnds: z.date(),
+    attendance: z.number().optional(),
+    staffPortalStatus: z.string().optional(),
     nextReopeningDate: z.date()
 })
 
@@ -117,6 +119,7 @@ const CurrentClassDetailSchema = z.object({
 // STUDENT //
 const StudentSchema = z.object({
     id: z.string().optional(),
+    studentId: z.string().optional(),
     surname: z.string(),
     otherNames: z.string(),
     dateOfBirth: z.date(),

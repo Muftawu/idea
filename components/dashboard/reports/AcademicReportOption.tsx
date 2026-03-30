@@ -63,7 +63,7 @@ const s = StyleSheet.create({
         backgroundColor: C.bg,
         paddingBottom: 32,
         paddingHorizontal: 0,
-        fontFamily: "Helvetica",
+        fontFamily: "Helvetica", 
     },
 
     // Header band

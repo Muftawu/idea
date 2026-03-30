@@ -532,9 +532,9 @@ export const AllTeachingStaffPDFList = ({ academicTerm, academicYear, data }: { 
 
     return (
         <Document
-            title={`All Student List — ${new Date().toDateString()}`}
+            title={`All Teaching Staff List — ${new Date().toDateString()}`}
             author="IDEA International School"
-            subject="All Student List"
+            subject="All Teaching Staff List"
         >
             <Page size="A4" style={s.page} orientation="portrait">
 
@@ -585,7 +585,7 @@ export const AllTeachingStaffPDFList = ({ academicTerm, academicYear, data }: { 
 
                     <View style={s.sectionHeading}>
                         <View style={s.sectionLine} />
-                        <Text style={s.sectionTitle}>All Non-Teaching Staff</Text>
+                        <Text style={s.sectionTitle}>All Teaching Staff</Text>
                     </View>
 
                     < View style={s.table} >

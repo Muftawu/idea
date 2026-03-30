@@ -2,8 +2,7 @@
 import { getLocalTimeZone, CalendarDate } from "@internationalized/date"
 import { DateValue } from "@heroui/react";
 import type React from "react"
-import { Card, CardHeader, CardBody, CardFooter, Divider } from "@heroui/react";
-import { Input, Select, SelectItem, Button, DatePicker } from "@heroui/react";
+import { Input, Select, SelectItem, Button, DatePicker, NumberInput } from "@heroui/react";
 import {
     Modal,
     ModalContent,
@@ -13,7 +12,6 @@ import {
     useDisclosure,
 } from "@heroui/react";
 import { useEffect, useState } from "react"
-import { Switch } from "@/components/ui/switch"
 import { Settings2, BadgeInfoIcon } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { SchoolSettingsSchemaT } from "@/lib/schemas";
@@ -48,7 +46,7 @@ export default function Settings() {
                 })
                 const result = await response.json()
                 if (!response.ok) {
-                    return null
+                    setFetchedSchoolSettings(true)
                 } else {
                     setSchoolSettings(result.data)
                 }
@@ -58,6 +56,7 @@ export default function Settings() {
             }
         }
         fetchSchoolSettings()
+        router.refresh()
     }, [loading, userData?.userInfo.id])
 
     if (!userData) return null
@@ -77,6 +76,8 @@ export default function Settings() {
             academicYear: schoolSettings.academicYear,
             termStarts: new Date(schoolSettings.termStarts).toISOString().split("T")[0],
             termEnds: new Date(schoolSettings.termEnds).toISOString().split("T")[0],
+            attendance: schoolSettings.attendance,
+            staffPortalStatus: schoolSettings.staffPortalStatus,
             nextReopeningDate: new Date(schoolSettings.nextReopeningDate).toISOString().split("T")[0]
         }
         const fn = async () => {
@@ -101,11 +102,10 @@ export default function Settings() {
         await toast.promise(
             fn,
             {
-                pending: "Saving student record",
-                success: "Student record successfully saved",
+                pending: "Updating school settings...",
+                success: "School settings successfully updated",
                 error: BaseErrMsg,
             })
-        router.refresh()
         setLoading(false)
     }
 
@@ -128,8 +128,8 @@ export default function Settings() {
                                         <BadgeInfoIcon />
                                     </Button>
                                     <div>
-                                        <h1 className="text-lg font-bold">{schoolSettings.currentTerm} Term</h1>
-                                        <p className="font-normal text-foreground">Term</p>
+                                        <h1 className="text-lg font-bold">{schoolSettings.currentTerm ?? "--"} Term</h1>
+                                        <p className="font-normal text-foreground">Current Academic Term</p>
                                     </div>
                                 </div>
                             </div>
@@ -141,8 +141,8 @@ export default function Settings() {
                                         <BadgeInfoIcon />
                                     </Button>
                                     <div>
-                                        <h1 className="text-lg font-bold">{new Date(schoolSettings.termStarts).toDateString()}</h1>
-                                        <p className="font-normal text-foreground">Term Start</p>
+                                        <h1 className="text-lg font-bold">{new Date(schoolSettings.termStarts).toDateString() ?? "--"}</h1>
+                                        <p className="font-normal text-foreground">Current Term Start</p>
                                     </div>
                                 </div>
                             </div>
@@ -154,8 +154,8 @@ export default function Settings() {
                                         <BadgeInfoIcon />
                                     </Button>
                                     <div>
-                                        <h1 className="text-lg font-bold">{new Date(schoolSettings.termEnds).toDateString()}</h1>
-                                        <p className="font-normal text-foreground">Term Start</p>
+                                        <h1 className="text-lg font-bold">{new Date(schoolSettings.termEnds).toDateString() ?? "--"}</h1>
+                                        <p className="font-normal text-foreground">Current Term Ends</p>
                                     </div>
                                 </div>
                             </div>
@@ -167,7 +167,7 @@ export default function Settings() {
                                         <BadgeInfoIcon />
                                     </Button>
                                     <div>
-                                        <h1 className="text-lg font-bold">{new Date(schoolSettings.nextReopeningDate).toDateString()}</h1>
+                                        <h1 className="text-lg font-bold">{new Date(schoolSettings.nextReopeningDate).toDateString() ?? "--"}</h1>
                                         <p className="font-normal text-foreground">Next Reopening Date</p>
                                     </div>
                                 </div>
@@ -180,13 +180,38 @@ export default function Settings() {
                                         <BadgeInfoIcon />
                                     </Button>
                                     <div>
-                                        <h1 className="text-lg font-bold">{schoolSettings.academicYear}</h1>
+                                        <h1 className="text-lg font-bold">{schoolSettings.academicYear ?? "--"}</h1>
                                         <p className="font-normal text-foreground">Academic Year</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
+                        <div className="rounded-xl bg-background p-4 ring-1 ring-border">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Button isIconOnly={true} color="primary">
+                                        <BadgeInfoIcon />
+                                    </Button>
+                                    <div>
+                                        <h1 className="text-lg font-bold">{schoolSettings.attendance ?? "--"}</h1>
+                                        <p className="font-normal text-foreground">Current Term Attendance</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="rounded-xl bg-background p-4 ring-1 ring-border">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Button isIconOnly={true} color="primary">
+                                        <BadgeInfoIcon />
+                                    </Button>
+                                    <div>
+                                        <h1 className="text-lg font-bold">{schoolSettings.staffPortalStatus ?? "--"}</h1>
+                                        <p className="font-normal text-foreground">Staff Portal Status</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 }
             </section>
@@ -226,6 +251,16 @@ export default function Settings() {
                                             className="w-full"
                                             value={schoolSettings.academicYear}
                                             onChange={handleOnSchoolSettingsFormChange}
+                                        />
+                                        <NumberInput
+                                            isRequired={true}
+                                            label="Attendance"
+                                            placeholder="55"
+                                            minValue={0}
+                                            value={schoolSettings.attendance ?? 0}
+                                            labelPlacement="outside"
+                                            className="w-full"
+                                            onValueChange={(e) => setSchoolSettings({ ...schoolSettings, attendance: e })}
                                         />
                                         <DatePicker
                                             label="Term start date (month/day/year)"
@@ -287,6 +322,19 @@ export default function Settings() {
                                                 nextReopeningDate: value ? value.toDate(getLocalTimeZone()) : new Date()
                                             })}
                                         />
+                                        <Select
+                                            name="staffPortalStatus"
+                                            label="Staff portal status" 
+                                            className=""
+                                            labelPlacement="outside"
+                                            placeholder="Set staff portal status"
+                                            selectedKeys={[schoolSettings.staffPortalStatus ?? ""]}
+                                            onChange={handleOnSchoolSettingsFormChange}
+                                        >
+                                            <SelectItem key="Opened">Open</SelectItem>
+                                            <SelectItem key="Closed">Close</SelectItem>
+                                        </Select>
+
 
                                     </div>
                                 </>
