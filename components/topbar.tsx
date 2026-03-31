@@ -291,50 +291,54 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                                     ))}
                                     <Divider />
 
-                                    <h1 className="text-primary">Teaching staff match ({filteredTeachingStaff.length})</h1>
-                                    {filteredTeachingStaff.map((item, index) => (
-                                        <Card key={index} className="flex w-full px-4">
-                                            <CardHeader className="flex flex-row justify-between gap-3">
-                                                <div className="flex flex-row items-center">
-                                                    <UserRound className="border border rounded-lg" size={40} />
-                                                    <div className="flex flex-col">
-                                                        <p className="text-md mt-1 mx-4 w">{index + 1}. {item.personalInfo.last_name} {item.personalInfo.first_name}</p>
-                                                        <p className="text-sm mt-1 mx-8 w">Phone: {item.personalInfo.phone ?? "N/A"}</p>
-                                                        <p className="text-sm mt-1 mx-8 w">Gender: {item.personalInfo.gender === "m" ? "Male" : "Female"}</p>
-                                                        <p className="text-sm mt-1 mx-8 w">Classes: {item.assignedClasses?.map((item, index) => (<span key={index}>{item.name},</span>))}</p>
-                                                    </div>
-                                                </div>
-                                                {/* <div> */}
-                                                {/*     <Button onPress={() => {}} size="sm" isIconOnly color="primary" className="flex flex-end"> */}
-                                                {/*         <EyeIcon /> */}
-                                                {/*     </Button> */}
-                                                {/* </div> */}
-                                            </CardHeader>
-                                        </Card>
-                                    ))}
-                                    <Divider />
+                                    {authInfo.userInfo.userType !== "admin" ? null :
+                                        <>
+                                            <h1 className="text-primary">Teaching staff match ({filteredTeachingStaff.length})</h1>
+                                            {filteredTeachingStaff.map((item, index) => (
+                                                <Card key={index} className="flex w-full px-4">
+                                                    <CardHeader className="flex flex-row justify-between gap-3">
+                                                        <div className="flex flex-row items-center">
+                                                            <UserRound className="border border rounded-lg" size={40} />
+                                                            <div className="flex flex-col">
+                                                                <p className="text-md mt-1 mx-4 w">{index + 1}. {item.personalInfo.last_name} {item.personalInfo.first_name}</p>
+                                                                <p className="text-sm mt-1 mx-8 w">Phone: {item.personalInfo.phone ?? "N/A"}</p>
+                                                                <p className="text-sm mt-1 mx-8 w">Gender: {item.personalInfo.gender === "m" ? "Male" : "Female"}</p>
+                                                                <p className="text-sm mt-1 mx-8 w">Classes: {item.assignedClasses?.map((item, index) => (<span key={index}>{item.name},</span>))}</p>
+                                                            </div>
+                                                        </div>
+                                                        {/* <div> */}
+                                                        {/*     <Button onPress={() => {}} size="sm" isIconOnly color="primary" className="flex flex-end"> */}
+                                                        {/*         <EyeIcon /> */}
+                                                        {/*     </Button> */}
+                                                        {/* </div> */}
+                                                    </CardHeader>
+                                                </Card>
+                                            ))}
+                                            <Divider />
 
-                                    <h1 className="text-primary">Non-teaching staff match ({filteredNonTeachingStaff.length})</h1>
-                                    {filteredNonTeachingStaff.map((item, index) => (
-                                        <Card key={index} className="flex w-full px-4">
-                                            <CardHeader className="flex flex-row justify-between gap-3">
-                                                <div className="flex flex-row items-center">
-                                                    <UserRound className="border border rounded-lg" size={40} />
-                                                    <div className="flex flex-col">
-                                                        <p className="text-sm mt-1 mx-4 w">{index + 1}. {item.surname} {item.otherNames}</p>
-                                                        <p className="text-sm mt-1 mx-8 w">Gender: {item.gender === "m" ? "Male": "Female"}</p>
-                                                        <p className="text-sm mt-1 mx-8 w">Role: {item.jobDescription}</p>
-                                                    </div>
-                                                </div>
-                                                {/* <div> */}
-                                                {/*     <Button onPress={() => {}} size="sm" isIconOnly color="primary" className="flex flex-end"> */}
-                                                {/*         <EyeIcon /> */}
-                                                {/*     </Button> */}
-                                                {/* </div> */}
-                                            </CardHeader>
-                                        </Card>
-                                    ))}
-                                    <Divider />
+                                            <h1 className="text-primary">Non-teaching staff match ({filteredNonTeachingStaff.length})</h1>
+                                            {filteredNonTeachingStaff.map((item, index) => (
+                                                <Card key={index} className="flex w-full px-4">
+                                                    <CardHeader className="flex flex-row justify-between gap-3">
+                                                        <div className="flex flex-row items-center">
+                                                            <UserRound className="border border rounded-lg" size={40} />
+                                                            <div className="flex flex-col">
+                                                                <p className="text-sm mt-1 mx-4 w">{index + 1}. {item.surname} {item.otherNames}</p>
+                                                                <p className="text-sm mt-1 mx-8 w">Gender: {item.gender === "m" ? "Male" : "Female"}</p>
+                                                                <p className="text-sm mt-1 mx-8 w">Role: {item.jobDescription}</p>
+                                                            </div>
+                                                        </div>
+                                                        {/* <div> */}
+                                                        {/*     <Button onPress={() => {}} size="sm" isIconOnly color="primary" className="flex flex-end"> */}
+                                                        {/*         <EyeIcon /> */}
+                                                        {/*     </Button> */}
+                                                        {/* </div> */}
+                                                    </CardHeader>
+                                                </Card>
+                                            ))}
+                                            <Divider />
+                                        </>
+                                    }
 
                                 </ModalBody>
                             }

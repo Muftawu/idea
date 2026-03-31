@@ -482,7 +482,7 @@ const ActivityTableRow = ({
     );
 };
 
-export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate, data }: { academicYear: string, vacationDate: string, reopeningDate: string, data: RecordOptionPackage }) => {
+export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate, totalAttendance, data }: { academicYear: string, vacationDate: string, reopeningDate: string, totalAttendance: number, data: RecordOptionPackage }) => {
 
     return (
         <Document
@@ -527,7 +527,7 @@ export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate
                             <InfoCell label="Term" value={val(data.academicTerm)} />
                             <InfoCell label="Academic Year" value={academicYear ?? new Date().getFullYear()} />
                             <InfoCell label="No. on Roll" value={val(data.conduct?.rollNo)} />
-                            <InfoCell label="Attendance" value={val(data.conduct?.attendance)} />
+                            <InfoCell label="Attendance" value={`${val(data.conduct?.attendance)} out of ${totalAttendance}`} />
                             <InfoCell label="Vacation Date" value={vacationDate ?? "---"} />
                             <InfoCell label="Reopening Date" value={reopeningDate ?? "---"} />
                         </View>

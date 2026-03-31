@@ -676,7 +676,7 @@ const GradingKey = () => {
 };
 
 
-export const AcademicReportNumber = ({ academicYear, vacationDate, reopeningDate, data }: { academicYear: string, vacationDate: string, reopeningDate: string, data: RecordNumberPackage }) => {
+export const AcademicReportNumber = ({ academicYear, vacationDate, reopeningDate, totalAttendance, data }: { academicYear: string, vacationDate: string, reopeningDate: string, totalAttendance: number, data: RecordNumberPackage }) => {
     if (!data) return
     const isJHS = data.classGroup === "jhs" ? true : false
 
@@ -723,7 +723,7 @@ export const AcademicReportNumber = ({ academicYear, vacationDate, reopeningDate
                                     <InfoCell label="Term" value={val(data.academicTerm)} />
                                     <InfoCell label="Academic Year" value={academicYear} />
                                     <InfoCell label="No. on Roll" value={val(data.conduct?.rollNo)} />
-                                    <InfoCell label="Attendance" value={val(data.conduct?.attendance)} half />
+                                    <InfoCell label="Attendance" value={`${val(data.conduct?.attendance)} out of ${totalAttendance}`} half />
                                     <InfoCell label="Vacation Date" value={vacationDate ?? "---"} half />
                                     <InfoCell label="Reopening Date" value={reopeningDate ?? "---"} half />
                                     <InfoCell label="Promotion Status" value="N/A" half />

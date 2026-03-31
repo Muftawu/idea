@@ -287,6 +287,29 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         fn()
     }, [isCurrentResultToPrintReady])
 
+    useEffect(() => {
+
+        if (!userData || !userData.userInfo || !userData.userInfo.userTypeId || !userData.userInfo.userType) return
+        if (!allStaff || allStaff.length < 1) return
+        if (!studentInfo || !studentInfo.currentClass || !studentInfo.currentClass.name) return
+
+        const fn = () => {
+            const staffExists = allStaff.find(obj => obj.id === userData.userInfo.userTypeId)
+            if (!staffExists) {
+                return
+            }
+            else {
+                if (!studentInfo.currentClass.name) return
+                const hasPerm = staffExists.assignedClasses?.find(obj => obj.name === studentInfo.currentClass.name)
+                if (!hasPerm) {
+                    toast.warning("You do not have permission to view this student")
+                    return window.location.href = "/dashboard"
+                }
+            }
+        }
+        fn()
+    }, [userData?.userInfo.userTypeId, studentInfo.currentClass.name, allStaff])
+
     if (!userData || !schoolData) return <Spinner label="Loading please wait" />
 
     const handleOpenModal = (action: typeof modalAction, results?: (RecordOptionSchema | RecordNumberSchema)[]) => {
@@ -497,7 +520,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                     <div className="rounded-xl bg-background p-4 ring-1 ring-border">
                         <div className="flex items-center gap-3">
                             <Avatar className="size-12">
-                                <AvatarFallback className="text-lg">{studentInfo.surname.at(0)}{studentInfo.otherNames.at(0)}</AvatarFallback>
+                                <AvatarFallback className="text-lg text-white bg-primary">{studentInfo.surname.at(0)}{studentInfo.otherNames.at(0)}</AvatarFallback>
                             </Avatar>
                             {!studentInfo.surname || !studentInfo.otherNames ? <Spinner /> :
                                 <div>
@@ -518,7 +541,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                         endContent={
                                             ClassGroupListOptions.includes(currentResultsToPrint.at(0)?.classGroup ?? "") ?
                                                 <PDFDownloadLink
-                                                    document={<AcademicReportOption academicYear={schoolData.schoolSettings.academicYear} vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} data={finalRecordExportDataOptions} />}
+                                                    document={<AcademicReportOption academicYear={schoolData.schoolSettings.academicYear} vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} totalAttendance={schoolData.schoolSettings.attendance ?? 0} data={finalRecordExportDataOptions} />}
                                                     fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${reportClassType}_${new Date().getFullYear()}`}>
                                                     {({ blob, url, loading, error }) =>
                                                         loading ? <Spinner size="sm" /> :
@@ -531,7 +554,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                 </PDFDownloadLink>
                                                 :
                                                 <PDFDownloadLink
-                                                    document={<AcademicReportNumber academicYear={schoolData.schoolSettings.academicYear} vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} data={finalRecordExportDataNumber} />}
+                                                    document={<AcademicReportNumber academicYear={schoolData.schoolSettings.academicYear} vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} totalAttendance={schoolData.schoolSettings.attendance ?? 0} data={finalRecordExportDataNumber} />}
                                                     fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${reportClassType}_${new Date().getFullYear()}`}>
                                                     {({ blob, url, loading, error }) =>
                                                         loading ? <Spinner size="sm" /> :
@@ -620,7 +643,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                 </ul>
             </section >
 
-            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[90%] mx-4 scrollbar-hide`}>
+            <Modal isOpen={isOpen} size="lg" backdrop="opaque" placement="center" onOpenChange={onOpenChange} className={`overflow-y-auto h-auto max-h-[80%] mx-4 scrollbar-hide`}>
                 <ModalContent>
                     {(onClose) => (
                         <>
@@ -653,8 +676,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
 
                                         {!classSubjectList ? <Spinner label="Loading subjects. Please wait..." /> :
-                                            <Tabs size="lg" radius="md" color="primary" disabledKeys={["promotions"]}>
-                                                <Tab key="scores" title="Scores">
+                                            <Tabs size="lg" radius="md" color="primary" disabledKeys={[]}>
+                                                <Tab key="scores" title="Student Scores">
                                                     <Card className="flex flex-col gap-y-4">
                                                         <CardBody>
                                                             {classSubjectList?.scoreType === "options" ?
@@ -775,7 +798,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                         </CardBody>
                                                     </Card>
                                                 </Tab>
-                                                <Tab key="conduct" title="Conduct">
+                                                <Tab key="conduct" title="Student Conduct">
                                                     <Card className="flex flex-col gap-y-4">
                                                         <div className="gap-y-8 m-4">
                                                             <div className="grid grid-cols-2 mx-4 gap-8 space-y-12">
@@ -851,32 +874,32 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                         </div>
                                                     </Card>
                                                 </Tab>
-                                                <Tab key="promotions" title="Promotions">
-                                                    <Card className="flex flex-col gap-y-4">
-                                                        <div className="grid grid-cols-2 gap-y-8 m-4">
-                                                            <div className="mx-4 gap-8 space-y-12">
-                                                                <NumberInput
-                                                                    isRequired
-                                                                    name="rollNo"
-                                                                    label="Number on roll"
-                                                                    labelPlacement="outside"
-                                                                    validate={(value) => {
-                                                                        if (value < 0) {
-                                                                            return "Number must be greater than 0";
-                                                                        }
-                                                                        if (value > 54) {
-                                                                            return "Number must be less than 54";
-                                                                        }
-                                                                    }}
-                                                                    className="w-full"
-                                                                    formatOptions={{
-                                                                        style: "percent",
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </Card>
-                                                </Tab>
+                                                {/* <Tab key="promotions" title="Promotions"> */}
+                                                {/*     <Card className="flex flex-col gap-y-4"> */}
+                                                {/*         <div className="grid grid-cols-2 gap-y-8 m-4"> */}
+                                                {/*             <div className="mx-4 gap-8 space-y-12"> */}
+                                                {/*                 <NumberInput */}
+                                                {/*                     isRequired */}
+                                                {/*                     name="rollNo" */}
+                                                {/*                     label="Number on roll" */}
+                                                {/*                     labelPlacement="outside" */}
+                                                {/*                     validate={(value) => { */}
+                                                {/*                         if (value < 0) { */}
+                                                {/*                             return "Number must be greater than 0"; */}
+                                                {/*                         } */}
+                                                {/*                         if (value > 54) { */}
+                                                {/*                             return "Number must be less than 54"; */}
+                                                {/*                         } */}
+                                                {/*                     }} */}
+                                                {/*                     className="w-full" */}
+                                                {/*                     formatOptions={{ */}
+                                                {/*                         style: "percent", */}
+                                                {/*                     }} */}
+                                                {/*                 /> */}
+                                                {/*             </div> */}
+                                                {/*         </div> */}
+                                                {/*     </Card> */}
+                                                {/* </Tab> */}
 
                                             </Tabs>
                                         }
@@ -885,8 +908,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                     :
                                     modalAction === "update" ?
                                         !classSubjectList ? <Spinner label="Loading subjects. Please wait..." /> :
-                                            <Tabs size="lg" radius="md" color="primary" disabledKeys={["promotions"]}>
-                                                <Tab key="scores" title="Scores">
+                                            <Tabs size="lg" radius="md" color="primary" disabledKeys={[]}>
+                                                <Tab key="scores" title="Student Scores">
                                                     <Card className="flex flex-col gap-y-4">
                                                         <CardBody>
                                                             {(currentResultsToPrint as RecordOptionSchema[]).at(0)?.type === "option" ?
@@ -1008,7 +1031,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                         </CardBody>
                                                     </Card>
                                                 </Tab>
-                                                <Tab key="conduct" title="Conduct">
+                                                <Tab key="conduct" title="Student Conduct">
                                                     <Card className="flex flex-col gap-y-4">
                                                         <div className="gap-y-8 m-4">
                                                             <div className="grid grid-cols-2 mx-4 gap-8 space-y-12">
@@ -1084,32 +1107,32 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                         </div>
                                                     </Card>
                                                 </Tab>
-                                                <Tab key="promotions" title="Promotions">
-                                                    <Card className="flex flex-col gap-y-4">
-                                                        <div className="grid grid-cols-2 gap-y-8 m-4">
-                                                            <div className="mx-4 gap-8 space-y-12">
-                                                                <NumberInput
-                                                                    isRequired
-                                                                    name="rollNo"
-                                                                    label="Number on roll"
-                                                                    labelPlacement="outside"
-                                                                    validate={(value) => {
-                                                                        if (value < 0) {
-                                                                            return "Number must be greater than 0";
-                                                                        }
-                                                                        if (value > 54) {
-                                                                            return "Number must be less than 54";
-                                                                        }
-                                                                    }}
-                                                                    className="w-full"
-                                                                    formatOptions={{
-                                                                        style: "percent",
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </Card>
-                                                </Tab>
+                                                {/* <Tab key="promotions" title="Promotions"> */}
+                                                {/*     <Card className="flex flex-col gap-y-4"> */}
+                                                {/*         <div className="grid grid-cols-2 gap-y-8 m-4"> */}
+                                                {/*             <div className="mx-4 gap-8 space-y-12"> */}
+                                                {/*                 <NumberInput */}
+                                                {/*                     isRequired */}
+                                                {/*                     name="rollNo" */}
+                                                {/*                     label="Number on roll" */}
+                                                {/*                     labelPlacement="outside" */}
+                                                {/*                     validate={(value) => { */}
+                                                {/*                         if (value < 0) { */}
+                                                {/*                             return "Number must be greater than 0"; */}
+                                                {/*                         } */}
+                                                {/*                         if (value > 54) { */}
+                                                {/*                             return "Number must be less than 54"; */}
+                                                {/*                         } */}
+                                                {/*                     }} */}
+                                                {/*                     className="w-full" */}
+                                                {/*                     formatOptions={{ */}
+                                                {/*                         style: "percent", */}
+                                                {/*                     }} */}
+                                                {/*                 /> */}
+                                                {/*             </div> */}
+                                                {/*         </div> */}
+                                                {/*     </Card> */}
+                                                {/* </Tab> */}
 
                                             </Tabs>
                                         : modalAction === "delete" ?
