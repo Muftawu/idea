@@ -63,7 +63,7 @@ const s = StyleSheet.create({
         backgroundColor: C.bg,
         paddingBottom: 32,
         paddingHorizontal: 0,
-        fontFamily: "Helvetica", 
+        fontFamily: "Helvetica",
     },
 
     // Header band
@@ -421,6 +421,38 @@ const s = StyleSheet.create({
         color: C.muted,
         textAlign: "right",
     },
+
+    // customer base section here
+    attitudeRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: C.border,
+    },
+    attitudeLabel: {
+        fontSize: 7.5,
+        color: C.mid,
+        fontFamily: "Helvetica-Bold",
+    },
+    attitudeValue: {
+        fontSize: 8,
+        color: C.dark,
+        fontStyle: "italic",
+    },
+    remarksCard: {
+        flex: 1,
+        backgroundColor: C.white,
+        borderRadius: 7,
+        borderWidth: 1.5,
+        borderColor: C.borderStrong,
+        overflow: "hidden",
+    },
+    signBoxBody: {
+        padding: 5,
+        maxHeight: 7,
+    },
 });
 
 const getResultStyle = (result: string) => {
@@ -560,48 +592,94 @@ export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate
                     {/*     </View> */}
                     {/* )} */}
 
-                    <View style={s.CustomboxWrapper}>
-                        <View style={s.boxHeader}>
-                            <Text style={s.boxHeaderText}>ATTITUDE</Text>
-                            <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
-                                {val(data.conduct?.attitude, "---")}
-                            </Text>
+                    <View style={{ flexDirection: "row", marginBottom: 10 }}>
+                        <View style={{ flex: 1, backgroundColor: C.white, borderRadius: 7, borderWidth: 1.5, borderColor: C.borderStrong, overflow: "hidden", marginRight: 10 }}>
+                            <View style={s.boxHeader}>
+                                <Text style={s.boxHeaderText}>CONDUCT & ATTITUDE</Text>
+                            </View>
+                            <View style={s.boxBody}>
+                                {[
+                                    { label: "Conduct", value: val(data.conduct?.conduct) },
+                                    { label: "Attitude", value: val(data.conduct?.attitude) },
+                                    { label: "Interest", value: val(data.conduct?.interest) },
+                                ].map((item) => (
+                                    <View key={item.label} style={s.attitudeRow}>
+                                        <Text style={s.attitudeLabel}>{item.label}</Text>
+                                        <Text style={s.attitudeValue}>{item.value}</Text>
+                                    </View>
+                                ))}
+                            </View>
                         </View>
-                        <View style={[s.boxHeader, { marginTop: 5 }]}>
-                            <Text style={s.boxHeaderText}>CONDUCT</Text>
-                            <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
-                                {val(data.conduct?.conduct, "---")}
-                            </Text>
-                        </View>
-
-                        <View style={[s.boxHeader, { marginTop: 5 }]}>
-                            <Text style={s.boxHeaderText}>INTERESTS</Text>
-                            <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
-                                {val(data.conduct?.interest, "---")}
-                            </Text>
-                        </View>
-
-                        <View style={{ backgroundColor: C.brandLight, paddingVertical: 2, paddingHorizontal: 14 }}>
-                            <Text style={s.boxHeaderText}>TEACHER REMARKS</Text>
-                            <Text style={[s.remarksText, { marginHorizontal: 8 }]}>
-                                {val(data.conduct?.teacherRemarks, "---")}
-                            </Text>
+                        <View style={s.remarksCard}>
+                            <View style={s.boxHeader}>
+                                <Text style={s.boxHeaderText}>CLASS TEACHER'S REMARKS</Text>
+                            </View>
+                            <View style={s.boxBody}>
+                                <Text style={s.remarksText}>
+                                    {val(data.conduct?.teacherRemarks, "No remarks provided.")}
+                                </Text>
+                            </View>
                         </View>
                     </View>
 
+                    {/* Signatures */}
                     <View style={s.bottomRow}>
                         <View
+                            // style={[s.signBox, i === arr.length - 1 ? s.signBoxLast : {}]}
                             style={[s.signBox,]}
                         >
                             <View style={s.boxHeader}>
                                 <Text style={s.boxHeaderText}>Signature/Stamp</Text>
                             </View>
-                            <View style={{ padding: 5, maxHeight: 30 }}>
+                            <View style={s.signBoxBody}>
                                 <View style={s.signLine} />
                                 {/* <Text style={s.signLabel}>{label.split("'")[0]}</Text> */}
                             </View>
                         </View>
                     </View>
+
+                    {/* <View style={s.CustomboxWrapper}> */}
+                    {/*     <View style={s.boxHeader}> */}
+                    {/*         <Text style={s.boxHeaderText}>ATTITUDE</Text> */}
+                    {/*         <Text style={[s.remarksText, { marginHorizontal: 8 }]}> */}
+                    {/*             {val(data.conduct?.attitude, "---")} */}
+                    {/*         </Text> */}
+                    {/*     </View> */}
+                    {/*     <View style={[s.boxHeader, { marginTop: 5 }]}> */}
+                    {/*         <Text style={s.boxHeaderText}>CONDUCT</Text> */}
+                    {/*         <Text style={[s.remarksText, { marginHorizontal: 8 }]}> */}
+                    {/*             {val(data.conduct?.conduct, "---")} */}
+                    {/*         </Text> */}
+                    {/*     </View> */}
+                    {/**/}
+                    {/*     <View style={[s.boxHeader, { marginTop: 5 }]}> */}
+                    {/*         <Text style={s.boxHeaderText}>INTERESTS</Text> */}
+                    {/*         <Text style={[s.remarksText, { marginHorizontal: 8 }]}> */}
+                    {/*             {val(data.conduct?.interest, "---")} */}
+                    {/*         </Text> */}
+                    {/*     </View> */}
+                    {/**/}
+                    {/*     <View style={{ backgroundColor: C.brandLight, paddingVertical: 2, paddingHorizontal: 14 }}> */}
+                    {/*         <Text style={s.boxHeaderText}>TEACHER REMARKS</Text> */}
+                    {/*         <Text style={[s.remarksText, { marginHorizontal: 8 }]}> */}
+                    {/*             {val(data.conduct?.teacherRemarks, "---")} */}
+                    {/*         </Text> */}
+                    {/*     </View> */}
+                    {/* </View> */}
+                    {/**/}
+                    {/* <View style={s.bottomRow}> */}
+                    {/*     <View */}
+                    {/*         style={[s.signBox,]} */}
+                    {/*     > */}
+                    {/*         <View style={s.boxHeader}> */}
+                    {/*             <Text style={s.boxHeaderText}>Signature/Stamp</Text> */}
+                    {/*         </View> */}
+                    {/*         <View style={{ padding: 5, maxHeight: 30 }}> */}
+                    {/*             <View style={s.signLine} /> */}
+                    {/*             {/* <Text style={s.signLabel}>{label.split("'")[0]}</Text> */}
+                    {/*         </View> */}
+                    {/*     </View> */}
+                    {/* </View> */}
 
 
                     {/* Attitude and Conduct*/}
