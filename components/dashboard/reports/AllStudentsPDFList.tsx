@@ -538,7 +538,7 @@ export const AllStudentsPDFList = ({ academicTerm, academicYear, data }: { acade
                         </View>
                         <View style={s.infoGrid}>
                             <View style={s.infoCell}>
-                                <Text style={s.infoLabel}>TOTAL</Text>
+                                <Text style={s.infoLabel}>TOTAL CLASSES</Text>
                                 <Text style={{ fontSize: 16, fontFamily: "Helvetica-Bold", color: C.black }}>
                                     {data.length}
                                 </Text>
@@ -580,7 +580,7 @@ export const AllStudentsPDFList = ({ academicTerm, academicYear, data }: { acade
                                         <Text style={s.thText}>STUDENT FULL NAME</Text>
                                     </View>
                                     <View style={s.colGender}>
-                                        <Text style={[s.thText, { textAlign: "center" }]}>GENDER</Text>
+                                        <Text style={[s.thText, { textAlign: "center" }]}>DATE OF BIRTH</Text>
                                     </View>
                                     <View style={s.colDob}>
                                         <Text style={s.thText}>AGE</Text>

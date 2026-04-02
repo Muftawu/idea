@@ -15,7 +15,7 @@ import { useEffect, useState } from "react"
 import { Settings2, BadgeInfoIcon } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { SchoolSettingsSchemaT } from "@/lib/schemas";
-import { BaseErrMsg, BaseRequestHeaders } from "@/lib/utils";
+import { AcademicYears, BaseErrMsg, BaseRequestHeaders } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { Spinner } from "@heroui/react";
 import { useAuthContext } from "@/context/authContext";
@@ -32,6 +32,7 @@ export default function Settings() {
     const [schoolSettings, setSchoolSettings] = useState<SchoolSettingsSchemaT>({
         name: "",
         currentTerm: "",
+        academicYearOptions: [],
         academicYear: "",
         nextReopeningDate: new Date(),
         termStarts: new Date(),
@@ -242,16 +243,19 @@ export default function Settings() {
                                             <SelectItem key="2nd">2nd Term</SelectItem>
                                             <SelectItem key="3rd">3rd Term</SelectItem>
                                         </Select>
-                                        <Input
-                                            isRequired={true}
-                                            label="Academic Year (i.e 2025/2026)"
+                                        <Select
                                             name="academicYear"
+                                            label="Academic Year (i.e 2025/2026)"
+                                            className=""
                                             labelPlacement="outside"
-                                            placeholder="Class name"
-                                            className="w-full"
-                                            value={schoolSettings.academicYear}
+                                            placeholder="2025/2026"
+                                            selectedKeys={[schoolSettings.academicYear ?? ""]}
                                             onChange={handleOnSchoolSettingsFormChange}
-                                        />
+                                        >
+                                            {schoolSettings.academicYearOptions?.map((item) => (
+                                                <SelectItem key={item}>{item}</SelectItem>
+                                            ))}
+                                        </Select>
                                         <NumberInput
                                             isRequired={true}
                                             label="Attendance"
@@ -324,7 +328,7 @@ export default function Settings() {
                                         />
                                         <Select
                                             name="staffPortalStatus"
-                                            label="Staff portal status" 
+                                            label="Staff portal status"
                                             className=""
                                             labelPlacement="outside"
                                             placeholder="Set staff portal status"

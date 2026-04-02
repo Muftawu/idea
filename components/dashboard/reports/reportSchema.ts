@@ -4,6 +4,7 @@ export type RecordOptionSchema = {
     classGroup: string,
     className: string,
     academicTerm: string,
+    academicYear: string,
     type: "option",
     conductObj?: StudentConductSchemaT,
     recordObj: {
@@ -18,6 +19,7 @@ export type RecordOptionSchema = {
 export type RecordOptionPackage = {
     academicTerm: string,
     conduct?: StudentConductSchemaT,
+    academicYear: string,
     type: "option",
     classGroup: string,
     className: string,
@@ -32,6 +34,7 @@ export type RecordNumberSchema = {
     classGroup: string,
     className: string,
     academicTerm: string,
+    academicYear: string,
     type: "number",
     conductObj?: StudentConductSchemaT,
     recordObj: {
@@ -50,6 +53,7 @@ export type RecordNumberSchema = {
 
 export type RecordNumberPackage = {
     academicTerm: string,
+    academicYear: string,
     conduct?: StudentConductSchemaT,
     type: "number",
     classGroup: string,

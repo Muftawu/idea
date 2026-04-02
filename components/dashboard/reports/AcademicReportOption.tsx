@@ -379,7 +379,7 @@ const s = StyleSheet.create({
         fontSize: 9.5,
         color: C.mid,
         fontStyle: "italic",
-        lineHeight: 1.6,
+        lineHeight: 1.5,
         marginTop: 5
     },
     signLine: {
@@ -625,7 +625,6 @@ export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate
                     {/* Signatures */}
                     <View style={s.bottomRow}>
                         <View
-                            // style={[s.signBox, i === arr.length - 1 ? s.signBoxLast : {}]}
                             style={[s.signBox,]}
                         >
                             <View style={s.boxHeader}>
@@ -633,90 +632,18 @@ export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate
                             </View>
                             <View style={s.signBoxBody}>
                                 <View style={s.signLine} />
-                                {/* <Text style={s.signLabel}>{label.split("'")[0]}</Text> */}
                             </View>
                         </View>
                     </View>
 
-                    {/* <View style={s.CustomboxWrapper}> */}
-                    {/*     <View style={s.boxHeader}> */}
-                    {/*         <Text style={s.boxHeaderText}>ATTITUDE</Text> */}
-                    {/*         <Text style={[s.remarksText, { marginHorizontal: 8 }]}> */}
-                    {/*             {val(data.conduct?.attitude, "---")} */}
-                    {/*         </Text> */}
-                    {/*     </View> */}
-                    {/*     <View style={[s.boxHeader, { marginTop: 5 }]}> */}
-                    {/*         <Text style={s.boxHeaderText}>CONDUCT</Text> */}
-                    {/*         <Text style={[s.remarksText, { marginHorizontal: 8 }]}> */}
-                    {/*             {val(data.conduct?.conduct, "---")} */}
-                    {/*         </Text> */}
-                    {/*     </View> */}
-                    {/**/}
-                    {/*     <View style={[s.boxHeader, { marginTop: 5 }]}> */}
-                    {/*         <Text style={s.boxHeaderText}>INTERESTS</Text> */}
-                    {/*         <Text style={[s.remarksText, { marginHorizontal: 8 }]}> */}
-                    {/*             {val(data.conduct?.interest, "---")} */}
-                    {/*         </Text> */}
-                    {/*     </View> */}
-                    {/**/}
-                    {/*     <View style={{ backgroundColor: C.brandLight, paddingVertical: 2, paddingHorizontal: 14 }}> */}
-                    {/*         <Text style={s.boxHeaderText}>TEACHER REMARKS</Text> */}
-                    {/*         <Text style={[s.remarksText, { marginHorizontal: 8 }]}> */}
-                    {/*             {val(data.conduct?.teacherRemarks, "---")} */}
-                    {/*         </Text> */}
-                    {/*     </View> */}
-                    {/* </View> */}
-                    {/**/}
-                    {/* <View style={s.bottomRow}> */}
-                    {/*     <View */}
-                    {/*         style={[s.signBox,]} */}
-                    {/*     > */}
-                    {/*         <View style={s.boxHeader}> */}
-                    {/*             <Text style={s.boxHeaderText}>Signature/Stamp</Text> */}
-                    {/*         </View> */}
-                    {/*         <View style={{ padding: 5, maxHeight: 30 }}> */}
-                    {/*             <View style={s.signLine} /> */}
-                    {/*             {/* <Text style={s.signLabel}>{label.split("'")[0]}</Text> */}
-                    {/*         </View> */}
-                    {/*     </View> */}
-                    {/* </View> */}
-
-
-                    {/* Attitude and Conduct*/}
-                    {/* <View style={[s.bottomRow, { marginBottom: 2 }]}> */}
-                    {/*     <View style={s.remarksBox}> */}
-                    {/*         <View style={s.boxHeader}> */}
-                    {/*             <Text style={s.boxHeaderText}>ATTITUDE IN CLASS</Text> */}
-                    {/*         </View> */}
-                    {/*         <View style={s.boxBody}> */}
-                    {/*             <Text style={s.remarksText}> */}
-                    {/*                 {val(data.conduct?.attitude, "No remarks provided.")} */}
-                    {/*             </Text> */}
-                    {/*         </View> */}
-                    {/*     </View> */}
-                    {/**/}
-                    {/* <View style={s.remarksBox}> */}
-                    {/*     <View style={s.boxHeader}> */}
-                    {/*         <Text style={s.boxHeaderText}>CONDUCT IN CLASS</Text> */}
-                    {/*     </View> */}
-                    {/*     <View style={s.boxBody}> */}
-                    {/*         <Text style={s.remarksText}> */}
-                    {/*             {val(data.conduct?.conduct, "No conduct provided.")} */}
-                    {/*         </Text> */}
-                    {/*     </View> */}
-                    {/* </View> */}
-
-                    {/* </View> */}
-
-
                     {/* Footer */}
-                    <View style={s.footer}>
-                        <Text style={s.footerLeft}>IDEA International School · Accra, Ghana</Text>
-                        <Text style={s.footerCenter}>
-                            Confidential — For Parent / Guardian Use Only
-                        </Text>
-                        <Text style={s.footerRight}>{val(data.academicTerm)} · {val(new Date().getFullYear())}</Text>
-                    </View>
+                    {/* <View style={s.footer}> */}
+                    {/*     <Text style={s.footerLeft}>IDEA International School · Accra, Ghana</Text> */}
+                    {/*     <Text style={s.footerCenter}> */}
+                    {/*         Confidential — For Parent / Guardian Use Only */}
+                    {/*     </Text> */}
+                    {/*     <Text style={s.footerRight}>{val(data.academicTerm)} · {val(new Date().getFullYear())}</Text> */}
+                    {/* </View> */}
 
                 </View>
             </Page>

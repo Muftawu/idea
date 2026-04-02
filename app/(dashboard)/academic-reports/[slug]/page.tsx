@@ -36,6 +36,7 @@ type classListProps = {
 type recordFilterSchema = {
     academicTerm: string,
     className: string,
+    academicYear: string,
 }
 
 export default function AcademicReportPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -89,7 +90,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     // student records options 
     const [isStudentAcademicRecordsFetched, setIsStudentAcademicRecordsFetched] = useState<boolean>(false)
     const [allStudentAcademicRecords, setAllStudentAcademicRecord] = useState<(RecordOptionSchema | RecordNumberSchema)[]>([])
-    const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", className: "Basic 1" })
+    const [academicRecordsFilterOptions, setAcademicRecordFilterOptions] = useState<recordFilterSchema>({ academicTerm: "1st", className: "", academicYear: "" })
 
     // export
     const [currentResultsToPrint, setCurrentResultToPrint] = useState<(RecordOptionSchema | RecordNumberSchema)[]>([])
@@ -97,6 +98,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     const [finalRecordExportDataOptions, setFinalRecordExportDataOptions] = useState<RecordOptionPackage>({
         academicTerm: "",
         student: "",
+        academicYear: "",
         classGroup: "",
         className: "",
         type: "option",
@@ -113,6 +115,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     })
     const [finalRecordExportDataNumber, setFinalRecordExportDataNumber] = useState<RecordNumberPackage>({
         academicTerm: "",
+        academicYear: "",
         student: "",
         classGroup: "",
         className: "",
@@ -232,7 +235,10 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
     useEffect(() => {
         const fn = () => {
-            const newdata = allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm && obj.className === academicRecordsFilterOptions.className)
+            const newdata = allStudentAcademicRecords.filter(obj => obj.academicTerm === academicRecordsFilterOptions.academicTerm &&
+                obj.className === academicRecordsFilterOptions.className &&
+                obj.academicYear === academicRecordsFilterOptions.academicYear
+            )
             if (newdata.length < 1) {
                 setCurrentResultToPrint([])
                 setIsCurrentResultToPrintReady(false)
@@ -243,7 +249,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             }
         }
         fn()
-    }, [academicRecordsFilterOptions.academicTerm, academicRecordsFilterOptions.className])
+    }, [academicRecordsFilterOptions.academicTerm, academicRecordsFilterOptions.className, academicRecordsFilterOptions.academicYear])
 
     useEffect(() => {
         const fn = () => {
@@ -259,6 +265,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                 if (!single) return false
 
                 const academicTerm = single?.academicTerm
+                const academicYear = single?.academicYear
                 const classGroup = single?.classGroup
                 const classname = single?.className
                 const student = single?.recordObj.student
@@ -269,13 +276,13 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                 if (academicTerm && classGroup && student && currentResultsToPrint.length > 0) {
                     if (type === "option") {
                         const out = (currentResultsToPrint as RecordOptionSchema[]).map(({ recordObj: { classSubject, scoreValue } }) => ({ classSubject, scoreValue }))
-                        const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
+                        const data = { academicTerm: academicTerm, academicYear: academicYear, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
                         setFinalRecordExportDataOptions(data)
                         setShowDownloadButton(true)
                         return true
                     } else {
                         const out = (currentResultsToPrint as RecordNumberSchema[]).map(({ recordObj: { classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position, id } }) => ({ classSubject, classScoreValue, examScoreValue, grade, totalScore, facilitator, position, id }))
-                        const data = { academicTerm: academicTerm, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
+                        const data = { academicTerm: academicTerm, academicYear: academicYear, conduct: conductObj, student: student, classGroup: classGroup, type: type, className: classname, records: out }
                         setFinalRecordExportDataNumber(data)
                         setShowDownloadButton(true)
                         return true
@@ -393,6 +400,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         if (!studentConductInfo.rollNo || !studentConductInfo.attendance || !studentConductInfo.attitude || !studentConductInfo.interest || !studentConductInfo.conduct || !studentConductInfo.teacherRemarks) return toast.info("Please complete all fields in the `Conducts` Tab before saving.")
 
         const studentId = studentInfo.id
+        const academicYear = schoolData.schoolSettings.academicYear
         const classname = reportClassType ?? studentInfo.currentClass.name
         const academicTerm = schoolData.schoolSettings.currentTerm
         const subjectScores = studentScores.map((item) => ({ subject: item.field, score_val: item.value }))
@@ -402,9 +410,9 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
         if (ClassGroupListNumber.includes(reportGroupType)) {
             studentScores.map((item) => item.field.startsWith("class") ? class_scores.push({ subject: item.field.split("__")[1], score_val: item.value }) : exam_scores.push({ subject: item.field.split("__")[1], score_val: item.value }))
-            payload = { academicTerm, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions }
+            payload = { academicTerm, academicYear, studentId, class_scores, classname, exam_scores, studentConductInfo, facilitators, positions }
         } else {
-            payload = { academicTerm, studentId, subjectScores, classname, studentConductInfo }
+            payload = { academicTerm, academicYear, studentId, subjectScores, classname, studentConductInfo }
         }
 
         const submitApiUrl = ClassGroupListOptions.includes(reportGroupType) ? `/api/academic-record-item-option` : `/api/academic-record-item-number`
@@ -498,8 +506,10 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         const val_split = val.split("__")
         setReportGroupType(val_split[1])
         setReportClassType(val_split[0])
-        if (allStudentAcademicRecords.find(obj => obj.className === val_split[0] && obj.recordObj.academicTerm)) {
-            toast.info(`${studentInfo.surname} ${studentInfo.otherNames} already has records for ${val_split[0]} ${schoolData.schoolSettings.currentTerm} Term. Please select a different class or notify Admin to update current academic term`)
+        const currentAcademicYear = schoolData.schoolSettings.academicYear
+        const currentAcademicTerm = schoolData.schoolSettings.currentTerm
+        if (allStudentAcademicRecords.find(obj => obj.className === val_split[0] && obj.academicYear === currentAcademicYear && obj.recordObj.academicTerm === currentAcademicTerm)) {
+            toast.info(`${studentInfo.surname} ${studentInfo.otherNames} already has records for ${val_split[0]} ${schoolData.schoolSettings.currentTerm} Term ${schoolData.schoolSettings.academicYear}. Please select a different class or notify Admin to update current academic term and year.`)
             onClose()
             return
         }
@@ -526,6 +536,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                 <div>
                                     <p className="font-medium text-foreground">{studentInfo.surname} {studentInfo.otherNames}</p>
                                     <p className="text-sm text-muted-foreground">Current Class: {studentInfo.currentClass.name} | {studentInfo.gender === "m" ? "Male" : "Female"}</p>
+                                    <p className="text-sm text-primary">Current Term: {schoolData.schoolSettings.currentTerm ?? ""}</p>
+                                    <p className="text-sm text-primary">Current Academic Year: {schoolData.schoolSettings.academicYear ?? ""}</p>
                                 </div>
                             }
                         </div>
@@ -583,7 +595,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
                 <div className="p-4 bg-primary-100 rounded-lg">
                     <p className="mt-2 text-muted-foreground">Filter using the select options below</p>
-                    <div className="grid grid-cols-2 flex flex-row gap-4">
+                    <div className="grid grid-cols-3 flex flex-row gap-4">
                         <Select
                             label="Term"
                             className="flex"
@@ -607,6 +619,18 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                 <SelectItem key={item.name}>{item.name}</SelectItem>
                             ))}
                         </Select>
+                        <Select
+                            label="Academic Year"
+                            labelPlacement="inside"
+                            placeholder="Select academic year"
+                            selectedKeys={new Set([academicRecordsFilterOptions.academicYear])}
+                            onChange={(e) => setAcademicRecordFilterOptions({ ...academicRecordsFilterOptions, academicYear: e.target.value })}
+                        >
+                            {schoolData.schoolSettings.academicYearOptions.map((item) => (
+                                <SelectItem key={item}>{item}</SelectItem>
+                            ))}
+                        </Select>
+
                     </div>
                 </div>
 
@@ -656,6 +680,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
 
                                 {modalAction === "add" ?
                                     <>
+                                        <h1 className="mx-4 text-primary">This record will be added under {schoolData.schoolSettings.currentTerm} Term of academic year {schoolData.schoolSettings.academicYear}!</h1>
                                         <div className="mx-4">
                                             <Select
                                                 isRequired={true}

@@ -51,7 +51,8 @@ const SchoolSettingsSchema = z.object({
     termEnds: z.date(),
     attendance: z.number().optional(),
     staffPortalStatus: z.string().optional(),
-    nextReopeningDate: z.date()
+    nextReopeningDate: z.date(),
+    academicYearOptions: z.array(z.string()),
 })
 
 const StaffCredentialSchema = z.object({

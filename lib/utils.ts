@@ -81,7 +81,7 @@ export const studentConductFormFields: optionsSchema[] = [
     { key: "remarks", label: "Teacher's remarks" },
 ]
 
-export const Positions = [
+export const Positions: optionsSchema[] = [
     { key: "1", label: "1st" },
     { key: "2", label: "2nd" },
     { key: "3", label: "3rd" },
@@ -134,4 +134,17 @@ export const Positions = [
     { key: "50", label: "50th" },
 ]
 
+export const AcademicYears: optionsSchema[] = [
+    { "key": "2025/2026", label: "2025/2026" },
+    { "key": "2026/2027", label: "2026/2027" },
+    { "key": "2027/2028", label: "2027/2028" },
+    { "key": "2028/2029", label: "2028/2029" },
+    { "key": "2029/2030", label: "2029/2030" },
+    { "key": "2030/2031", label: "2030/2031" },
+    { "key": "2031/2032", label: "2031/2032" },
+    { "key": "2032/2033", label: "2032/2033" },
+    { "key": "2033/2034", label: "2033/2034" },
+    { "key": "2034/2035", label: "2034/2035" },
+    { "key": "2035/2036", label: "2035/2036" },
+]
 
