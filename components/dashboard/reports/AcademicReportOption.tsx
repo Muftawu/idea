@@ -518,7 +518,7 @@ export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate
 
     return (
         <Document
-            title={`${data.records} — ${data.academicTerm} Report`}
+            title={`${data.student} - ${data.academicTerm} Term ${data.academicYear} Report`}
             author="Idea International School"
             subject="End of Term Achievement Report"
         >

@@ -11,7 +11,8 @@ const UserSchema = z.object({
     phone: z.string(),
     gender: z.string(),
     dateOfBirth: z.date(),
-    nationality: z.string().optional()
+    nationality: z.string().optional(),
+    portalAccess: z.string().optional(),
 })
 
 // STAT

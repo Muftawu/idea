@@ -1,7 +1,7 @@
 "use client"
 import { DateValue } from "@heroui/react";
 import { getLocalTimeZone, CalendarDate } from "@internationalized/date"
-import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, Copy } from "lucide-react"
+import { PlusCircle, EyeIcon, UserRound, TrashIcon, Edit, Copy, ToggleLeftIcon, ToggleRightIcon } from "lucide-react"
 import React from "react"
 import { useState, useEffect, useRef } from "react"
 import { StaffT, StaffStatSchemaT, ClassRoomSchemaT } from "@/lib/schemas"
@@ -39,6 +39,7 @@ export default function Staff() {
         staffId: "",
         personalInfo: {
             first_name: "",
+            portalAccess: "",
             last_name: "",
             userType: "",
             email: "",
@@ -152,7 +153,8 @@ export default function Staff() {
                 dateOfBirth: new Date(),
                 userType: "",
                 phone: "",
-                gender: "f"
+                gender: "f",
+                portalAccess: "",
             },
             staffId: "",
             staffCredentials: {
@@ -270,7 +272,7 @@ export default function Staff() {
 
         let personalInfoFieldUpdates = {}
         let staffInfoFieldUpdates = {}
-        const personalInfoFormFields = ["first_name", "last_name", "email", "phone", "gender", "nationality", "dateOfBirth"]
+        const personalInfoFormFields = ["first_name", "last_name", "email", "phone", "gender", "nationality", "dateOfBirth", "portalAccess"]
         const payload = staffUpdates.current.map(({ field, value }) => ({ [field]: value }))
 
         for (var item in payload) {
@@ -499,6 +501,19 @@ export default function Staff() {
                                                         <SelectItem key={item.key}>{item.label}</SelectItem>
                                                     ))}
                                                 </Select>
+                                                <Select
+                                                    name="portalAccess"
+                                                    label="Change staff portal access"
+                                                    labelPlacement="outside"
+                                                    items={availableClassItems}
+                                                    selectedKeys={[staffInfo.personalInfo.portalAccess ?? ""]}
+                                                    placeholder="Allow"
+                                                    onChange={handlePersonalInfoChange}
+                                                >
+                                                    <SelectItem key="Allow">Allow</SelectItem>
+                                                    <SelectItem key="Deny">Deny</SelectItem>
+                                                </Select>
+
                                             </div>
                                         }
 
@@ -598,6 +613,18 @@ export default function Staff() {
                                                     <div className="flex flex-row justify-between">
                                                         <p className="text-small text-default-500">Password: <b>{staffInfo.staffCredentials.password}</b> </p>
                                                         <Copy onClick={() => handleOnCopyStaffCredential("Password", staffInfo.staffCredentials.password)} className="w-5 mx-4 cursor-pointer hover:color-primary" size="sm" />
+                                                    </div>
+                                                </div>
+
+                                                <Divider />
+
+                                                <h1 className="font-bold">Staff Portal Access</h1>
+                                                <div className="flex flex-row justify-between items-center mx-4">
+                                                    <div className="">
+                                                        <p className="text-small text-default-500">Staff access to portal <span className="text-primary">({staffInfo.personalInfo.portalAccess === "Allow" ? "Acceess Granted" : "Access Denied"})</span></p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-small text-default-500"><b>{staffInfo.personalInfo.portalAccess === "Allow" ? <ToggleRightIcon color="green" /> : <ToggleLeftIcon color="red" />}</b> </p>
                                                     </div>
                                                 </div>
 

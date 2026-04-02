@@ -682,7 +682,7 @@ export const AcademicReportNumber = ({ academicYear, vacationDate, reopeningDate
 
     return (
         <Document
-            title={`${data.student} — Terminal Report ${data.academicTerm}`}
+            title={`${data.student} - ${data.academicTerm} Terminal Report, ${data.academicYear}`}
             author="IDEA International School"
             subject="Terminal Report Card"
         >

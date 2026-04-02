@@ -554,7 +554,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                             ClassGroupListOptions.includes(currentResultsToPrint.at(0)?.classGroup ?? "") ?
                                                 <PDFDownloadLink
                                                     document={<AcademicReportOption academicYear={schoolData.schoolSettings.academicYear} vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} totalAttendance={schoolData.schoolSettings.attendance ?? 0} data={finalRecordExportDataOptions} />}
-                                                    fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${reportClassType}_${new Date().getFullYear()}`}>
+                                                    fileName={`${studentInfo.surname.replace(".", " ")}_${studentInfo.otherNames.replace(".", " ")}_${reportClassType}_${new Date().getFullYear()}`}>
                                                     {({ blob, url, loading, error }) =>
                                                         loading ? <Spinner size="sm" /> :
                                                             <div className="flex flex-row justify-center items-center">
@@ -567,7 +567,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                 :
                                                 <PDFDownloadLink
                                                     document={<AcademicReportNumber academicYear={schoolData.schoolSettings.academicYear} vacationDate={new Date(schoolData.schoolSettings.termEnds).toDateString()} reopeningDate={new Date(schoolData.schoolSettings.nextReopeningDate).toDateString()} totalAttendance={schoolData.schoolSettings.attendance ?? 0} data={finalRecordExportDataNumber} />}
-                                                    fileName={`${studentInfo.surname}_${studentInfo.otherNames}_${reportClassType}_${new Date().getFullYear()}`}>
+                                                    fileName={`${studentInfo.surname.replace(".", " ")}_${studentInfo.otherNames.replace(".", " ")}_${reportClassType}_${new Date().getFullYear()}`}>
                                                     {({ blob, url, loading, error }) =>
                                                         loading ? <Spinner size="sm" /> :
                                                             <div className="flex flex-row justify-center items-center">
