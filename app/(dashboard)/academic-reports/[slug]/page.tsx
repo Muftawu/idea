@@ -394,6 +394,10 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
     }
 
     const handleSubmitStudentScores = async () => {
+
+        const resExists = handleOnChangeReportType(studentInfo.currentClass?.name ?? "")
+        if (resExists) return
+
         if (!studentInfo.currentClass.classGroup) return
         const subjectLen = ClassGroupListNumber.includes(reportGroupType) ? studentScores.length / 2 : studentScores.length
         if (subjectLen !== classSubjectList.subjects.length) return toast.info("All score fields are required. Please check the `Scores` tab.")
@@ -511,8 +515,9 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         if (allStudentAcademicRecords.find(obj => obj.className === val_split[0] && obj.academicYear === currentAcademicYear && obj.recordObj.academicTerm === currentAcademicTerm)) {
             toast.info(`${studentInfo.surname} ${studentInfo.otherNames} already has records for ${val_split[0]} ${schoolData.schoolSettings.currentTerm} Term ${schoolData.schoolSettings.academicYear}. Please select a different class or notify Admin to update current academic term and year.`)
             onClose()
-            return
+            return true
         }
+        return false
     }
 
     return (
