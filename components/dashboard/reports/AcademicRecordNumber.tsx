@@ -726,7 +726,7 @@ export const AcademicReportNumber = ({ academicYear, vacationDate, reopeningDate
                                     <InfoCell label="Attendance" value={`${val(data.conduct?.attendance)} out of ${totalAttendance}`} half />
                                     <InfoCell label="Vacation Date" value={vacationDate ?? "---"} half />
                                     <InfoCell label="Reopening Date" value={reopeningDate ?? "---"} half />
-                                    <InfoCell label="Promotion Status" value="N/A" half />
+                                    <InfoCell label="Promotion Status" value={val(data.conduct?.promotedTo)} half />
                                 </View>
                             </View>
                         </View>

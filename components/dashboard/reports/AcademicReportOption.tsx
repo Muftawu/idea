@@ -562,6 +562,7 @@ export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate
                             <InfoCell label="Attendance" value={`${val(data.conduct?.attendance)} out of ${totalAttendance}`} />
                             <InfoCell label="Vacation Date" value={vacationDate ?? "---"} />
                             <InfoCell label="Reopening Date" value={reopeningDate ?? "---"} />
+                            <InfoCell label="Promoted To" value={val(data.conduct?.promotedTo) ?? "---"} />
                         </View>
                     </View>
 
@@ -583,11 +584,11 @@ export const AcademicReportOption = ({ academicYear, vacationDate, reopeningDate
                     </View>
 
                     {/* Promotion Banner */}
-                    {/* {val(data.promotedTo) !== "—" && ( */}
+                    {/* {val(data.conduct?.promotedTo) !== "—" && ( */}
                     {/*     <View style={s.promotionBanner}> */}
                     {/*         <View style={{ marginRight: 12 }}> */}
                     {/*             <Text style={s.promotionLabel}>PROMOTED TO</Text> */}
-                    {/*             <Text style={s.promotionValue}>{val(data.promotedTo)}</Text> */}
+                    {/*             <Text style={s.promotionValue}>{val(data.conduct?.promotedTo)}</Text> */}
                     {/*         </View> */}
                     {/*     </View> */}
                     {/* )} */}

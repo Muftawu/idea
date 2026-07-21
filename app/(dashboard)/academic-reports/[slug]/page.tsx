@@ -126,7 +126,8 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
             attitude: "",
             conduct: "",
             interest: "",
-            teacherRemarks: ""
+            teacherRemarks: "",
+            promotedTo: ""
         },
         records: []
     })
@@ -402,6 +403,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
         const subjectLen = ClassGroupListNumber.includes(reportGroupType) ? studentScores.length / 2 : studentScores.length
         if (subjectLen !== classSubjectList.subjects.length) return toast.info("All score fields are required. Please check the `Scores` tab.")
         if (!studentConductInfo.rollNo || !studentConductInfo.attendance || !studentConductInfo.attitude || !studentConductInfo.interest || !studentConductInfo.conduct || !studentConductInfo.teacherRemarks) return toast.info("Please complete all fields in the `Conducts` Tab before saving.")
+        if (schoolData.schoolSettings.currentTerm === "3rd" && !studentConductInfo.promotedTo) return toast.info("Please select a promotionals class. Results uploaded under 3rd Term requires a student promotional class value.")
 
         const studentId = studentInfo.id
         const academicYear = schoolData.schoolSettings.academicYear
@@ -725,7 +727,7 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                                                 placeholder="Select grade"
                                                                                 onChange={(e) => handleOnChangeScoreType(item.id, e.target.value)}
                                                                             >
-                                                                                {getSubjectGroupScoreOptions(reportGroupType.toLowerCase()).map((scoreoption) => (
+                                                                                {getSubjectGroupScoreOptions(reportGroupType?.toLowerCase()).map((scoreoption) => (
                                                                                     <SelectItem key={scoreoption.key}>{scoreoption.label}</SelectItem>
                                                                                 ))}
                                                                             </Select>
@@ -904,33 +906,30 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                         </div>
                                                     </Card>
                                                 </Tab>
-                                                {/* <Tab key="promotions" title="Promotions"> */}
-                                                {/*     <Card className="flex flex-col gap-y-4"> */}
-                                                {/*         <div className="grid grid-cols-2 gap-y-8 m-4"> */}
-                                                {/*             <div className="mx-4 gap-8 space-y-12"> */}
-                                                {/*                 <NumberInput */}
-                                                {/*                     isRequired */}
-                                                {/*                     name="rollNo" */}
-                                                {/*                     label="Number on roll" */}
-                                                {/*                     labelPlacement="outside" */}
-                                                {/*                     validate={(value) => { */}
-                                                {/*                         if (value < 0) { */}
-                                                {/*                             return "Number must be greater than 0"; */}
-                                                {/*                         } */}
-                                                {/*                         if (value > 54) { */}
-                                                {/*                             return "Number must be less than 54"; */}
-                                                {/*                         } */}
-                                                {/*                     }} */}
-                                                {/*                     className="w-full" */}
-                                                {/*                     formatOptions={{ */}
-                                                {/*                         style: "percent", */}
-                                                {/*                     }} */}
-                                                {/*                 /> */}
-                                                {/*             </div> */}
-                                                {/*         </div> */}
-                                                {/*     </Card> */}
-                                                {/* </Tab> */}
-
+                                                {schoolData.schoolSettings.currentTerm === "3rd" &&
+                                                    <Tab key="promotions" title="Promotions">
+                                                        <Card className="flex flex-col gap-y-4">
+                                                            <div className="grid grid-cols-1 gap-y-8 m-4">
+                                                                <div className="mx-4 gap-8 space-y-8">
+                                                                    <p className="text-balance text-foreground">Select class for student promotion:</p>
+                                                                    <Select
+                                                                        isRequired={true}
+                                                                        name={studentConductInfo.promotedTo}
+                                                                        labelPlacement="inside"
+                                                                        selectedKeys={new Set([(allClassrooms as ClassRoomSchemaT[]).find(obj => obj.name === studentConductInfo.promotedTo)?.name ?? ""])}
+                                                                        placeholder="Select class"
+                                                                        value={studentConductInfo.promotedTo}
+                                                                        onChange={(e) => setStudentConductInfo({ ...studentConductInfo, promotedTo: e.target.value })}
+                                                                    >
+                                                                        {allClassrooms.map((item, index) => (
+                                                                            <SelectItem key={item.name} textValue={`${item.name}`}>{item.name}</SelectItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </div>
+                                                            </div>
+                                                        </Card>
+                                                    </Tab>
+                                                }
                                             </Tabs>
                                         }
                                         <Separator />
@@ -1137,33 +1136,30 @@ export default function AcademicReportPage({ params }: { params: Promise<{ slug:
                                                         </div>
                                                     </Card>
                                                 </Tab>
-                                                {/* <Tab key="promotions" title="Promotions"> */}
-                                                {/*     <Card className="flex flex-col gap-y-4"> */}
-                                                {/*         <div className="grid grid-cols-2 gap-y-8 m-4"> */}
-                                                {/*             <div className="mx-4 gap-8 space-y-12"> */}
-                                                {/*                 <NumberInput */}
-                                                {/*                     isRequired */}
-                                                {/*                     name="rollNo" */}
-                                                {/*                     label="Number on roll" */}
-                                                {/*                     labelPlacement="outside" */}
-                                                {/*                     validate={(value) => { */}
-                                                {/*                         if (value < 0) { */}
-                                                {/*                             return "Number must be greater than 0"; */}
-                                                {/*                         } */}
-                                                {/*                         if (value > 54) { */}
-                                                {/*                             return "Number must be less than 54"; */}
-                                                {/*                         } */}
-                                                {/*                     }} */}
-                                                {/*                     className="w-full" */}
-                                                {/*                     formatOptions={{ */}
-                                                {/*                         style: "percent", */}
-                                                {/*                     }} */}
-                                                {/*                 /> */}
-                                                {/*             </div> */}
-                                                {/*         </div> */}
-                                                {/*     </Card> */}
-                                                {/* </Tab> */}
-
+                                                {schoolData.schoolSettings.currentTerm === "3rd" &&
+                                                    <Tab key="promotions" title="Promotions">
+                                                        <Card className="flex flex-col gap-y-4">
+                                                            <div className="grid grid-cols-1 gap-y-8 m-4">
+                                                                <div className="mx-4 gap-8 space-y-8">
+                                                                    <p className="text-balance text-foreground">Select class for student promotion:</p>
+                                                                    <Select
+                                                                        isRequired={true}
+                                                                        name={studentConductInfo.promotedTo}
+                                                                        labelPlacement="inside"
+                                                                        selectedKeys={new Set([(allClassrooms as ClassRoomSchemaT[]).find(obj => obj.name === studentConductInfo.promotedTo)?.name ?? ""])}
+                                                                        placeholder="Select class"
+                                                                        value={studentConductInfo.promotedTo}
+                                                                        onChange={(e) => setStudentConductInfo({ ...studentConductInfo, promotedTo: e.target.value })}
+                                                                    >
+                                                                        {allClassrooms.map((item, index) => (
+                                                                            <SelectItem key={item.name} textValue={`${item.name}`}>{item.name}</SelectItem>
+                                                                        ))}
+                                                                    </Select>
+                                                                </div>
+                                                            </div>
+                                                        </Card>
+                                                    </Tab>
+                                                }
                                             </Tabs>
                                         : modalAction === "delete" ?
                                             <Card className="w-full">
